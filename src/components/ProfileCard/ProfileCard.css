@@ -1,0 +1,99 @@
+body {
+  font-family: system-ui, sans-serif; 
+  /*system-ui use the operating system's native UI font*/
+  /*Set the font application's typography at a high level.*/ 
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-surface-secondary);
+  display: flex;
+  justify-content: center; /* Centers horizontally */
+  align-items: center;     /* Centers vertically */
+  padding: var(--spacing-lg);
+}
+
+.name {
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.role {
+  margin: 0; /*reset default browser styling*/
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-sm);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  box-sizing: border-box; /*calculate the whole thing for the size*/
+  width: 100%;
+  max-width: 360px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+}
+
+.label {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--color-text-secondary); 
+}
+
+.value {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.card hr {
+  border: 0; /*reset default browser styling*/
+  border-top: 1px solid var(--color-border-subtle);
+  width: 100%;
+}
+
+.card button {
+  font: inherit;
+  line-height: 20px;
+  border: none;
+  height: 44px;
+  width: 100%;
+  background-color: var(--color-action-primary);
+  Color: var(--color-text-on-action);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-md); 
+  cursor: pointer; /*display pointer as the cursor hover on the button*/
+}
+
+.card button:hover {
+  background-color: var(--color-action-primary-hover);
+}
+
+.card button:active {
+  background-color: var(--color-action-primary-pressed);
+  transform: scale(0.98); /*shrink the button on pressed.*/
+}
+
+.card button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  /*use "outline" instead of "border" because borders participate in the box model; outlines don't.*/
+}
+
+.information {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  }
+
+.info-row {
+  display: flex;
+  justify-content: space-between; /*auto-layout: horizontal*/
+}

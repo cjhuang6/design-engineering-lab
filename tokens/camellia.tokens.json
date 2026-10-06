@@ -1,0 +1,2651 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/format.json",
+  "$description": "Camellia Design System v0.1 foundation tokens. Canonical platform-neutral data derived from docs/camellia-design-system-v0.1.md. Component tokens are intentionally excluded until the foundation is frozen.",
+  "$extensions": {
+    "com.cjhuang.camellia": {
+      "version": "0.1",
+      "status": "foundation",
+      "sourceDocument": "docs/camellia-design-system-v0.1.md",
+      "componentTokensIncluded": false,
+      "principles": [
+        "Background = expressive",
+        "Surface = restrained",
+        "Content = crisp",
+        "Motion = subtle but alive"
+      ],
+      "targets": {
+        "figma": {
+          "primitiveCollection": "Primitives",
+          "semanticCollection": "Semantic",
+          "semanticModes": [
+            "Light",
+            "Dark"
+          ],
+          "typographyTarget": "Text Styles",
+          "shadowTarget": "Effect Styles",
+          "expressionTarget": "Paint Styles"
+        },
+        "css": {
+          "lightSelector": ":root",
+          "darkSelector": "[data-theme=\"dark\"]"
+        }
+      },
+      "semanticModeConvention": "theme/{mode}/... maps to one semantic token name after stripping theme/{mode}."
+    }
+  },
+  "color": {
+    "$description": "Camellia primitive color foundation.",
+    "base": {
+      "white": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "hex": "#FFFFFF"
+        }
+      },
+      "black": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hex": "#000000"
+        }
+      }
+    },
+    "primitive": {
+      "ice": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.980392,
+              0.988235,
+              1.0
+            ],
+            "hex": "#FAFCFF"
+          }
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.945098,
+              0.960784,
+              0.988235
+            ],
+            "hex": "#F1F5FC"
+          }
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.894118,
+              0.917647,
+              0.956863
+            ],
+            "hex": "#E4EAF4"
+          }
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.803922,
+              0.843137,
+              0.901961
+            ],
+            "hex": "#CDD7E6"
+          }
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.603922,
+              0.662745,
+              0.745098
+            ],
+            "hex": "#9AA9BE"
+          }
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.427451,
+              0.490196,
+              0.584314
+            ],
+            "hex": "#6D7D95"
+          }
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.290196,
+              0.352941,
+              0.45098
+            ],
+            "hex": "#4A5A73"
+          }
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.192157,
+              0.25098,
+              0.337255
+            ],
+            "hex": "#314056"
+          }
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.117647,
+              0.164706,
+              0.227451
+            ],
+            "hex": "#1E2A3A"
+          }
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.066667,
+              0.101961,
+              0.152941
+            ],
+            "hex": "#111A27"
+          }
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.031373,
+              0.066667,
+              0.121569
+            ],
+            "hex": "#08111F"
+          }
+        }
+      },
+      "blue": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.941176,
+              0.972549,
+              1.0
+            ],
+            "hex": "#F0F8FF"
+          }
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.878431,
+              0.933333,
+              1.0
+            ],
+            "hex": "#E0EEFF"
+          }
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.780392,
+              0.878431,
+              1.0
+            ],
+            "hex": "#C7E0FF"
+          }
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.647059,
+              0.8,
+              1.0
+            ],
+            "hex": "#A5CCFF"
+          }
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.498039,
+              0.701961,
+              1.0
+            ],
+            "hex": "#7FB3FF"
+          }
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.356863,
+              0.560784,
+              0.968627
+            ],
+            "hex": "#5B8FF7"
+          },
+          "$description": "Focus/non-text boundary blue; avoid normal-size white text."
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.247059,
+              0.431373,
+              0.921569
+            ],
+            "hex": "#3F6EEB"
+          },
+          "$description": "Default accessible solid action blue with white text (~4.5:1)."
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.176471,
+              0.321569,
+              0.780392
+            ],
+            "hex": "#2D52C7"
+          },
+          "$description": "Stronger interactive blue for links and hover/pressed states."
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.117647,
+              0.239216,
+              0.619608
+            ],
+            "hex": "#1E3D9E"
+          }
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.078431,
+              0.168627,
+              0.478431
+            ],
+            "hex": "#142B7A"
+          }
+        },
+        "950": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.054902,
+              0.113725,
+              0.329412
+            ],
+            "hex": "#0E1D54"
+          }
+        }
+      },
+      "green": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.92549,
+              0.992157,
+              0.964706
+            ],
+            "hex": "#ECFDF6"
+          }
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.819608,
+              0.980392,
+              0.909804
+            ],
+            "hex": "#D1FAE8"
+          }
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.654902,
+              0.952941,
+              0.823529
+            ],
+            "hex": "#A7F3D2"
+          }
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.431373,
+              0.905882,
+              0.705882
+            ],
+            "hex": "#6EE7B4"
+          }
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.156863,
+              0.788235,
+              0.584314
+            ],
+            "hex": "#28C995"
+          }
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.058824,
+              0.686275,
+              0.478431
+            ],
+            "hex": "#0FAF7A"
+          }
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.05098,
+              0.541176,
+              0.380392
+            ],
+            "hex": "#0D8A61"
+          }
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.047059,
+              0.419608,
+              0.313725
+            ],
+            "hex": "#0C6B50"
+          }
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.054902,
+              0.333333,
+              0.258824
+            ],
+            "hex": "#0E5542"
+          }
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.05098,
+              0.27451,
+              0.219608
+            ],
+            "hex": "#0D4638"
+          }
+        }
+      },
+      "pink": {
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.945098,
+              0.968627
+            ],
+            "hex": "#FFF1F7"
+          }
+        },
+        "100": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.882353,
+              0.933333
+            ],
+            "hex": "#FFE1EE"
+          }
+        },
+        "200": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.764706,
+              0.862745
+            ],
+            "hex": "#FFC3DC"
+          }
+        },
+        "300": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.603922,
+              0.776471
+            ],
+            "hex": "#FF9AC6"
+          }
+        },
+        "400": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.478431,
+              0.713725
+            ],
+            "hex": "#FF7AB6"
+          }
+        },
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.372549,
+              0.635294
+            ],
+            "hex": "#FF5FA2"
+          }
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.913725,
+              0.262745,
+              0.537255
+            ],
+            "hex": "#E94389"
+          }
+        },
+        "700": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.788235,
+              0.184314,
+              0.447059
+            ],
+            "hex": "#C92F72"
+          }
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.658824,
+              0.141176,
+              0.376471
+            ],
+            "hex": "#A82460"
+          }
+        },
+        "900": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.52549,
+              0.121569,
+              0.317647
+            ],
+            "hex": "#861F51"
+          }
+        }
+      },
+      "alpha": {
+        "blue-400": {
+          "18": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.498039,
+                0.701961,
+                1.0
+              ],
+              "hex": "#7FB3FF",
+              "alpha": 0.18
+            }
+          },
+          "30": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.498039,
+                0.701961,
+                1.0
+              ],
+              "hex": "#7FB3FF",
+              "alpha": 0.3
+            }
+          },
+          "50": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.498039,
+                0.701961,
+                1.0
+              ],
+              "hex": "#7FB3FF",
+              "alpha": 0.5
+            }
+          }
+        },
+        "green-400": {
+          "12": {
+            "$type": "color",
+            "$value": {
+              "colorSpace": "srgb",
+              "components": [
+                0.156863,
+                0.788235,
+                0.584314
+              ],
+              "hex": "#28C995",
+              "alpha": 0.12
+            }
+          }
+        }
+      }
+    }
+  },
+  "feedback": {
+    "$type": "color",
+    "$description": "Dedicated product feedback accents.",
+    "success": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.086275,
+          0.639216,
+          0.290196
+        ],
+        "hex": "#16A34A"
+      }
+    },
+    "warning": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.960784,
+          0.619608,
+          0.043137
+        ],
+        "hex": "#F59E0B"
+      }
+    },
+    "error": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.937255,
+          0.266667,
+          0.266667
+        ],
+        "hex": "#EF4444"
+      }
+    },
+    "info": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.231373,
+          0.509804,
+          0.964706
+        ],
+        "hex": "#3B82F6"
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "sans": {
+        "$type": "fontFamily",
+        "$value": [
+          "Geist",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "sans-serif"
+        ]
+      },
+      "mono": {
+        "$type": "fontFamily",
+        "$value": [
+          "Geist Mono",
+          "SFMono-Regular",
+          "Consolas",
+          "Liberation Mono",
+          "monospace"
+        ]
+      }
+    },
+    "weight": {
+      "regular": {
+        "$type": "fontWeight",
+        "$value": 400
+      },
+      "medium": {
+        "$type": "fontWeight",
+        "$value": 500
+      },
+      "semibold": {
+        "$type": "fontWeight",
+        "$value": 600
+      }
+    }
+  },
+  "tracking": {
+    "$description": "Unitless em ratios; translate to CSS em and Figma percent letter spacing.",
+    "tight": {
+      "$type": "number",
+      "$value": -0.02,
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "unit": "em"
+        }
+      }
+    },
+    "normal": {
+      "$type": "number",
+      "$value": 0,
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "unit": "em"
+        }
+      }
+    },
+    "technical": {
+      "$type": "number",
+      "$value": 0.1,
+      "$description": "Sparse technical eyebrow labels only.",
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "unit": "em"
+        }
+      }
+    }
+  },
+  "display": {
+    "lg": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 48,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": {
+          "value": -0.96,
+          "unit": "px"
+        },
+        "lineHeight": 1.083333
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.tight}",
+          "lineHeightPx": 52
+        }
+      }
+    },
+    "sm": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 40,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": {
+          "value": -0.8,
+          "unit": "px"
+        },
+        "lineHeight": 1.1
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.tight}",
+          "lineHeightPx": 44
+        }
+      }
+    }
+  },
+  "heading": {
+    "xl": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 32,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": {
+          "value": -0.64,
+          "unit": "px"
+        },
+        "lineHeight": 1.1875
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.tight}",
+          "lineHeightPx": 38
+        }
+      }
+    },
+    "lg": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 28,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": {
+          "value": -0.56,
+          "unit": "px"
+        },
+        "lineHeight": 1.214286
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.tight}",
+          "lineHeightPx": 34
+        }
+      }
+    },
+    "md": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 24,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.25
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 30
+        }
+      }
+    },
+    "sm": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 20,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.3
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 26
+        }
+      }
+    }
+  },
+  "body": {
+    "lg": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 18,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.555556
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 28
+        }
+      }
+    },
+    "md": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 16,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.5
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 24
+        }
+      }
+    },
+    "sm": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.428571
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 20
+        }
+      }
+    }
+  },
+  "label": {
+    "md": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.428571
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 20
+        }
+      }
+    },
+    "sm": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.333333
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 16
+        }
+      }
+    }
+  },
+  "code": {
+    "md": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 14,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.428571
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 20
+        }
+      }
+    },
+    "sm": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "{font.family.mono}",
+        "fontSize": {
+          "value": 12,
+          "unit": "px"
+        },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": {
+          "value": 0,
+          "unit": "px"
+        },
+        "lineHeight": 1.333333
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "trackingIntent": "{tracking.normal}",
+          "lineHeightPx": 16
+        }
+      }
+    }
+  },
+  "space": {
+    "0": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0,
+        "unit": "px"
+      }
+    },
+    "1": {
+      "$type": "dimension",
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "2": {
+      "$type": "dimension",
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "3": {
+      "$type": "dimension",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "5": {
+      "$type": "dimension",
+      "$value": {
+        "value": 20,
+        "unit": "px"
+      }
+    },
+    "6": {
+      "$type": "dimension",
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": {
+        "value": 32,
+        "unit": "px"
+      }
+    },
+    "10": {
+      "$type": "dimension",
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    },
+    "12": {
+      "$type": "dimension",
+      "$value": {
+        "value": 48,
+        "unit": "px"
+      }
+    },
+    "16": {
+      "$type": "dimension",
+      "$value": {
+        "value": 64,
+        "unit": "px"
+      }
+    },
+    "20": {
+      "$type": "dimension",
+      "$value": {
+        "value": 80,
+        "unit": "px"
+      }
+    },
+    "24": {
+      "$type": "dimension",
+      "$value": {
+        "value": 96,
+        "unit": "px"
+      }
+    }
+  },
+  "radius": {
+    "none": {
+      "$type": "dimension",
+      "$value": {
+        "value": 0,
+        "unit": "px"
+      }
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": {
+        "value": 8,
+        "unit": "px"
+      }
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": {
+        "value": 16,
+        "unit": "px"
+      }
+    },
+    "full": {
+      "$type": "dimension",
+      "$value": {
+        "value": 9999,
+        "unit": "px"
+      }
+    }
+  },
+  "border": {
+    "width": {
+      "0": {
+        "$type": "dimension",
+        "$value": {
+          "value": 0,
+          "unit": "px"
+        }
+      },
+      "1": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1,
+          "unit": "px"
+        }
+      },
+      "2": {
+        "$type": "dimension",
+        "$value": {
+          "value": 2,
+          "unit": "px"
+        }
+      }
+    },
+    "style": {
+      "solid": {
+        "$type": "strokeStyle",
+        "$value": "solid"
+      }
+    }
+  },
+  "shadow": {
+    "none": {
+      "$type": "shadow",
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.031373,
+            0.066667,
+            0.121569
+          ],
+          "hex": "#08111F",
+          "alpha": 0
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 0,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 0,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "cssValue": "none",
+          "figmaEffects": []
+        }
+      }
+    },
+    "sm": {
+      "$type": "shadow",
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.031373,
+            0.066667,
+            0.121569
+          ],
+          "hex": "#08111F",
+          "alpha": 0.06
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 1,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 2,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      }
+    },
+    "md": {
+      "$type": "shadow",
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.031373,
+            0.066667,
+            0.121569
+          ],
+          "hex": "#08111F",
+          "alpha": 0.08
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 4,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 12,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      }
+    },
+    "lg": {
+      "$type": "shadow",
+      "$value": {
+        "color": {
+          "colorSpace": "srgb",
+          "components": [
+            0.031373,
+            0.066667,
+            0.121569
+          ],
+          "hex": "#08111F",
+          "alpha": 0.12
+        },
+        "offsetX": {
+          "value": 0,
+          "unit": "px"
+        },
+        "offsetY": {
+          "value": 12,
+          "unit": "px"
+        },
+        "blur": {
+          "value": 32,
+          "unit": "px"
+        },
+        "spread": {
+          "value": 0,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "opacity": {
+    "disabled": {
+      "$type": "number",
+      "$value": 0.4
+    },
+    "muted": {
+      "$type": "number",
+      "$value": 0.64
+    },
+    "soft": {
+      "$type": "number",
+      "$value": 0.8
+    },
+    "full": {
+      "$type": "number",
+      "$value": 1
+    }
+  },
+  "blur": {
+    "sm": {
+      "$type": "dimension",
+      "$value": {
+        "value": 4,
+        "unit": "px"
+      }
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": {
+        "value": 12,
+        "unit": "px"
+      }
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      }
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": {
+        "value": 40,
+        "unit": "px"
+      }
+    }
+  },
+  "frost": {
+    "$description": "Composed material recipes. Generate CSS backdrop-filter and Figma fill/stroke/effect styles from these parts.",
+    "light": {
+      "subtle": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "recipe": "frost",
+            "figmaEffectStyle": "frost/light/subtle"
+          }
+        },
+        "background": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "hex": "#FFFFFF",
+            "alpha": 0.72
+          }
+        },
+        "border": {
+          "$type": "border",
+          "$value": {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                1.0,
+                1.0,
+                1.0
+              ],
+              "hex": "#FFFFFF",
+              "alpha": 0.64
+            },
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "blur": {
+          "$type": "dimension",
+          "$value": "{blur.md}"
+        },
+        "saturation": {
+          "$type": "number",
+          "$value": 1.15,
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "cssPercent": 115
+            }
+          }
+        }
+      },
+      "strong": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "recipe": "frost",
+            "figmaEffectStyle": "frost/light/strong"
+          }
+        },
+        "background": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.980392,
+              0.988235,
+              1.0
+            ],
+            "hex": "#FAFCFF",
+            "alpha": 0.82
+          }
+        },
+        "border": {
+          "$type": "border",
+          "$value": {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.803922,
+                0.843137,
+                0.901961
+              ],
+              "hex": "#CDD7E6",
+              "alpha": 0.7
+            },
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "blur": {
+          "$type": "dimension",
+          "$value": {
+            "value": 20,
+            "unit": "px"
+          }
+        },
+        "saturation": {
+          "$type": "number",
+          "$value": 1.2,
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "cssPercent": 120
+            }
+          }
+        }
+      }
+    },
+    "dark": {
+      "subtle": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "recipe": "frost",
+            "figmaEffectStyle": "frost/dark/subtle"
+          }
+        },
+        "background": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.031373,
+              0.066667,
+              0.121569
+            ],
+            "hex": "#08111F",
+            "alpha": 0.72
+          }
+        },
+        "border": {
+          "$type": "border",
+          "$value": {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.498039,
+                0.701961,
+                1.0
+              ],
+              "hex": "#7FB3FF",
+              "alpha": 0.22
+            },
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "blur": {
+          "$type": "dimension",
+          "$value": "{blur.md}"
+        },
+        "saturation": {
+          "$type": "number",
+          "$value": 1.25,
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "cssPercent": 125
+            }
+          }
+        }
+      },
+      "strong": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "recipe": "frost",
+            "figmaEffectStyle": "frost/dark/strong"
+          }
+        },
+        "background": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.031373,
+              0.066667,
+              0.121569
+            ],
+            "hex": "#08111F",
+            "alpha": 0.82
+          }
+        },
+        "border": {
+          "$type": "border",
+          "$value": {
+            "color": {
+              "colorSpace": "srgb",
+              "components": [
+                0.498039,
+                0.701961,
+                1.0
+              ],
+              "hex": "#7FB3FF",
+              "alpha": 0.34
+            },
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "blur": {
+          "$type": "dimension",
+          "$value": {
+            "value": 20,
+            "unit": "px"
+          }
+        },
+        "saturation": {
+          "$type": "number",
+          "$value": 1.3,
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "cssPercent": 130
+            }
+          }
+        }
+      }
+    }
+  },
+  "duration": {
+    "fast": {
+      "$type": "duration",
+      "$value": {
+        "value": 100,
+        "unit": "ms"
+      }
+    },
+    "normal": {
+      "$type": "duration",
+      "$value": {
+        "value": 200,
+        "unit": "ms"
+      }
+    },
+    "slow": {
+      "$type": "duration",
+      "$value": {
+        "value": 300,
+        "unit": "ms"
+      }
+    },
+    "expression-sm": {
+      "$type": "duration",
+      "$value": {
+        "value": 400,
+        "unit": "ms"
+      }
+    },
+    "expression-md": {
+      "$type": "duration",
+      "$value": {
+        "value": 600,
+        "unit": "ms"
+      }
+    },
+    "expression-lg": {
+      "$type": "duration",
+      "$value": {
+        "value": 900,
+        "unit": "ms"
+      }
+    }
+  },
+  "ease": {
+    "standard": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.4,
+        0,
+        0.2,
+        1
+      ]
+    },
+    "enter": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.16,
+        1,
+        0.3,
+        1
+      ]
+    },
+    "exit": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.4,
+        0,
+        1,
+        1
+      ]
+    },
+    "expression": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.22,
+        1,
+        0.36,
+        1
+      ]
+    }
+  },
+  "breakpoint": {
+    "sm": {
+      "$type": "dimension",
+      "$value": {
+        "value": 640,
+        "unit": "px"
+      }
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": {
+        "value": 768,
+        "unit": "px"
+      }
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": {
+        "value": 1024,
+        "unit": "px"
+      }
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": {
+        "value": 1280,
+        "unit": "px"
+      }
+    }
+  },
+  "size": {
+    "icon": {
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 24,
+          "unit": "px"
+        }
+      }
+    },
+    "control": {
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 32,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": {
+          "value": 40,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 48,
+          "unit": "px"
+        }
+      }
+    },
+    "content": {
+      "sm": {
+        "$type": "dimension",
+        "$value": {
+          "value": 640,
+          "unit": "px"
+        }
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": {
+          "value": 960,
+          "unit": "px"
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": {
+          "value": 1200,
+          "unit": "px"
+        }
+      }
+    }
+  },
+  "z": {
+    "base": {
+      "$type": "number",
+      "$value": 0
+    },
+    "raised": {
+      "$type": "number",
+      "$value": 10
+    },
+    "dropdown": {
+      "$type": "number",
+      "$value": 100
+    },
+    "sticky": {
+      "$type": "number",
+      "$value": 200
+    },
+    "overlay": {
+      "$type": "number",
+      "$value": 300
+    },
+    "modal": {
+      "$type": "number",
+      "$value": 400
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 500
+    },
+    "tooltip": {
+      "$type": "number",
+      "$value": 600
+    }
+  },
+  "layout": {
+    "$description": "Mode-independent semantic spacing aliases; sync to both Figma Semantic modes.",
+    "$extensions": {
+      "com.cjhuang.camellia": {
+        "figmaCollection": "Semantic",
+        "modes": [
+          "Light",
+          "Dark"
+        ]
+      }
+    },
+    "content-gap": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "{space.2}"
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "{space.4}"
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "{space.6}"
+      }
+    },
+    "section-gap": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "{space.6}"
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "{space.12}"
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "{space.16}"
+      }
+    },
+    "page-gutter": {
+      "mobile": {
+        "$type": "dimension",
+        "$value": "{space.4}"
+      },
+      "tablet": {
+        "$type": "dimension",
+        "$value": "{space.6}"
+      },
+      "desktop": {
+        "$type": "dimension",
+        "$value": "{space.8}"
+      }
+    }
+  },
+  "control": {
+    "$description": "Mode-independent semantic control spacing aliases.",
+    "$extensions": {
+      "com.cjhuang.camellia": {
+        "figmaCollection": "Semantic",
+        "modes": [
+          "Light",
+          "Dark"
+        ]
+      }
+    },
+    "padding-inline": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "{space.3}"
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "{space.4}"
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "{space.5}"
+      }
+    },
+    "padding-block": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "{space.2}"
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "{space.3}"
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "{space.4}"
+      }
+    }
+  },
+  "theme": {
+    "$description": "Mode-specific semantic tokens. Translation strips theme/{mode}/ and writes the remaining path as the semantic token name.",
+    "$extensions": {
+      "com.cjhuang.camellia": {
+        "figmaCollection": "Semantic",
+        "modeMap": {
+          "light": "Light",
+          "dark": "Dark"
+        },
+        "cssSelectors": {
+          "light": ":root",
+          "dark": "[data-theme=\"dark\"]"
+        }
+      }
+    },
+    "light": {
+      "color": {
+        "background": {
+          "canvas": {
+            "$type": "color",
+            "$value": "{color.base.white}"
+          }
+        },
+        "surface": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.base.white}"
+          },
+          "secondary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.50}"
+          },
+          "subtle": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.100}"
+          },
+          "selected": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.50}"
+          }
+        },
+        "text": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.900}"
+          },
+          "secondary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.600}"
+          },
+          "tertiary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.500}"
+          },
+          "inverse": {
+            "$type": "color",
+            "$value": "{color.base.white}"
+          }
+        },
+        "icon": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.800}"
+          },
+          "secondary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.600}"
+          }
+        },
+        "border": {
+          "subtle": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.200}"
+          },
+          "default": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.300}"
+          },
+          "strong": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.400}"
+          }
+        },
+        "action": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.600}"
+          },
+          "primary-hover": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.700}"
+          },
+          "primary-pressed": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.800}"
+          },
+          "primary-text": {
+            "$type": "color",
+            "$value": "{color.base.white}"
+          },
+          "link": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.700}"
+          },
+          "link-hover": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.800}"
+          }
+        },
+        "focus": {
+          "$type": "color",
+          "$value": "{color.primitive.blue.500}"
+        },
+        "functional": {
+          "accent": {
+            "$type": "color",
+            "$value": "{color.primitive.green.500}"
+          },
+          "surface": {
+            "$type": "color",
+            "$value": "{color.primitive.green.50}"
+          }
+        },
+        "expression": {
+          "pink": {
+            "$type": "color",
+            "$value": "{color.primitive.pink.400}"
+          },
+          "blue": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.300}"
+          },
+          "green": {
+            "$type": "color",
+            "$value": "{color.primitive.green.300}"
+          }
+        }
+      },
+      "border": {
+        "subtle": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.light.color.border.subtle}",
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "default": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.light.color.border.default}",
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "strong": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.light.color.border.strong}",
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "focus": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.light.color.focus}",
+            "width": "{border.width.2}",
+            "style": "{border.style.solid}"
+          }
+        }
+      }
+    },
+    "dark": {
+      "color": {
+        "background": {
+          "canvas": {
+            "$type": "color",
+            "$value": "{color.base.black}"
+          }
+        },
+        "surface": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.950}"
+          },
+          "secondary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.900}"
+          },
+          "subtle": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.950}"
+          },
+          "selected": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.950}"
+          }
+        },
+        "text": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.50}"
+          },
+          "secondary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.300}"
+          },
+          "tertiary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.400}"
+          },
+          "inverse": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.950}"
+          }
+        },
+        "icon": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.100}"
+          },
+          "secondary": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.300}"
+          }
+        },
+        "border": {
+          "subtle": {
+            "$type": "color",
+            "$value": "{color.primitive.alpha.blue-400.18}"
+          },
+          "default": {
+            "$type": "color",
+            "$value": "{color.primitive.alpha.blue-400.30}"
+          },
+          "strong": {
+            "$type": "color",
+            "$value": "{color.primitive.alpha.blue-400.50}"
+          }
+        },
+        "action": {
+          "primary": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.400}"
+          },
+          "primary-hover": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.300}"
+          },
+          "primary-pressed": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.500}"
+          },
+          "primary-text": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.950}"
+          },
+          "link": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.300}"
+          },
+          "link-hover": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.200}"
+          }
+        },
+        "focus": {
+          "$type": "color",
+          "$value": "{color.primitive.blue.400}"
+        },
+        "functional": {
+          "accent": {
+            "$type": "color",
+            "$value": "{color.primitive.green.400}"
+          },
+          "surface": {
+            "$type": "color",
+            "$value": "{color.primitive.alpha.green-400.12}"
+          }
+        },
+        "expression": {
+          "pink": {
+            "$type": "color",
+            "$value": "{color.primitive.pink.400}"
+          },
+          "blue": {
+            "$type": "color",
+            "$value": "{color.primitive.blue.400}"
+          },
+          "green": {
+            "$type": "color",
+            "$value": "{color.primitive.green.400}"
+          }
+        }
+      },
+      "border": {
+        "subtle": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.dark.color.border.subtle}",
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "default": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.dark.color.border.default}",
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "strong": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.dark.color.border.strong}",
+            "width": "{border.width.1}",
+            "style": "{border.style.solid}"
+          }
+        },
+        "focus": {
+          "$type": "border",
+          "$value": {
+            "color": "{theme.dark.color.focus}",
+            "width": "{border.width.2}",
+            "style": "{border.style.solid}"
+          }
+        }
+      }
+    }
+  },
+  "expression": {
+    "$description": "Atmospheric background fields. DTCG gradients capture stops; Camellia extensions preserve radial geometry and multi-layer composition because DTCG 2025.10 does not encode gradient geometry/type.",
+    "field": {
+      "ice": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "target": "background",
+            "figmaPaintStyle": "expression/field/ice",
+            "composition": [
+              "blue",
+              "pink",
+              "green",
+              "base"
+            ],
+            "css": "radial-gradient(circle at 24% 28%, rgba(165, 204, 255, 0.72), transparent 42%), radial-gradient(circle at 72% 62%, rgba(255, 195, 220, 0.44), transparent 38%), radial-gradient(circle at 58% 22%, rgba(167, 243, 210, 0.30), transparent 34%), #FAFCFF"
+          }
+        },
+        "base": {
+          "$type": "color",
+          "$value": "{color.primitive.ice.50}"
+        },
+        "blue": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.647059,
+                  0.8,
+                  1.0
+                ],
+                "hex": "#A5CCFF",
+                "alpha": 0.72
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.647059,
+                  0.8,
+                  1.0
+                ],
+                "hex": "#A5CCFF",
+                "alpha": 0
+              },
+              "position": 0.42
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.24,
+                "y": 0.28
+              },
+              "fadePosition": 0.42
+            }
+          }
+        },
+        "pink": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  0.764706,
+                  0.862745
+                ],
+                "hex": "#FFC3DC",
+                "alpha": 0.44
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  0.764706,
+                  0.862745
+                ],
+                "hex": "#FFC3DC",
+                "alpha": 0
+              },
+              "position": 0.38
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.72,
+                "y": 0.62
+              },
+              "fadePosition": 0.38
+            }
+          }
+        },
+        "green": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.654902,
+                  0.952941,
+                  0.823529
+                ],
+                "hex": "#A7F3D2",
+                "alpha": 0.3
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.654902,
+                  0.952941,
+                  0.823529
+                ],
+                "hex": "#A7F3D2",
+                "alpha": 0
+              },
+              "position": 0.34
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.58,
+                "y": 0.22
+              },
+              "fadePosition": 0.34
+            }
+          }
+        }
+      },
+      "tropical": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "target": "background",
+            "figmaPaintStyle": "expression/field/tropical",
+            "composition": [
+              "blue",
+              "green",
+              "pink",
+              "base"
+            ],
+            "css": "radial-gradient(circle at 22% 36%, rgba(127, 179, 255, 0.62), transparent 40%), radial-gradient(circle at 68% 28%, rgba(110, 231, 180, 0.48), transparent 36%), radial-gradient(circle at 78% 72%, rgba(255, 154, 198, 0.44), transparent 38%), #F0F8FF"
+          }
+        },
+        "base": {
+          "$type": "color",
+          "$value": "{color.primitive.blue.50}"
+        },
+        "blue": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.498039,
+                  0.701961,
+                  1.0
+                ],
+                "hex": "#7FB3FF",
+                "alpha": 0.62
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.498039,
+                  0.701961,
+                  1.0
+                ],
+                "hex": "#7FB3FF",
+                "alpha": 0
+              },
+              "position": 0.4
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.22,
+                "y": 0.36
+              },
+              "fadePosition": 0.4
+            }
+          }
+        },
+        "green": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.431373,
+                  0.905882,
+                  0.705882
+                ],
+                "hex": "#6EE7B4",
+                "alpha": 0.48
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.431373,
+                  0.905882,
+                  0.705882
+                ],
+                "hex": "#6EE7B4",
+                "alpha": 0
+              },
+              "position": 0.36
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.68,
+                "y": 0.28
+              },
+              "fadePosition": 0.36
+            }
+          }
+        },
+        "pink": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  0.603922,
+                  0.776471
+                ],
+                "hex": "#FF9AC6",
+                "alpha": 0.44
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  0.603922,
+                  0.776471
+                ],
+                "hex": "#FF9AC6",
+                "alpha": 0
+              },
+              "position": 0.38
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.78,
+                "y": 0.72
+              },
+              "fadePosition": 0.38
+            }
+          }
+        }
+      },
+      "pink-dream": {
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "target": "background",
+            "figmaPaintStyle": "expression/field/pink-dream",
+            "composition": [
+              "pink",
+              "blue",
+              "base"
+            ],
+            "css": "radial-gradient(circle at 30% 38%, rgba(255, 154, 198, 0.58), transparent 40%), radial-gradient(circle at 68% 58%, rgba(165, 204, 255, 0.62), transparent 42%), #FAFCFF"
+          }
+        },
+        "base": {
+          "$type": "color",
+          "$value": "{color.primitive.ice.50}"
+        },
+        "pink": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  0.603922,
+                  0.776471
+                ],
+                "hex": "#FF9AC6",
+                "alpha": 0.58
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1.0,
+                  0.603922,
+                  0.776471
+                ],
+                "hex": "#FF9AC6",
+                "alpha": 0
+              },
+              "position": 0.4
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.3,
+                "y": 0.38
+              },
+              "fadePosition": 0.4
+            }
+          }
+        },
+        "blue": {
+          "$type": "gradient",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.647059,
+                  0.8,
+                  1.0
+                ],
+                "hex": "#A5CCFF",
+                "alpha": 0.62
+              },
+              "position": 0
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.647059,
+                  0.8,
+                  1.0
+                ],
+                "hex": "#A5CCFF",
+                "alpha": 0
+              },
+              "position": 0.42
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "gradientType": "radial",
+              "center": {
+                "x": 0.68,
+                "y": 0.58
+              },
+              "fadePosition": 0.42
+            }
+          }
+        }
+      }
+    }
+  }
+}

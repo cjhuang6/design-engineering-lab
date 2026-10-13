@@ -1,0 +1,11 @@
+{
+  "name": "Camellia Figma Sync",
+  "id": "camellia-figma-sync-dev",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

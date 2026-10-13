@@ -13,7 +13,8 @@
     "tokens:build": "npm run tokens:css && npm run tokens:check",
     "figma:typecheck": "tsc -p figma-plugin",
     "figma:bundle": "esbuild figma-plugin/code.ts --bundle --target=es2017 --outfile=figma-plugin/dist/code.js",
-    "figma:build": "npm run figma:typecheck && npm run figma:bundle"
+    "figma:build": "npm run figma:typecheck && npm test && npm run figma:bundle",
+    "test": "node --test figma-plugin/tests/*.test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

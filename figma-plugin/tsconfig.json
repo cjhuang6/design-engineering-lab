@@ -6,8 +6,12 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "typeRoots": ["../node_modules/@figma"],
     "types": ["plugin-typings"]
   },
-  "include": ["code.ts"]
+  "include": ["code.ts", "src/**/*.ts"]
 }

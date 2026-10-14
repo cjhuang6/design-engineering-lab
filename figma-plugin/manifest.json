@@ -1,0 +1,17 @@
+{
+  "name": "Camellia Figma Sync",
+  "id": "camellia-figma-sync-dev",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
+  "menu": [
+    { "name": "Inventory (read-only)", "command": "inventory" },
+    { "separator": true },
+    { "name": "Sync Primitives — dry run", "command": "sync-primitives-dry-run" },
+    { "name": "Sync Primitives", "command": "sync-primitives" }
+  ]
+}

@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build and validate CSS tokens
+        run: npm run tokens:build
+      - name: Committed tokens.css matches the JSON
+        run: git diff --exit-code src/styles/tokens.css
+      - name: Type check, test and bundle the Figma plugin
+        run: npm run figma:build
+      - run: npm run lint
+      - run: npm run build
+      - name: Feature map matches the code
+        run: node scripts/docs/check-feature-map.mjs
+      - name: AGENTS.md guardrail regression tests
+        run: node --test tests/guardrails/*.test.mjs

@@ -19,7 +19,7 @@ What each check proves and can't prove, the automated guardrails, and how implem
 | `npm run lint` | Exit code 0 | Anything about `.ts` or `.mjs` files: ESLint only covers `.js` and `.jsx` |
 | `npm run build` | Vite build succeeds | That the demo app renders correctly |
 | `node scripts/docs/check-feature-map.mjs` | `PASS`, exit code 0 | That the feature descriptions are accurate. It checks names, links, paths and structure only |
-| `node --test tests/guardrails/*.test.mjs` | `pass 21`, `fail 0` | Real GitHub or Cursor behavior. GitHub is simulated with a fake `gh` and throwaway repositories; the hook is fed recorded input shapes |
+| `node --test tests/guardrails/*.test.mjs` | `pass 14`, `fail 0` | Real GitHub behavior. GitHub is simulated with a fake `gh` and throwaway repositories |
 | `git status --short` | Only the intended changes | Run it before and after checks to show nothing else changed |
 
 **Figma behavior is proven only in Figma.** That means the Figma recipes in the feature map, run by CJ, or read-only inspection through the Figma MCP when the task authorizes it. Compilation and fake-Figma tests are never evidence of Figma behavior.
@@ -30,7 +30,7 @@ Automated checks that catch recurring mistakes. Each one names the failure it pr
 
 ### CI (`.github/workflows/ci.yml`)
 
-Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, the `tokens.css` freshness diff, `figma:build`, `lint`, `build`, the feature-map check, and the AGENTS.md guardrail regression tests.
+Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, the `tokens.css` freshness diff, `figma:build`, `lint`, `build`, the feature-map check, and the AGENTS.md approval check's regression tests.
 
 - **Prevents:** merging a change that breaks a build or a test, a hand-edited or stale `tokens.css`, and a feature map that names commands, scripts or files that no longer exist.
 - **Limits:**
@@ -52,19 +52,9 @@ Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, th
 
 ### AGENTS.md protection
 
-Two layers enforce the [protection policy](../AGENTS.md#protection-of-this-file):
+The [protection policy](../AGENTS.md#protection-of-this-file) is enforced in two places:
 
-1. **A Cursor hook (`.cursor/hooks.json`).**
-   - It denies agent file edits that target the root `AGENTS.md`. Cursor reports both full writes and in-place edits to hooks as `Write`.
-   - It also denies agent shell commands that mention `AGENTS.md`, unless the command is a recognized plain read or `git add`. Allowed forms:
-     - `cat`, `head`, `tail`, `wc`, `ls`, `rg`, `grep`, and `git diff`, `log`, `show`, `status`, `blame`, `add`;
-     - each command only with options from its own allowlist;
-     - no shell metacharacters (redirection, pipes, chaining, `$`, backticks, escapes) and no unbalanced quotes;
-     - an optional leading `cd <path> &&`.
-   - Anything else that mentions the file is denied. That includes options that run programs or write files (`rg --pre`, `--pre-glob`, `-z`, `git --output`, `--ext-diff`, `--textconv`), `git -c …`, environment-variable prefixes, and other programs such as `less`, `find` or `node`.
-   - It denies rather than asks, because Cursor's agent auto-run mode was observed (2026-10-16) running commands even when a hook answered "ask".
-   - CJ's own edits in the editor and CJ's own terminal aren't affected.
-   - **Approval:** CJ applies the approved diff directly, in the editor or in CJ's own terminal.
+1. **The written policy, locally.** Agents must not edit `AGENTS.md`; they propose the exact diff and CJ applies it. Nothing on CJ's computer blocks an edit. CJ decided on 2026-10-17 to remove the earlier Cursor hook, because its false positives interrupted autonomous runs and it could be bypassed.
 2. **A CI check (`.github/workflows/agents-md-approval.yml`).**
    - It fails any pull request that changes `AGENTS.md` unless `cjhuang6` has approved **the exact version** in the pull request's current head.
    - A version is identified by its Git blob SHA, a fingerprint of the file's content: any edit gives a new fingerprint, and the same content always gives the same one.
@@ -77,19 +67,14 @@ Two layers enforce the [protection policy](../AGENTS.md#protection-of-this-file)
      2. CJ reviews the diff and posts that line, on its own line, as a pull request comment.
      3. CJ re-runs the failed check from the Checks tab, or adds or removes any label to trigger it.
    - **Deleting the file** needs the line `/approve-agents-md deleted`.
+   - **Only CJ resolves a failure.** The failure message tells agents not to post the approval comment, re-run the check to get around it, or change the check. This matters for pstack's autopilot, which tries to clear failing checks.
 
 **Limits.** This is a guardrail, not a security boundary.
 
-- The hook only covers Cursor agents. It can't see shell commands that change the file without naming it, such as `git checkout .` or applying a patch file.
-- It can wrongly block harmless commands that name the file, such as copying it elsewhere. Agents should read it with the file-reading tool instead.
-- It only checks the first workspace root.
-- It reads the command text only. A program can still change its behavior through configuration or environment set by an earlier command, such as `RIPGREP_CONFIG_PATH`, `GIT_EXTERNAL_DIFF`, or `diff.external` and `textconv` drivers in Git config. A search that doesn't name the file (`rg --pre ./x pattern .`) isn't inspected at all.
+- Nothing blocks a local edit. Cursor reads `AGENTS.md` from the working folder, so an unapproved local edit changes the instructions for agents in that checkout right away, before any pull request. It shows up in `git status` and can't reach `main` without CJ's approval.
 - An approval comment counts if `cjhuang6` posted or edited it. Anything using CJ's GitHub credentials can post one. Approval follows content, so reverting to a previously approved version is approved again. The approval line counts wherever it stands on its own line in CJ's comment, including inside a quoted or code block.
 - Approval covers the head version of `AGENTS.md`, not the merge result. If `main` changes the file meanwhile, the merge can differ. Requiring branches to be up to date before merging closes that gap.
 - Because the check runs from `main`, it doesn't run on the pull request that first adds it. It protects pull requests opened after that one is merged.
-- Cursor's Delete tool doesn't trigger hooks (observed 2026-10-16), so an agent deletion isn't blocked locally. The CI check still catches a deleted `AGENTS.md` in a pull request.
-- Cursor reloads `hooks.json` a moment after it changes. Right after an edit to the hook config, one action can slip through.
-- Tools outside Cursor aren't covered until their changes reach a pull request.
 - Changes committed and pushed directly to `main` bypass the CI check unless branch protection requires pull requests.
 - As the repository admin, CJ can bypass branch protection.
 - Anything acting with CJ's GitHub credentials looks like CJ.

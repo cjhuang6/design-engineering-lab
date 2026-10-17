@@ -110,6 +110,7 @@ test("version A approved, then version B pushed, fails", () => {
   const result = run({ head: commits.versionB, pages: [[approval(APPROVER, `/approve-agents-md ${blob(commits.versionA)}`)]] });
   assert.equal(result.status, 1, result.output);
   assert.match(result.output, new RegExp(`/approve-agents-md ${blob(commits.versionB)}`));
+  assert.match(result.output, /Agents must not post this comment/);
 });
 
 test("a stale approval stays rejected on reopened and unrelated label events, and labels are never consulted", () => {

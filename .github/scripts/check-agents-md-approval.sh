@@ -53,4 +53,5 @@ echo "Review the change with: git diff $BASE...$HEAD -- $FILE"
 echo "To approve this version, $APPROVER comments on the pull request with this line:"
 echo "  $token"
 echo "Then re-run this check from the Checks tab (or add or remove any label to trigger it)."
+echo "Only $APPROVER can resolve this. Agents must not post this comment, re-run this check to get around it, or change this check; report it to $APPROVER instead."
 exit 1

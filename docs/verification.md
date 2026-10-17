@@ -35,7 +35,7 @@ Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, th
 - **Prevents:** merging a change that breaks a build or a test, a hand-edited or stale `tokens.css`, and a feature map that names commands, scripts or files that no longer exist.
 - **Limits:**
   - It can't run anything in Figma.
-  - It only blocks merging once CJ marks it as a required check in GitHub's branch protection (see [one-time GitHub setup](#one-time-github-setup)).
+  - It never blocks merging: branch protection isn't available for this repository (see [GitHub settings](#github-settings)). A red ❌ is a warning that CJ treats as "don't merge."
 
 ### Feature map drift check (`scripts/docs/check-feature-map.mjs`)
 
@@ -73,17 +73,17 @@ The [protection policy](../AGENTS.md#protection-of-this-file) is enforced in two
 
 - Nothing blocks a local edit. Cursor reads `AGENTS.md` from the working folder, so an unapproved local edit changes the instructions for agents in that checkout right away, before any pull request. It shows up in `git status` and can't reach `main` without CJ's approval.
 - An approval comment counts if `cjhuang6` posted or edited it. Anything using CJ's GitHub credentials can post one. Approval follows content, so reverting to a previously approved version is approved again. The approval line counts wherever it stands on its own line in CJ's comment, including inside a quoted or code block.
-- Approval covers the head version of `AGENTS.md`, not the merge result. If `main` changes the file meanwhile, the merge can differ. Requiring branches to be up to date before merging closes that gap.
-- Because the check runs from `main`, it doesn't run on the pull request that first adds it. It protects pull requests opened after that one is merged.
-- Changes committed and pushed directly to `main` bypass the CI check unless branch protection requires pull requests.
-- As the repository admin, CJ can bypass branch protection.
+- A failing check doesn't block the Merge button. GitHub only shows "Some checks were not successful." CJ is the only one who merges and treats a red ❌ as "don't merge."
+- Approval covers the head version of `AGENTS.md`, not the merge result. If `main` changes the file while the pull request is open, the merge can differ. Before merging an approved `AGENTS.md` change, CJ updates the branch from `main` if GitHub offers "Update branch," which re-runs the check.
+- Because the check runs from `main`, a pull request that changes the check itself still runs `main`'s copy. The change takes effect only after merge.
+- Changes committed and pushed directly to `main` skip both checks, and nothing on GitHub prevents that. Every change reaches `main` through a pull request, including CJ's own small edits.
 - Anything acting with CJ's GitHub credentials looks like CJ.
 
-### One-time GitHub setup
+### GitHub settings
 
-CJ does this in the browser. Agents can't (`gh` isn't installed here, and these are account settings).
+**No branch protection.** The repository is private on GitHub's free plan, which doesn't offer branch protection rules or rulesets for private repositories (observed 2026-10-17: the API answered "Upgrade to GitHub Pro or make this repository public to enable this feature"). CJ chose not to upgrade or make the repository public. The checks still run on every pull request; they just can't block merging.
 
-**Protect `main`.** Settings → Branches → Add branch protection rule (or Rules → Rulesets) for `main`:
+If that changes (GitHub Pro, or a public repository), protect `main` under Settings → Branches → Add branch protection rule:
 
 - require a pull request before merging;
 - require the status checks `checks` (CI) and `approval` (AGENTS.md approval) to pass. They appear in the list after each has run once;

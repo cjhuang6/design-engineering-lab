@@ -28,3 +28,5 @@ jobs:
       - run: npm run build
       - name: Feature map matches the code
         run: node scripts/docs/check-feature-map.mjs
+      - name: AGENTS.md guardrail regression tests
+        run: node --test tests/guardrails/*.test.mjs

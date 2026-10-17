@@ -2,12 +2,12 @@ name: AGENTS.md approval
 
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled, ready_for_review]
 
 permissions:
   contents: read
   issues: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   approval:
@@ -16,19 +16,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
       - name: Fetch the pull request's commits without checking them out
         env:
           PR: ${{ github.event.pull_request.number }}
         run: git fetch --no-tags origin "+refs/pull/$PR/head:refs/remotes/pull/head"
-      - name: Require CJ's approval label for AGENTS.md changes
+      - name: Require CJ's approval of this exact AGENTS.md version
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
-          BEFORE: ${{ github.event.before }}
-          ACTION: ${{ github.event.action }}
           APPROVER: cjhuang6
-          LABEL: agents-md-approved
         run: bash .github/scripts/check-agents-md-approval.sh

@@ -2,7 +2,7 @@
 
 This directory is the maintained source for what Camellia can do today and how to prove it. Read this index before driving anything, then use the matching feature file as the recipe. Planned work is in the [roadmap](../../../../docs/token-pipeline-roadmap.md), not here.
 
-**Last verified against revision:** `9937929` (merged to `main` as `6f4058f`), on 2026-10-16 for the terminal and 2026-10-13 for Figma.
+**Last verified against revision:** token reference demo, on 2026-10-17 for the terminal checks and the demo page. Figma procedures were not re-run; the last Figma verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`).
 
 ## Baseline preconditions
 
@@ -44,6 +44,6 @@ Keep implementation details out of the feature files. Source locations appear on
 - [Figma plugin build](./figma-plugin-build.md) covers the type check, the tests and the bundle. Code: `figma-plugin/tsconfig.json`, `figma-plugin/tests/`.
 - [Figma Inventory](./figma-inventory.md) covers the read-only inventory command. Code: `figma-plugin/code.ts`, `figma-plugin/manifest.json`.
 - [Figma Primitives sync](./figma-primitives-sync.md) covers the dry run, the sync, idempotency and binding survival. Code: `figma-plugin/src/dtcg.ts`, `figma-plugin/src/plan-primitives.ts`, `figma-plugin/src/sync-primitives.ts`.
-- [Demo app](./demo-app.md) covers the Vite + React Profile Card page, which is outside the token roadmap. Code: `src/App.jsx`, `src/components/ProfileCard/`.
+- [Demo app](./demo-app.md) covers the Vite + React token reference page. Code: `src/App.jsx`, `src/parseTokenCss.js`, `src/styles/global.css`.
 
 Update the affected feature file in the same change that alters a feature's behavior or entry point, and update the revision line above.

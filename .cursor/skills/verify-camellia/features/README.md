@@ -2,7 +2,7 @@
 
 This directory is the maintained source for what Camellia can do today and how to prove it. Read this index before driving anything, then use the matching feature file as the recipe. Planned work is in the [roadmap](../../../../docs/token-pipeline-roadmap.md), not here.
 
-**Last verified against revision:** token reference demo, on 2026-10-17 for the terminal checks and the demo page. Figma procedures were not re-run; the last Figma verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`).
+**Last verified against revision:** `5a6653e`, on 2026-10-17 for the terminal checks and the demo page. Figma procedures were not re-run; the last Figma verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`).
 
 ## Baseline preconditions
 

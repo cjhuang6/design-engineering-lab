@@ -32,9 +32,7 @@ Light and mode-independent tokens land on `:root`. Dark semantic overrides use `
 
 ## Requirements
 
-GitHub Actions uses Node 24 (`.github/workflows/ci.yml`). `docs/verification.md` asks for Node 24 for the same reason.
-
-`npm test` imports the plugin's `.ts` files with `node --test`. That needs Node's built-in TypeScript stripping, which is on by default in Node 22.18 and later (and in Node 24). This package has no `engines` field.
+`package.json` declares Node.js 22.18 or later (`engines.node` is `>=22.18.0`). `npm test` imports the plugin's `.ts` files with `node --test`, which needs Node's built-in TypeScript stripping. That stripping is on by default in Node 22.18 and later. GitHub Actions runs on Node 24 (`.github/workflows/ci.yml`), which satisfies that range.
 
 Install dependencies with `npm ci`. Do not add packages without an approved change to the manifest and lockfile.
 

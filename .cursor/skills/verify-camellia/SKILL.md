@@ -24,7 +24,7 @@ Run this read-only check first, and again whenever anything looks off:
 node -v && git rev-parse --short HEAD && git status --short && npm run tokens:check
 ```
 
-Worth driving when Node is 24 or later, the revision is the one under test, `git status` shows only the intended changes, and the check ends with `PASS — all 11 checks passed`. For Figma, CJ confirms that the console shows the expected plugin and file before any sync.
+Worth driving when Node is 22.18 or later, the revision is the one under test, `git status` shows only the intended changes, and the check ends with `PASS — all 11 checks passed`. For Figma, CJ confirms that the console shows the expected plugin and file before any sync.
 
 ## Drive
 

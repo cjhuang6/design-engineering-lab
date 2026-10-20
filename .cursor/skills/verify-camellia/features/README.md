@@ -6,7 +6,7 @@ This directory is the maintained source for what Camellia can do today and how t
 
 ## Baseline preconditions
 
-- Node.js 24 or later, with dependencies installed by `npm ci`.
+- Node.js 22.18 or later, with dependencies installed by `npm ci`.
 - Commands run from the repository root, on the revision under test.
 - For Figma: the Figma desktop app, the Camellia file `QT8VkiGlF7xo4Ky5TAliOh` open with edit access, and the plugin imported from `figma-plugin/manifest.json`.
 - The bundled token JSON matches the checkout: run `npm run figma:build` after any JSON change.

@@ -15,9 +15,9 @@ Every entry is labelled:
 
 | | |
 |---|---|
-| Phases complete | 2A and 2B (Observed: merged to `main` in [PR #5](https://github.com/cjhuang6/design-engineering-lab/pull/5), merge commit `6f4058f`) |
-| Current phase | 2C, Semantic Light/Dark sync |
-| **Next agreed task** | **PR 3 of the [Phase 2C plan](plans/phase-2c-semantic-sync.md)** (menu commands, report text, and the desktop checklist), when CJ asks. The planner is merged ([PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11)). The sync against the fake Figma API is implemented and has not been run in Figma. Do not start PR 3 from this line alone. See the [Phase 2C task brief](#phase-2c-task-brief) |
+| Phases complete | 2A and 2B (Observed: merged to `main` in [PR #5](https://github.com/cjhuang6/design-engineering-lab/pull/5), merge commit `6f4058f`). Phase 2C build PR 1 (planner) and PR 2 (sync against the fake Figma) are merged. Desktop verification of 2C is not done |
+| Current phase | 2C, Semantic Light/Dark sync. Build PR 1 is merged ([PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11), merge `6dc61c5`). Build PR 2 is merged ([PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12), merge `f99089b`). Build PR 3 (menu commands, report text, and the desktop checklist) is this change |
+| **Next agreed task** | **CJ runs the [Semantic desktop checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md).** Phase 2C is not complete until that run is reported. After 2C, the next planned pull request is [Rename-safe token IDs](#rename-safe-token-ids-next-planned-pull-request-after-2c-not-started). Do not start it from this line alone |
 | Figma file state | Observed 2026-10-13: one `Primitives` collection with 110 variables and one `Value` mode; no other collections or styles. Test rectangle `61:117` is bound to `feedback/success` and `radius/xl` |
 
 ## Architecture (Approved)
@@ -74,7 +74,7 @@ src/styles/tokens.css   Figma variables and styles
   - Spot checks by CJ: scopes, code syntax in Dev Mode, and opacity showing as 64%.
   - The binding-survival test passed in both directions on rectangle `61:117`: the same variable IDs were kept while the values changed and were restored.
 
-### Phase 2C: Semantic Light/Dark sync (next)
+### Phase 2C: Semantic Light/Dark sync (desktop verification pending)
 
 - **Approved scope:**
   - A `Semantic` collection with modes `Light` and `Dark`.
@@ -88,7 +88,15 @@ src/styles/tokens.css   Figma variables and styles
   - `layout.*` and `control.*` are mode-independent aliases of `space.*`. The JSON marks them for the Semantic collection, in both modes.
   - The collection and mode names come from `$extensions.com.cjhuang.camellia.targets.figma`.
 - **Details:** see the [Phase 2C task brief](#phase-2c-task-brief).
-- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. The planner is merged (PR #11). The sync against the fake Figma API is implemented and has not been run in Figma. The menu and the desktop checklist have not started.
+- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. Build PR 1 (planner, PR #11) and build PR 2 (sync against the fake Figma, PR #12) are merged. Build PR 3 adds the menu and the [desktop checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md). Nothing in 2C has been run in Figma yet.
+
+### Rename-safe token IDs (next planned pull request after 2C, not started)
+
+Not a phase, and not part of the 2C menu change. Do not implement it unless CJ asks.
+
+- **Planned:** a permanent id for each token, stored in that token's DTCG `$extensions`, and written to Figma as the plugin-data tag. Today the semantic `token` plugin-data value is the Figma path, which is the variable's name (`color/action/primary`). A permanent id would stay the same when the name changes, so a later rename can keep the variable and the bindings on it.
+- This pull request does not add those ids, does not edit `tokens/camellia.tokens.json`, and does not change how semantic sync matches variables.
+- It is the next concrete step for [open question 1](#open-questions). The workflow that notices a path change in the JSON and pairs it with the old variable is still not designed. Phases 2D–2G stay as approved. This item does not replace them.
 
 ### Phase 2D: Text Styles
 
@@ -153,7 +161,7 @@ src/styles/tokens.css   Figma variables and styles
 
 ## Phase 2C task brief
 
-This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. The planner is merged (PR #11). The sync against the fake Figma API is implemented and has not been run in Figma. PR 3 (menu, report text, and the desktop checklist) waits until CJ asks.
+This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Build PRs 1 and 2 are merged. Build PR 3 (the menu, the report, and the [desktop checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md)) is this change. None of 2C has been run in Figma. Do not start [Rename-safe token IDs](#rename-safe-token-ids-next-planned-pull-request-after-2c-not-started) or Phase 2D unless CJ asks.
 
 - **Phase:** 2C, Semantic Light/Dark sync.
 - **Scope:** the approved scope above, plus the rules for every sync phase. Out of scope: text, effect and paint styles; the audit; component tokens; any change to the canonical schema.
@@ -163,7 +171,7 @@ This is the starting summary for the next agent. It contains approved facts. The
   3. Scopes and WEB code syntax are correct; the code syntax names exist in `src/styles/tokens.css`.
   4. A second run creates nothing and updates nothing.
   5. Layers bound to semantic variables stay bound across value changes.
-- **Verification plan (Proposal, mirroring 2B):** unit tests for the plan, sync tests against the fake Figma, then the [Figma procedures](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md) adapted to Semantic, including a binding-survival test on a semantic variable in both modes.
+- **Verification plan (Proposal, mirroring 2B):** unit tests for the plan, sync tests against the fake Figma, then CJ runs the [Semantic desktop checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md), including both modes, the translucent dark aliases, the spacing pickers, a Figma-side rename, and a binding-survival test on a semantic variable.
 - **Design questions:** 2, 3, and 5 were decided by CJ on 2026-10-20. See [open questions](#open-questions) and the [plan](plans/phase-2c-semantic-sync.md). Question 4 (whether dark alpha aliases look translucent in Figma) stays unknown until the desktop checklist.
 - **Workflow:** follow the [implement/verify handoff](verification.md#implementverify-handoff). The 2C plan is the first planned trial of that handoff.
 
@@ -171,7 +179,7 @@ This is the starting summary for the next agent. It contains approved facts. The
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Renaming tokens safely.** CJ, 2026-10-20: publish the current spec and CSS names, and design the rename practice later. Phase 2C semantic sync must store a stable plugin-data key and match on it, so that later practice can rename a variable in place (bindings store the variable id). The workflow that detects a path change and rewrites the key is not designed yet. Primitives still match by name | Unknown (the workflow). The key requirement is part of the approved 2C plan | Any future rename |
+| 1 | **Renaming tokens safely.** CJ, 2026-10-20: publish the current spec and CSS names, and design the rename practice later. Phase 2C semantic sync stores a plugin-data key and matches on it, so a Figma-side rename of a semantic variable can be put back on the same id. The stored value is still the Figma path (the name). The [next planned pull request after 2C](#rename-safe-token-ids-next-planned-pull-request-after-2c-not-started) would replace that with a permanent per-token id in DTCG `$extensions`. It is not started. The workflow that detects a path change and rewrites the key is still not designed. Primitives still match by name | Unknown (the workflow). The key requirement is part of the approved 2C plan. The permanent-id pull request is planned, not approved as a schema change | Any future rename |
 | 2 | **Composite border tokens, deferred** (CJ, 2026-10-20). The eight tokens `theme.light.border` and `theme.dark.border` × `subtle`, `default`, `strong`, and `focus` are not created as Figma variables in 2C. Each value is a color, a width, and a style. Figma variables have no type for that composite, so a color variable would not be the token. The color syncs as `color/border/*` and `color/focus`; `border/width/*` already syncs in Primitives; `border.style` stays CSS-only. Unblocked when a later phase has a Figma object that can carry color, width, and style together | Approved (deferred) | Does not block 2C. Blocks a Figma form of the border shorthand |
 | 3 | **Semantic scopes.** Text as `TEXT_FILL`, surfaces as `FRAME_FILL`/`SHAPE_FILL`, borders and focus as `STROKE_COLOR`, icons as `SHAPE_FILL`, layout and control as `GAP`. Full table in the [2C plan](plans/phase-2c-semantic-sync.md) | Approved (CJ, 2026-10-20) | Nothing |
 | 4 | **Dark aliases to alpha primitives** (e.g. `color/border/subtle` → `alpha/blue-400/18`). Plain aliasing should work; not yet verified in Figma | Unknown | 2C verification |

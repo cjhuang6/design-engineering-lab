@@ -64,11 +64,13 @@ The menu commands today are:
 - Inventory (read-only)
 - Sync Primitives — dry run
 - Sync Primitives
+- Sync Semantic — dry run
+- Sync Semantic
 
-Tests for the plugin run against a fake Figma API. They do not prove behavior inside Figma.
+`Sync Semantic — dry run` writes nothing. `Sync Semantic` creates or updates the `Semantic` collection. Tests for the plugin run against a fake Figma API. They do not prove behavior inside Figma. The steps for the Mac desktop check are in [the Semantic checklist](.cursor/skills/verify-camellia/features/figma-semantic-sync.md).
 
 ## Status
 
-Phases 2A (plugin scaffold) and 2B (primitive variable sync) are on `main`. The Phase 2C plan is merged. PR 1 (the planner) is merged. PR 2 (sync against the fake Figma API) is open as [PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12). PR 3 (menu commands and the desktop checklist) is next. Current status lives in [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md).
+Phases 2A (plugin scaffold) and 2B (primitive variable sync) are on `main`. Phase 2C build PR 1 (the planner, [PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11)) and PR 2 (sync against the fake Figma API, [PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12)) are merged. PR 3 adds the Semantic menu commands and the desktop checklist. CJ still has to run that checklist in Figma. The next planned pull request after 2C, not started, is rename-safe token IDs. Current status lives in [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md).
 
 The React demo is a token reference, not a component library.

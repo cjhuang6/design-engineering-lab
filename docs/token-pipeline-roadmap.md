@@ -147,7 +147,7 @@ src/styles/tokens.css   Figma variables and styles
 - **Approved intent:** only after the foundations are stable.
 - Button is the likely first validation component: it exercises color, typography, spacing, radius, states, focus, dark mode and motion.
 - Future parity looks like Figma `Button` (`Style=Primary`, `Size=MD`, `State=Default`) mapping to React `<Button variant="primary" size="md" />`. Figma Code Connect gets evaluated at that point.
-- Ignore the existing Profile Card for foundation work unless CJ asks.
+- The React demo is a token reference page (CJ, 2026-10-17), not a component. Component implementation still waits for this phase.
 
 ## Phase 2C task brief
 

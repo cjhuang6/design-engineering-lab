@@ -1,11 +1,12 @@
 # Demo app
 
-A developer runs a Vite + React page that renders the Profile Card using the generated token CSS. It isn't part of the token pipeline roadmap. Ignore it for foundation work unless CJ asks.
+A developer runs a Vite + React page that lists the Camellia tokens from the generated CSS. Colors, spacing, radius, typography, and the other token groups render with those custom properties. A theme button sets `[data-theme="dark"]` on the document. The page is not part of the token pipeline roadmap.
 
 ## Sub-features
 
 - `demo-dev` serves the page locally with hot reload.
 - `demo-build` produces a production build in the root `dist/`.
+- `demo-theme` switches the page between light and dark.
 
 ## How to get to it (user POV)
 
@@ -19,9 +20,11 @@ Preconditions:
 - Dependencies are installed.
 
 - **Production build.** Run `npm run build`. Vite reports the built files. Exit code `0`.
-- **Dev server.** Run `npm run dev`. Vite prints a local URL, and opening it shows the Profile Card. Stop the server with Ctrl+C.
+- **Dev server.** Run `npm run dev`. Vite prints a local URL. Opening it shows one heading, "Camellia tokens", grouped token samples, and a button labeled "Use dark theme" or "Use light theme". Activating the button switches the theme text between "Showing light theme." and "Showing dark theme." Stop the server with Ctrl+C.
 
 ## Gotchas
 
-- A successful build proves the app compiles, not that it renders correctly. There are no behavioral tests.
+- A successful build proves the app compiles, not that it renders correctly. There are no browser tests.
 - `dist/` is generated and ignored by Git.
+- The page reads names from `src/styles/tokens.css`. It does not edit that file.
+- The font tokens name Geist and Geist Mono. The demo does not load those font files.

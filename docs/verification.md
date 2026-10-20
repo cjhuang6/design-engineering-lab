@@ -19,7 +19,7 @@ What each check proves and can't prove, the automated guardrails, and how implem
 | `npm run lint` | Exit code 0 | Anything about `.ts` or `.mjs` files: ESLint only covers `.js` and `.jsx` |
 | `npm run build` | Vite build succeeds | That the demo app renders correctly |
 | `node scripts/docs/check-feature-map.mjs` | `PASS`, exit code 0 | That the feature descriptions are accurate. It checks names, links, paths and structure only |
-| `node --test tests/guardrails/*.test.mjs` | `pass 14`, `fail 0` | Real GitHub behavior. GitHub is simulated with a fake `gh` and throwaway repositories |
+| `node --test tests/guardrails/*.test.mjs` | `pass 17`, `fail 0` | Real GitHub behavior for the approval tests. GitHub is simulated with a fake `gh` and throwaway repositories. Three further tests check that the demo only references generated custom properties; they do not open a browser |
 | `git status --short` | Only the intended changes | Run it before and after checks to show nothing else changed |
 
 **Figma behavior is proven only in Figma.** That means the Figma recipes in the feature map, run by CJ, or read-only inspection through the Figma MCP when the task authorizes it. Compilation and fake-Figma tests are never evidence of Figma behavior.

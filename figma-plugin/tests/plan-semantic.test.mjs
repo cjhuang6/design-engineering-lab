@@ -1,0 +1,248 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+import { planSemantic, SEMANTIC_TOKEN_PLUGIN_DATA_KEY } from "../src/plan-semantic.ts";
+
+const readJson = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
+const tokens = readJson("../../tokens/camellia.tokens.json");
+const tokensCss = readFileSync(new URL("../../src/styles/tokens.css", import.meta.url), "utf8");
+
+const plan = planSemantic(tokens);
+const byName = new Map(plan.variables.map((variable) => [variable.name, variable]));
+const get = (name) => {
+  const variable = byName.get(name);
+  assert.ok(variable, `${name} should be planned`);
+  return variable;
+};
+
+const cloneTokens = () => structuredClone(tokens);
+const camellia = (node) => node.$extensions["com.cjhuang.camellia"];
+
+const FILL = ["FRAME_FILL", "SHAPE_FILL"];
+const TEXT = ["TEXT_FILL"];
+const STROKE = ["STROKE_COLOR"];
+const SHAPE = ["SHAPE_FILL"];
+const ACCENT = ["SHAPE_FILL", "STROKE_COLOR"];
+const GAP = ["GAP"];
+
+/** The approved Phase 2C scope table: 26 color rows, then 15 spacing rows. */
+const expected = [
+  ["color/background/canvas", "COLOR", "color/base/white", "color/base/black", FILL],
+  ["color/surface/primary", "COLOR", "color/base/white", "color/primitive/ice/950", FILL],
+  ["color/surface/secondary", "COLOR", "color/primitive/ice/50", "color/primitive/ice/900", FILL],
+  ["color/surface/subtle", "COLOR", "color/primitive/ice/100", "color/primitive/ice/950", FILL],
+  ["color/surface/selected", "COLOR", "color/primitive/blue/50", "color/primitive/blue/950", FILL],
+  ["color/text/primary", "COLOR", "color/primitive/ice/900", "color/primitive/ice/50", TEXT],
+  ["color/text/secondary", "COLOR", "color/primitive/ice/600", "color/primitive/ice/300", TEXT],
+  ["color/text/tertiary", "COLOR", "color/primitive/ice/500", "color/primitive/ice/400", TEXT],
+  ["color/text/inverse", "COLOR", "color/base/white", "color/primitive/ice/950", TEXT],
+  ["color/icon/primary", "COLOR", "color/primitive/ice/800", "color/primitive/ice/100", SHAPE],
+  ["color/icon/secondary", "COLOR", "color/primitive/ice/600", "color/primitive/ice/300", SHAPE],
+  ["color/border/subtle", "COLOR", "color/primitive/ice/200", "color/primitive/alpha/blue-400/18", STROKE],
+  ["color/border/default", "COLOR", "color/primitive/ice/300", "color/primitive/alpha/blue-400/30", STROKE],
+  ["color/border/strong", "COLOR", "color/primitive/ice/400", "color/primitive/alpha/blue-400/50", STROKE],
+  ["color/action/primary", "COLOR", "color/primitive/blue/600", "color/primitive/blue/400", FILL],
+  ["color/action/primary-hover", "COLOR", "color/primitive/blue/700", "color/primitive/blue/300", FILL],
+  ["color/action/primary-pressed", "COLOR", "color/primitive/blue/800", "color/primitive/blue/500", FILL],
+  ["color/action/primary-text", "COLOR", "color/base/white", "color/primitive/ice/950", TEXT],
+  ["color/action/link", "COLOR", "color/primitive/blue/700", "color/primitive/blue/300", TEXT],
+  ["color/action/link-hover", "COLOR", "color/primitive/blue/800", "color/primitive/blue/200", TEXT],
+  ["color/focus", "COLOR", "color/primitive/blue/500", "color/primitive/blue/400", STROKE],
+  ["color/functional/accent", "COLOR", "color/primitive/green/500", "color/primitive/green/400", ACCENT],
+  ["color/functional/surface", "COLOR", "color/primitive/green/50", "color/primitive/alpha/green-400/12", FILL],
+  ["color/expression/pink", "COLOR", "color/primitive/pink/400", "color/primitive/pink/400", FILL],
+  ["color/expression/blue", "COLOR", "color/primitive/blue/300", "color/primitive/blue/400", FILL],
+  ["color/expression/green", "COLOR", "color/primitive/green/300", "color/primitive/green/400", FILL],
+  ["layout/content-gap/sm", "FLOAT", "space/2", "space/2", GAP],
+  ["layout/content-gap/md", "FLOAT", "space/4", "space/4", GAP],
+  ["layout/content-gap/lg", "FLOAT", "space/6", "space/6", GAP],
+  ["layout/section-gap/sm", "FLOAT", "space/6", "space/6", GAP],
+  ["layout/section-gap/md", "FLOAT", "space/12", "space/12", GAP],
+  ["layout/section-gap/lg", "FLOAT", "space/16", "space/16", GAP],
+  ["layout/page-gutter/mobile", "FLOAT", "space/4", "space/4", GAP],
+  ["layout/page-gutter/tablet", "FLOAT", "space/6", "space/6", GAP],
+  ["layout/page-gutter/desktop", "FLOAT", "space/8", "space/8", GAP],
+  ["control/padding-inline/sm", "FLOAT", "space/3", "space/3", GAP],
+  ["control/padding-inline/md", "FLOAT", "space/4", "space/4", GAP],
+  ["control/padding-inline/lg", "FLOAT", "space/5", "space/5", GAP],
+  ["control/padding-block/sm", "FLOAT", "space/2", "space/2", GAP],
+  ["control/padding-block/md", "FLOAT", "space/3", "space/3", GAP],
+  ["control/padding-block/lg", "FLOAT", "space/4", "space/4", GAP],
+];
+
+test("targets the Semantic collection with Light then Dark", () => {
+  assert.equal(plan.collectionName, "Semantic");
+  assert.deepEqual(plan.modeNames, ["Light", "Dark"]);
+});
+
+test("plans 26 color aliases and 15 spacing aliases, with unique names", () => {
+  assert.equal(plan.variables.length, 41);
+  assert.equal(plan.variables.filter((variable) => variable.type === "COLOR").length, 26);
+  assert.equal(plan.variables.filter((variable) => variable.type === "FLOAT").length, 15);
+  assert.equal(plan.variables.filter((variable) => variable.name.startsWith("layout/")).length, 9);
+  assert.equal(plan.variables.filter((variable) => variable.name.startsWith("control/")).length, 6);
+  assert.equal(byName.size, plan.variables.length);
+});
+
+test("every approved row has its type, both aliases, scopes, code syntax, and description", () => {
+  assert.deepEqual(
+    plan.variables.map((variable) => variable.name),
+    expected.map((row) => row[0]),
+  );
+  for (const [name, type, light, dark, scopes] of expected) {
+    const variable = get(name);
+    assert.equal(variable.type, type, name);
+    assert.deepEqual(variable.aliases, { Light: light, Dark: dark }, name);
+    assert.deepEqual(variable.scopes, scopes, name);
+    assert.equal(variable.webSyntax, `var(--${name.replaceAll("/", "-")})`, name);
+    assert.equal(variable.description, "", name);
+    assert.equal(variable.token, name, name);
+  }
+});
+
+test("the plugin-data token key is the Figma path", () => {
+  assert.equal(SEMANTIC_TOKEN_PLUGIN_DATA_KEY, "token");
+  for (const variable of plan.variables) {
+    assert.equal(variable.token, variable.name, variable.name);
+  }
+});
+
+test("every WEB code syntax names a variable that exists in tokens.css", () => {
+  for (const variable of plan.variables) {
+    const match = variable.webSyntax.match(/^var\((--[\w-]+)\)$/);
+    assert.ok(match, `${variable.name} code syntax should look like var(--…)`);
+    const declaration = new RegExp(`^\\s*${match[1]}:`, "m");
+    assert.match(tokensCss, declaration, `${match[1]} is not declared in tokens.css`);
+  }
+  assert.equal(get("color/action/primary").webSyntax, "var(--color-action-primary)");
+  assert.equal(get("layout/content-gap/md").webSyntax, "var(--layout-content-gap-md)");
+});
+
+test("composite border tokens are absent", () => {
+  const deferred = ["border/subtle", "border/default", "border/strong", "border/focus"];
+  for (const name of deferred) {
+    assert.equal(byName.has(name), false, `${name} is deferred and must not be planned`);
+  }
+});
+
+test("feedback colors stay out of Semantic", () => {
+  const feedback = ["feedback/success", "feedback/warning", "feedback/error", "feedback/info"];
+  for (const name of feedback) {
+    assert.equal(byName.has(name), false, `${name} stays in Primitives`);
+  }
+});
+
+test("collection and mode names are read from the JSON, not hardcoded", () => {
+  const renamed = cloneTokens();
+  const root = camellia(renamed);
+  root.targets.figma.semanticCollection = "Semantics";
+  root.targets.figma.semanticModes = ["Day", "Night"];
+  camellia(renamed.theme).figmaCollection = "Semantics";
+  camellia(renamed.theme).modeMap = { light: "Day", dark: "Night" };
+  for (const groupName of ["layout", "control"]) {
+    camellia(renamed[groupName]).figmaCollection = "Semantics";
+    camellia(renamed[groupName]).modes = ["Day", "Night"];
+  }
+
+  const planned = planSemantic(renamed);
+  assert.equal(planned.collectionName, "Semantics");
+  assert.deepEqual(planned.modeNames, ["Day", "Night"]);
+  assert.deepEqual(planned.variables[0].aliases, {
+    Day: "color/base/white",
+    Night: "color/base/black",
+  });
+});
+
+test("a one-sided theme token fails the plan", () => {
+  const broken = cloneTokens();
+  delete broken.theme.dark.color.focus;
+  assert.throws(
+    () => planSemantic(broken),
+    /one-sided theme token color\/focus; missing Dark/,
+  );
+});
+
+test("a raw value fails the plan", () => {
+  const broken = cloneTokens();
+  broken.theme.light.color.action.primary.$value = "#1D4ED8";
+  assert.throws(
+    () => planSemantic(broken),
+    /theme\.light\.color\.action\.primary must be a single reference/,
+  );
+});
+
+test("a reference that is not in the Primitives plan fails", () => {
+  const broken = cloneTokens();
+  broken.theme.dark.color.border.subtle.$value = "{theme.dark.color.focus}";
+  assert.throws(
+    () => planSemantic(broken),
+    /theme\.dark\.color\.border\.subtle references \{theme\.dark\.color\.focus\}, which is not in the Primitives plan/,
+  );
+});
+
+test("a reference to a primitive of the wrong Figma type fails", () => {
+  const broken = cloneTokens();
+  broken.layout["content-gap"].md.$value = "{color.base.white}";
+  assert.throws(
+    () => planSemantic(broken),
+    /layout\.content-gap\.md is FLOAT but color\/base\/white is COLOR/,
+  );
+});
+
+test("a theme group extension that disagrees with the root fails", () => {
+  const broken = cloneTokens();
+  camellia(broken.theme).figmaCollection = "Other";
+  assert.throws(
+    () => planSemantic(broken),
+    /theme figmaCollection "Other" disagrees with targets\.figma\.semanticCollection "Semantic"/,
+  );
+});
+
+test("a theme modeMap that disagrees with the root fails", () => {
+  const broken = cloneTokens();
+  camellia(broken.theme).modeMap.dark = "Night";
+  assert.throws(
+    () => planSemantic(broken),
+    /theme modeMap disagrees with targets\.figma\.semanticModes/,
+  );
+});
+
+test("a layout modes list that disagrees with the root fails", () => {
+  const broken = cloneTokens();
+  camellia(broken.layout).modes = ["Dark", "Light"];
+  assert.throws(
+    () => planSemantic(broken),
+    /layout modes \["Dark","Light"\] disagree with targets\.figma\.semanticModes \["Light","Dark"\]/,
+  );
+});
+
+test("an unexpected $type fails the plan", () => {
+  const broken = cloneTokens();
+  const shadow = { $type: "shadow", $value: "{shadow.sm}" };
+  broken.theme.light.extra = shadow;
+  broken.theme.dark.extra = structuredClone(shadow);
+  assert.throws(() => planSemantic(broken), /theme\.light\.extra has unexpected \$type "shadow"/);
+});
+
+test("a color with no approved scopes fails the plan", () => {
+  const broken = cloneTokens();
+  broken.theme.light.color.extra = { $type: "color", $value: "{color.base.white}" };
+  broken.theme.dark.color.extra = { $type: "color", $value: "{color.base.black}" };
+  assert.throws(() => planSemantic(broken), /color\/extra has no approved scopes/);
+});
+
+test("descriptions are copied when both modes agree, and a disagreement fails", () => {
+  const described = cloneTokens();
+  described.theme.light.color.focus.$description = "Focus ring";
+  described.theme.dark.color.focus.$description = "Focus ring";
+  const focus = planSemantic(described).variables.find((variable) => variable.name === "color/focus");
+  assert.equal(focus.description, "Focus ring");
+
+  const broken = cloneTokens();
+  broken.theme.light.color.focus.$description = "Focus ring";
+  assert.throws(
+    () => planSemantic(broken),
+    /color\/focus descriptions disagree between modes/,
+  );
+});

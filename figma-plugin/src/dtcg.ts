@@ -45,15 +45,40 @@ export function collectTokens(
 export const isReference = (value: unknown): value is string =>
   typeof value === "string" && /^\{[^{}]+\}$/.test(value);
 
+export interface FigmaTargets {
+  primitiveCollection: string;
+  semanticCollection: string;
+  semanticModes: string[];
+}
+
 /** Camellia's Figma target settings from the root `$extensions`. */
-export function figmaTargets(tree: DtcgTree): { primitiveCollection: string } {
+export function figmaTargets(tree: DtcgTree): FigmaTargets {
   const extensions = isObject(tree.$extensions) ? tree.$extensions : {};
   const camellia = isObject(extensions[CAMELLIA]) ? extensions[CAMELLIA] : {};
   const targets = isObject(camellia.targets) ? camellia.targets : {};
   const figma = isObject(targets.figma) ? targets.figma : {};
 
-  if (typeof figma.primitiveCollection !== "string") {
-    throw new Error(`dtcg: $extensions.${CAMELLIA}.targets.figma.primitiveCollection is missing`);
+  return {
+    primitiveCollection: requireTargetString(figma.primitiveCollection, "primitiveCollection"),
+    semanticCollection: requireTargetString(figma.semanticCollection, "semanticCollection"),
+    semanticModes: requireTargetStrings(figma.semanticModes, "semanticModes"),
+  };
+}
+
+function requireTargetString(value: unknown, field: string): string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`dtcg: $extensions.${CAMELLIA}.targets.figma.${field} is missing`);
   }
-  return { primitiveCollection: figma.primitiveCollection };
+  return value;
+}
+
+function requireTargetStrings(value: unknown, field: string): string[] {
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    value.some((item) => typeof item !== "string" || item.length === 0)
+  ) {
+    throw new Error(`dtcg: $extensions.${CAMELLIA}.targets.figma.${field} is missing`);
+  }
+  return [...value];
 }

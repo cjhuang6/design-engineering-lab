@@ -4,7 +4,7 @@ What each check proves and can't prove, the automated guardrails, and how implem
 
 ## Prerequisites
 
-- Node.js 24 or later. The tests import `.ts` files directly, which relies on Node's built-in TypeScript type stripping. Last checked with Node 24.21.
+- Node.js 22.18 or later (`package.json` `engines`). The tests import `.ts` files directly, which relies on Node's built-in TypeScript type stripping, on by default since 22.18. Last checked with Node 22.23.3.
 - Dependencies installed with `npm ci`. Don't add or upgrade packages without CJ's approval.
 - For Figma: the Figma desktop app (the browser version can't load local plugins) and edit access to the Camellia file (`QT8VkiGlF7xo4Ky5TAliOh`).
 

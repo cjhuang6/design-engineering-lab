@@ -29,4 +29,4 @@ Preconditions:
 
 - `figma-plugin/dist/` is ignored by Git. A fresh checkout must build before Figma can run the plugin.
 - Passing tests prove the plugin's logic against a hand-written fake of the Figma API, not Figma's real behavior.
-- The tests import `.ts` files directly, which needs Node 24 or later.
+- The tests import `.ts` files directly, which needs Node 22.18 or later.

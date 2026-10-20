@@ -17,7 +17,7 @@ Every entry is labelled:
 |---|---|
 | Phases complete | 2A and 2B (Observed: merged to `main` in [PR #5](https://github.com/cjhuang6/design-engineering-lab/pull/5), merge commit `6f4058f`) |
 | Current phase | 2C, Semantic Light/Dark sync |
-| **Next agreed task** | **Wait for CJ to ask for 2C implementation.** Decisions 1–5 were approved on 2026-10-20. The design is the [Phase 2C plan](plans/phase-2c-semantic-sync.md). Write no 2C code until CJ asks. See the [Phase 2C task brief](#phase-2c-task-brief) |
+| **Next agreed task** | **PR 3 of the [Phase 2C plan](plans/phase-2c-semantic-sync.md)** (menu commands, report text, and the desktop checklist), when CJ asks. The planner is merged ([PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11)). The sync against the fake Figma API is implemented and has not been run in Figma. Do not start PR 3 from this line alone. See the [Phase 2C task brief](#phase-2c-task-brief) |
 | Figma file state | Observed 2026-10-13: one `Primitives` collection with 110 variables and one `Value` mode; no other collections or styles. Test rectangle `61:117` is bound to `feedback/success` and `radius/xl` |
 
 ## Architecture (Approved)
@@ -88,7 +88,7 @@ src/styles/tokens.css   Figma variables and styles
   - `layout.*` and `control.*` are mode-independent aliases of `space.*`. The JSON marks them for the Semantic collection, in both modes.
   - The collection and mode names come from `$extensions.com.cjhuang.camellia.targets.figma`.
 - **Details:** see the [Phase 2C task brief](#phase-2c-task-brief).
-- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. Implementation has not started.
+- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. The planner is merged (PR #11). The sync against the fake Figma API is implemented and has not been run in Figma. The menu and the desktop checklist have not started.
 
 ### Phase 2D: Text Styles
 
@@ -153,7 +153,7 @@ src/styles/tokens.css   Figma variables and styles
 
 ## Phase 2C task brief
 
-This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Write no 2C code until CJ asks for implementation.
+This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. The planner is merged (PR #11). The sync against the fake Figma API is implemented and has not been run in Figma. PR 3 (menu, report text, and the desktop checklist) waits until CJ asks.
 
 - **Phase:** 2C, Semantic Light/Dark sync.
 - **Scope:** the approved scope above, plus the rules for every sync phase. Out of scope: text, effect and paint styles; the audit; component tokens; any change to the canonical schema.

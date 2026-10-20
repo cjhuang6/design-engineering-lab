@@ -87,6 +87,7 @@ src/styles/tokens.css   Figma variables and styles
   - `layout.*` and `control.*` are mode-independent aliases of `space.*`. The JSON marks them for the Semantic collection, in both modes.
   - The collection and mode names come from `$extensions.com.cjhuang.camellia.targets.figma`.
 - **Details:** see the [Phase 2C task brief](#phase-2c-task-brief). The detailed design is not yet approved.
+- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md) (proposal, not yet approved).
 
 ### Phase 2D: Text Styles
 

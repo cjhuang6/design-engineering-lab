@@ -17,7 +17,7 @@ Every entry is labelled:
 |---|---|
 | Phases complete | 2A and 2B (Observed: merged to `main` in [PR #5](https://github.com/cjhuang6/design-engineering-lab/pull/5), merge commit `6f4058f`) |
 | Current phase | 2C, Semantic Light/Dark sync |
-| **Next agreed task** | **Plan Phase 2C.** Present the 2C design and verification plan to CJ and wait for approval. Write no 2C code until CJ approves the plan. See the [Phase 2C task brief](#phase-2c-task-brief) |
+| **Next agreed task** | **Wait for CJ to ask for 2C implementation.** Decisions 1–5 were approved on 2026-10-20. The design is the [Phase 2C plan](plans/phase-2c-semantic-sync.md). Write no 2C code until CJ asks. See the [Phase 2C task brief](#phase-2c-task-brief) |
 | Figma file state | Observed 2026-10-13: one `Primitives` collection with 110 variables and one `Value` mode; no other collections or styles. Test rectangle `61:117` is bound to `feedback/success` and `radius/xl` |
 
 ## Architecture (Approved)
@@ -46,7 +46,7 @@ src/styles/tokens.css   Figma variables and styles
 - Update existing variables and styles in place, preserving their IDs, so Figma layers stay bound to them.
 - Create what is missing. Never delete everything and recreate it.
 - Report variables that exist only in Figma; never delete them (decided 2026-10-13).
-- Recognise "the same token" by its name, e.g. `color/primitive/blue/600` (decided 2026-10-13). Token renaming needs its own workflow; see [open questions](#open-questions).
+- Recognise "the same token" by its name, e.g. `color/primitive/blue/600` (decided 2026-10-13). Semantic sync also stores a plugin-data key and matches on that key, so a later rename can keep the variable id (CJ, 2026-10-20; see [open question 1](#open-questions)). The rename workflow itself is still undesigned.
 - Set appropriate Figma scopes, and a WEB code syntax that maps to the CSS variable.
 - Keep each phase independently testable. Stop at the end of each phase and wait for CJ's approval.
 
@@ -82,12 +82,13 @@ src/styles/tokens.css   Figma variables and styles
   - Don't copy raw hex values where a primitive alias exists, so the alias graph preserves primitive → semantic.
   - Correct scopes and WEB code syntax.
   - Stop after validation.
+  - Composite border tokens are deferred (CJ, 2026-10-20). See [open question 2](#open-questions).
 - **Source data (Observed in the JSON):**
   - `theme.light.*` and `theme.dark.*` become one semantic name once the `theme/{mode}/` prefix is removed.
   - `layout.*` and `control.*` are mode-independent aliases of `space.*`. The JSON marks them for the Semantic collection, in both modes.
   - The collection and mode names come from `$extensions.com.cjhuang.camellia.targets.figma`.
-- **Details:** see the [Phase 2C task brief](#phase-2c-task-brief). The detailed design is not yet approved.
-- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md) (proposal, not yet approved).
+- **Details:** see the [Phase 2C task brief](#phase-2c-task-brief).
+- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. Implementation has not started.
 
 ### Phase 2D: Text Styles
 
@@ -152,7 +153,7 @@ src/styles/tokens.css   Figma variables and styles
 
 ## Phase 2C task brief
 
-This is the starting summary for the next agent. It contains only approved facts; the detailed design must be presented to CJ first.
+This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Write no 2C code until CJ asks for implementation.
 
 - **Phase:** 2C, Semantic Light/Dark sync.
 - **Scope:** the approved scope above, plus the rules for every sync phase. Out of scope: text, effect and paint styles; the audit; component tokens; any change to the canonical schema.
@@ -163,18 +164,18 @@ This is the starting summary for the next agent. It contains only approved facts
   4. A second run creates nothing and updates nothing.
   5. Layers bound to semantic variables stay bound across value changes.
 - **Verification plan (Proposal, mirroring 2B):** unit tests for the plan, sync tests against the fake Figma, then the [Figma procedures](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md) adapted to Semantic, including a binding-survival test on a semantic variable in both modes.
-- **Design questions to present to CJ (Unknown):** open questions 2, 3, 4 and 5 below. Resolve them with CJ while planning, before implementation.
+- **Design questions:** 2, 3, and 5 were decided by CJ on 2026-10-20. See [open questions](#open-questions) and the [plan](plans/phase-2c-semantic-sync.md). Question 4 (whether dark alpha aliases look translucent in Figma) stays unknown until the desktop checklist.
 - **Workflow:** follow the [implement/verify handoff](verification.md#implementverify-handoff). The 2C plan is the first planned trial of that handoff.
 
 ## Open questions
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Renaming tokens safely.** Matching by name means a rename looks like a delete plus an add, and bindings to the old variable would be orphaned. CJ asked for a rename practice to be designed later | Unknown | Any future rename |
-| 2 | **Composite `border` tokens** (`theme.*.border.*`: color + width + style) have no Figma variable type. Represent them in 2C as color aliases only, or defer them to the style phases? | Unknown | 2C plan |
-| 3 | **Semantic scopes**, e.g. text colors as `TEXT_FILL` vs. surfaces as `FRAME_FILL`/`SHAPE_FILL` | Unknown | 2C plan |
+| 1 | **Renaming tokens safely.** CJ, 2026-10-20: publish the current spec and CSS names, and design the rename practice later. Phase 2C semantic sync must store a stable plugin-data key and match on it, so that later practice can rename a variable in place (bindings store the variable id). The workflow that detects a path change and rewrites the key is not designed yet. Primitives still match by name | Unknown (the workflow). The key requirement is part of the approved 2C plan | Any future rename |
+| 2 | **Composite border tokens, deferred** (CJ, 2026-10-20). The eight tokens `theme.light.border` and `theme.dark.border` × `subtle`, `default`, `strong`, and `focus` are not created as Figma variables in 2C. Each value is a color, a width, and a style. Figma variables have no type for that composite, so a color variable would not be the token. The color syncs as `color/border/*` and `color/focus`; `border/width/*` already syncs in Primitives; `border.style` stays CSS-only. Unblocked when a later phase has a Figma object that can carry color, width, and style together | Approved (deferred) | Does not block 2C. Blocks a Figma form of the border shorthand |
+| 3 | **Semantic scopes.** Text as `TEXT_FILL`, surfaces as `FRAME_FILL`/`SHAPE_FILL`, borders and focus as `STROKE_COLOR`, icons as `SHAPE_FILL`, layout and control as `GAP`. Full table in the [2C plan](plans/phase-2c-semantic-sync.md) | Approved (CJ, 2026-10-20) | Nothing |
 | 4 | **Dark aliases to alpha primitives** (e.g. `color/border/subtle` → `alpha/blue-400/18`). Plain aliasing should work; not yet verified in Figma | Unknown | 2C verification |
-| 5 | **Feedback colors have no semantic Light/Dark layer** in the JSON. Is that intended? | Unknown | Possibly 2C |
+| 5 | **Feedback colors have no semantic Light/Dark layer.** They stay in `Primitives`, visible in pickers. The spec lists them as single accents, and the JSON has no `theme.*.feedback` | Approved (CJ, 2026-10-20) | Nothing |
 | 6 | **Section 20 ("CSS starter mapping") of the design system spec** is a hand-written CSS block that predates the generated `tokens.css`. The JSON is canonical, so it is at least historical. Remove it, label it, or keep it? | Unknown | Nothing; risks a duplicate source |
 | 7 | **The design spec's "Components" collection and Profile Card component tokens** aren't in the JSON (`componentTokensIncluded: false`). Deferred to Phase 4? | Unknown | Phase 4 |
 | 8 | **Motion variables in actual use.** EASING and TIMING variables were created (Observed), but binding them to Figma Motion keyframes was not verified. The Figma Motion API is in Beta | Unknown | Nothing yet |

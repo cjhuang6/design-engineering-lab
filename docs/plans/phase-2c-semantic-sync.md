@@ -1,8 +1,6 @@
 # Phase 2C plan: Semantic Light/Dark sync
 
-**Status: Proposal.** This is the implementation plan for CJ to approve or push back on. It does not approve itself. No plugin code is written from this document until CJ approves it.
-
-Approving the plan means approving the recommendations in [Decisions for you](#decisions-for-you) and the three pull requests under [Implementation pull requests](#implementation-pull-requests). Push back on any row you disagree with; that row stays open and the rest can proceed.
+**Status: Decisions 1–5 recorded (CJ, 2026-10-20).** Implementation has not started. No plugin code is written from this document until CJ asks for it.
 
 The five acceptance criteria already approved in the [roadmap](../token-pipeline-roadmap.md#phase-2c-task-brief) stay as they are:
 
@@ -14,17 +12,17 @@ The five acceptance criteria already approved in the [roadmap](../token-pipeline
 
 Labels used below match the roadmap: **Approved**, **Observed**, **Proposal**, **Unknown**.
 
-## Decisions for you
+## Decisions
 
-These are the choices the roadmap left open, plus the new public names this phase would publish. A later rename of a Figma variable orphans anything bound to the old one (roadmap open question 1). First-time names are decided here.
+CJ decided these on 2026-10-20. The border deferral is also recorded in roadmap open question 2, so it stays findable after this plan has been implemented.
 
-| # | Decision | Recommendation | If you disagree |
-|---|---|---|---|
-| 1 | Composite `border` tokens (`theme.*.border.subtle`, `default`, `strong`, `focus`: color + width + style) | **Defer.** Do not create Figma variables for them in 2C. The color half already syncs as `color/border/*` and `color/focus`. Width already exists on `border/width/*`. `border.style` stays CSS-only, as in 2B. | Say so, and name the Figma variable. This plan will not invent a name. `border/subtle` is the spec's name for the shorthand `1px solid …`, while CSS `--border-subtle` is that shorthand and `--color-border-subtle` is the color. Publishing `border/subtle` as a color pointer would make one name mean two different things. |
-| 2 | Which pickers show each semantic variable (scopes) | The scope column in the tables below. Scopes can be corrected on a later sync without new variable IDs. | Mark up the table. Wrong scopes only hide a variable from a picker; they do not change its value. |
-| 3 | Plugin menu strings | Add `Sync Semantic — dry run` (`sync-semantic-dry-run`) and `Sync Semantic` (`sync-semantic`), after the primitives commands. | These strings are a public contract. Change them now if you want different words. |
-| 4 | Figma variable names | Publish the names already in the design spec and in `tokens.css`: `color/action/primary`, `layout/content-gap/md`, and the rest of the tables. Collection `Semantic`, modes `Light` and `Dark`, already stored in the JSON. | Say which name should differ. Changing it later is a rename. |
-| 5 | Feedback colors (`feedback/success` and the other three) | Leave them in `Primitives`, visible, with no Light/Dark pair. **Observed:** the spec lists them as single accents, and the JSON has no `theme.*.feedback`. **Inferred** from that, plus the comment in `figma-plugin/src/plan-primitives.ts`, that this is intentional. | A semantic feedback layer is a token-JSON change. It needs its own approval and is outside 2C. |
+| # | Topic | Decision (CJ, 2026-10-20) |
+|---|---|---|
+| 1 | Composite `border` tokens (`theme.light` and `theme.dark` × `border.subtle`, `border.default`, `border.strong`, `border.focus`: color + width + style) | **Approved: defer.** 2C creates no Figma variable for them. The color half syncs as `color/border/*` and `color/focus`. Width already exists on `border/width/*`. `border.style` stays CSS-only, as in 2B. Figma variables cannot hold the composite, and a color variable named `border/subtle` would not match the CSS shorthand `--border-subtle`. |
+| 2 | Which pickers show each semantic variable | **Approved:** the scope column in the tables below. A later scope correction updates the same variable id. |
+| 3 | Plugin menu strings | **Approved:** `Sync Semantic — dry run` (`sync-semantic-dry-run`) and `Sync Semantic` (`sync-semantic`), after the primitives commands. |
+| 4 | Figma variable names | **Approved for now:** the names already in the design spec and in `tokens.css` (`color/action/primary`, `layout/content-gap/md`, and the rest of the tables). Collection `Semantic`, modes `Light` and `Dark`, already stored in the JSON. Renaming is future work (roadmap open question 1). Semantic sync must match by a stable key so that future rename can keep the variable id. See [Variable identity](#variable-identity). |
+| 5 | Feedback colors (`feedback/success` and the other three) | **Approved:** they stay in `Primitives`, visible, with no Light/Dark pair. **Observed:** the spec lists them as single accents, and the JSON has no `theme.*.feedback`. |
 
 Dark-mode aliases to alpha primitives (`color/border/subtle` → `color/primitive/alpha/blue-400/18`, and three more) are not a naming decision. The sync will store those pointers. Whether Figma draws them as translucent swatches is a manual check, still **Unknown** (roadmap open question 4).
 
@@ -37,10 +35,10 @@ Make the Figma file's `Semantic` collection match the semantic tokens in `tokens
 | Group | Variables | Modes |
 |---|---|---|
 | `theme.light` / `theme.dark` color tokens | 26 pairs, one variable each | Light and Dark point at different primitives (a few point at the same one) |
-| `theme.*.border.*` composite borders | 4 pairs | Deferred, decision 1 |
+| `theme.*.border.*` composite borders | 4 pairs | Deferred (CJ, 2026-10-20) |
 | `layout.*` | 9 | Same `space/*` pointer in both modes |
 | `control.*` | 6 | Same `space/*` pointer in both modes |
-| **Shipped if decision 1 stands** | **41** | |
+| **Shipped in 2C** | **41** | |
 
 The 30 light/dark pairs in the brief are the 26 colors plus the 4 composite borders. `layout` and `control` are in the approved 2C scope as well; they are mode-independent spacing aliases, not a 31st color pair.
 
@@ -52,7 +50,7 @@ Running **Sync Semantic** on the file that 2B already filled creates those 41 va
 - Component tokens, the Phase 3 export-from-Figma flow, and Phase 4.
 - Any edit to `tokens/camellia.tokens.json`, `src/styles/tokens.css`, or the token schema. The plugin reads the JSON it already bundles.
 - Renaming primitives, CSS variables, or the `Primitives` collection.
-- A rename workflow for variables that already exist.
+- A rename workflow. 2C stores a stable key so a later workflow can rename in place. It does not detect renames or change a key from one path to another. See [Variable identity](#variable-identity).
 - Deleting variables that exist only in Figma.
 - One command that syncs primitives and semantics together. Semantic sync reads `Primitives` and does not write to it. If primitives are missing, it stops with a message.
 - Two-way sync. An edit made in Figma is overwritten the next time that field is synced, which is the approved rule that the JSON wins.
@@ -110,9 +108,9 @@ The planner checks that those group extensions agree with the root `targets.figm
 
 ### Color rows (26)
 
-Scopes are a **Proposal** (decision 2). Pointers are **Observed** in the JSON. Figma names are the **Proposal** in decision 4; they match the spec's section 5 and the CSS names.
+Scopes in the table are **Approved** (CJ, 2026-10-20). Pointers are **Observed** in the JSON. Figma names are **Approved** for now (decision 4); they match the spec's section 5 and the CSS names. A later rename stays on the same variable id only if semantic sync follows [Variable identity](#variable-identity).
 
-| Figma name | Light points at | Dark points at | Proposed scopes |
+| Figma name | Light points at | Dark points at | Scopes |
 |---|---|---|---|
 | `color/background/canvas` | `color/base/white` | `color/base/black` | `FRAME_FILL`, `SHAPE_FILL` |
 | `color/surface/primary` | `color/base/white` | `color/primitive/ice/950` | `FRAME_FILL`, `SHAPE_FILL` |
@@ -147,7 +145,7 @@ Picker words, from Figma's [VariableScope](https://developers.figma.com/docs/plu
 
 ### Spacing rows (15)
 
-Both modes point at the same primitive. Proposed scope for every row is `GAP`. There is no padding scope in `VariableScope`. **Unknown** whether the padding fields in the UI list `GAP` variables; the checklist records what they actually do.
+Both modes point at the same primitive. Scope for every row is `GAP` (**Approved**, CJ, 2026-10-20). There is no padding scope in `VariableScope`. **Unknown** whether the padding fields in the UI list `GAP` variables; the checklist records what they actually do.
 
 | Figma name | Points at (both modes) |
 |---|---|
@@ -173,6 +171,35 @@ Both modes point at the same primitive. Proposed scope for every row is `GAP`. T
 
 The four names, light and dark, are an explicit exclusion list, same idea as `EXCLUDED` in `plan-primitives.ts`. A new `$type` under `theme`, `layout`, or `control` that is not on that list fails the plan. Nothing is dropped quietly.
 
+What would unblock a Figma representation of these eight tokens: a later phase with a Figma object that can carry color, width, and style together. A variable type for that composite does not exist today. A color-only variable under the shorthand's name is not that object.
+
+## Variable identity
+
+Bindings follow the variable's id. The name is a label on that same object.
+
+**Observed** in the Plugin API docs:
+
+- A binding stores an id. `boundVariables` values are `VariableAlias` records, `{ type: "VARIABLE_ALIAS", id }`, and the docs call that `id` the id of the bound variable ([VariableAlias](https://developers.figma.com/docs/plugins/api/VariableAlias/), [boundVariables](https://developers.figma.com/docs/plugins/api/properties/nodes-boundvariables/)). `setBoundVariable` takes the `Variable` object ([setBoundVariable](https://developers.figma.com/docs/plugins/api/properties/nodes-setboundvariable/)).
+- `Variable.id` is a readonly unique identifier. `Variable.name` is a separate writable property. `remove()` deletes the variable ([Variable](https://developers.figma.com/docs/plugins/api/Variable/)).
+- `setPluginData(key, value)` stores a string on that variable, private to this plugin. One entry's plugin id, key, and value together must stay under 100 kB.
+
+**Inferred** from those shapes: setting `variable.name` leaves `id` as it is, so every binding and every alias that stored that id still points at the same variable. `remove()` plus `createVariable` makes a new id. Bindings that still hold the removed id no longer point at a live variable. The 2B binding-survival test already showed the value half of this in the Camellia file (**Observed**, roadmap): the layer stayed bound while the value changed, and the variable id stayed the same. That test did not rename a variable.
+
+**Unknown:** nobody has renamed a variable in this file and checked the bound layer afterward. The desktop checklist does not have to do that for 2C. The requirement below is what makes a future check possible.
+
+**Requirement (design only).** Semantic sync matches an existing variable by a stable key in plugin data, not by name alone. This phase does not plan the rename. It does not notice that a JSON path changed, and it does not rewrite a stored key from one path to another. Roadmap open question 1 is still that workflow. The stored key is what lets that workflow, later, set `name` on the existing id instead of deleting the variable and creating another.
+
+Rules for the sync:
+
+- The key is plugin data `token`, and the value is the Figma path (`color/action/primary`). The plugin id in `figma-plugin/manifest.json` is `camellia-figma-sync-dev`, so this data is private to Camellia Figma Sync. A path is well under the 100 kB limit.
+- Create writes the key as it creates the variable.
+- A later run finds the variable whose `token` value equals the planned path, then sets `name` to that path when the name differs. The id stays.
+- If no variable has that key, and exactly one variable in `Semantic` has that name and an empty `token` value, adopt it: write the key, keep the id. That picks up a variable that was created before the key existed.
+- If neither key nor name matches, create the variable and write the key.
+- Stop before any write when two variables share a `token` value, or when setting a name would collide with a different variable.
+- A variable whose key is not a planned path, or whose key is empty and whose name is not a planned path, is "not in JSON" and stays.
+- Primitives keep matching by name. **Observed** in `figma-plugin/src/sync-primitives.ts`: the map of existing variables is keyed by `variable.name`. That is the rule from 2026-10-13. 2C does not add plugin data to `Primitives`. Renaming a primitive is part of the future workflow, not this phase.
+
 ## Sync behavior
 
 Follow `figma-plugin/src/sync-primitives.ts`. Semantic sync is a sibling, `sync-semantic.ts`. It does not call the primitives sync and it does not change primitive variables.
@@ -185,7 +212,7 @@ These checks run for a dry run and for a real sync. On failure the plugin throws
 
 1. More than one collection named `Semantic`.
 2. `Semantic` already exists, and its modes are not exactly `Light` then `Dark`. That includes one mode, an extra mode, the names swapped, or a renamed column. The sync does not rename, reorder, or delete modes on a collection it did not just create. Reordering would swap what every layer shows. `removeMode` is not used.
-3. Two variables in `Semantic` share a name.
+3. Two variables in `Semantic` share a name, or two share the same `token` plugin-data value, or writing a planned name would collide with a different variable.
 4. An existing semantic variable has a different `resolvedType` than the plan. Figma cannot change a variable's type in place (the 2B error text stays).
 5. Any pointer target is missing from `Primitives`, or its type disagrees with the row. The error lists every missing name, so one gap does not hide the next.
 
@@ -194,18 +221,18 @@ The plan's own failures (one-sided theme token, a value that is not a single ref
 ### Writes
 
 1. If `Semantic` is absent, create it, rename the first mode to `Light`, and `addMode("Dark")`. Then create variables. Both columns exist before any row is added.
-2. Create a variable that is missing. Set both mode pointers, scopes, WEB code syntax, and description.
-3. When the variable exists, compare each column's alias id, the scopes, the code syntax, and the description. Write only the fields that differ. Keep the variable id. The updated line names the fields and the id, for example `color/action/primary [Dark value] (VariableID:…)`.
-4. Variables in `Semantic` whose names are not in the plan are listed as `In Figma but not in JSON (left untouched)` and are not deleted (**Approved** 2026-10-13).
+2. Match each planned path using the [identity rules](#variable-identity). Create when there is no match. On create, set both mode pointers, scopes, WEB code syntax, description, the `token` plugin data, and the name.
+3. When the variable exists, compare the name, each column's alias id, the scopes, the code syntax, the description, and the plugin-data key. Write only the fields that differ. Keep the variable id. The updated line names the fields and the id, for example `color/action/primary [Dark value] (VariableID:…)` or `color/action/primary [name] (VariableID:…)`.
+4. Variables in `Semantic` that the identity rules call "not in JSON" are listed as `In Figma but not in JSON (left untouched)` and are not deleted (**Approved** 2026-10-13).
 5. A throw while creating or updating one variable is recorded under Errors. The loop continues with the others, as in the 2B test `an error on one variable is reported without stopping the others`. The next successful run finishes the rows that failed.
 
-Dry run builds the same report and calls none of the write APIs. The test counts `createVariableCollection`, `addMode`, `createVariable`, and `setValueForMode`.
+Dry run builds the same report and calls none of the write APIs, including `setPluginData`. The test counts `createVariableCollection`, `addMode`, `createVariable`, `setValueForMode`, and `setPluginData`.
 
 ### Running it twice
 
 After a successful run, a second run reports Created 0 and Updated 0, and the write counters stay still. That is acceptance criterion 4.
 
-It holds because the second read sees the same alias ids, scopes, code syntax, and description the plan asked for. Two columns pointing at the same primitive are equal to the plan, so they are not "updates."
+It holds because the second read sees the same alias ids, scopes, code syntax, description, name, and `token` plugin data the plan asked for. Two columns pointing at the same primitive are equal to the plan, so they are not "updates."
 
 ### If you edited the file in Figma
 
@@ -216,8 +243,9 @@ The JSON wins on the next sync of that field. Phase 3 is the approved place to r
 | Pointed a column at a different variable, or replaced the pointer with a raw color or number | Puts the JSON pointer back. Reported as an update. The variable id stays, so a bound layer keeps the binding and shows the restored color. |
 | Changed scopes, code syntax, or the description | Puts the plan back. Same id. |
 | Typed a description | Clears it. These tokens have no `$description` today. |
-| Renamed a variable | The old name is reported as not in the JSON and left in place, bindings included. The JSON name is created as a new variable. This is the rename gap. 2C does not close it. |
-| Added a variable | Left in place and reported. |
+| Renamed a semantic variable in the Figma UI, while its `token` plugin data is still the JSON path | Finds it by the key, sets the name back, same id. A binding that stored that id stays. |
+| Changed a token's path in the JSON | Not handled in 2C. The old variable no longer matches a planned path, so it is reported and left in place, and the new path is created. Pairing those two on one id is the future rename workflow, which this plan does not specify. |
+| Added a variable with no `token` key and a name that is not in the JSON | Left in place and reported. |
 | Deleted a variable | The next sync creates it again, with a new id. Bindings Figma already removed stay removed. |
 | Edited a primitive's raw value | Semantic sync does not touch `Primitives`. Layers follow the pointer, so they show your edit until you run Sync Primitives. |
 
@@ -245,20 +273,23 @@ New files, same style as the 2B tests (`node:test`, plain `.mjs`, no new depende
 
 `figma-plugin/tests/sync-semantic.test.mjs`
 
-The fake is a sibling of the one in `sync-primitives.test.mjs`, extended with `addMode` and with alias values stored as `{ type: "VARIABLE_ALIAS", id }`. It keeps the 32-bit number rounding for raw values. The semantic tests do not rewrite the primitives fake.
+The fake is a sibling of the one in `sync-primitives.test.mjs`, extended with `addMode`, alias values stored as `{ type: "VARIABLE_ALIAS", id }`, and `getPluginData` / `setPluginData`. It keeps the 32-bit number rounding for raw values. The semantic tests do not rewrite the primitives fake.
 
 Each test starts by running the real `syncPrimitives` so `Primitives` is actually there.
 
 Deterministic cases:
 
-- Dry run on an empty semantic collection reports 41 creates and performs no writes.
-- First sync creates one `Semantic` collection, modes `Light` then `Dark`, 41 variables, alias ids pointing at the right primitives, including the four dark alpha targets and `expression/pink` pointing at the same id twice.
-- Second sync: Created 0, Updated 0, write counters unchanged.
+- Dry run on an empty semantic collection reports 41 creates and performs no writes, including no `setPluginData`.
+- First sync creates one `Semantic` collection, modes `Light` then `Dark`, 41 variables, alias ids pointing at the right primitives, including the four dark alpha targets and `expression/pink` pointing at the same id twice. Each variable's `token` plugin data equals its path.
+- Second sync: Created 0, Updated 0, write counters unchanged, including `setPluginData`.
 - Changing a token's reference updates that column on the same variable id.
 - A raw color sitting in Figma is replaced by the pointer.
 - Drifted scopes, code syntax, and description are repaired.
-- An extra semantic variable is reported and kept.
-- Primitive ids and values are unchanged, and the primitive write counter does not move.
+- A variable whose `token` plugin data matches a planned path, and whose name does not, is renamed in place: same id, name restored, no second variable created.
+- A variable with an empty `token` key and a planned name is adopted: the key is written, the id stays.
+- An extra semantic variable (empty key, unplanned name) is reported and kept.
+- Two variables with the same `token` value throw before any write.
+- Primitive ids and values are unchanged, and the primitive write counter does not move. No primitive gains plugin data.
 - A missing primitive, a type conflict, a duplicate `Semantic` collection, and each wrong mode shape throw before any semantic write.
 - One `createVariable` throw is reported and the other variables are still created.
 
@@ -269,18 +300,18 @@ In the same file, one test, no library. A small seeded generator (`mulberry32`, 
 A state is **reachable** here when the sync is willing to repair it:
 
 - Exactly one `Primitives` collection, built by `syncPrimitives` and then left alone.
-- Semantic side is one of: no collection; an empty collection that already has `Light` then `Dark`; a correct full sync; a random subset of the rows with the right pointers; that subset with a random sample then broken by a same-type wrong pointer, a raw value of the right type, or drifted scopes, code syntax, or description; any of those plus one to three orphan variables whose names are not in the plan.
+- Semantic side is one of: no collection; an empty collection that already has `Light` then `Dark`; a correct full sync (keys written); a random subset of the rows with the right pointers and keys; that subset with a random sample then broken by a same-type wrong pointer, a raw value of the right type, drifted scopes, code syntax, or description, or a name that differs while the `token` key is intact; any of those plus one to three orphan variables whose names and keys are not in the plan.
 
 For every draw:
 
-1. One sync makes `Semantic` match the plan (names, types, alias ids per mode, scopes, code syntax, descriptions). Orphans are still there, with the same ids. Variable ids that existed before and are still in the plan are unchanged. The `Primitives` snapshot is unchanged.
+1. One sync makes `Semantic` match the plan (names, types, alias ids per mode, scopes, code syntax, descriptions, `token` plugin data). Orphans are still there, with the same ids. Variable ids that existed before and are still in the plan are unchanged, including when the repair was a name restore. The `Primitives` snapshot is unchanged.
 2. A second sync reports Created 0 and Updated 0, its write counters do not move, and a snapshot of both collections equals the snapshot after the first sync.
 
 So from those states, syncing twice matches syncing once, and that result matches the tokens (the plan tests are what tie the plan to the JSON).
 
 Separate deterministic tests cover the states that must throw: wrong mode shape, missing primitives, type conflicts. Those are not fed to the generator.
 
-What this does not prove: Figma's alias resolver, the mode picker, a Starter-plan rejection, a crash between two API calls, or a file that fails preflight. The crash-between-modes case is the recovery note above, not a randomized scenario.
+What this does not prove: Figma's alias resolver, the mode picker, a Starter-plan rejection, a crash between two API calls, a file that fails preflight, or that a JSON path change is paired with the old variable. That last one is the rename workflow, which these tests must not implement. The crash-between-modes case is the recovery note above, not a randomized scenario.
 
 **TLA+ is out of scope.** A TLA+ check would need the TLA+ tools, which are a Java program, and adding that runtime is a dependency CJ has not approved. The seeded test above is the idempotency check `npm test` can run.
 
@@ -335,7 +366,7 @@ Verified by those commands. There is nothing to run in Figma yet.
 
 Files: `figma-plugin/src/sync-semantic.ts`, `figma-plugin/tests/sync-semantic.test.mjs`, and the `npm test` pass count in `docs/verification.md`.
 
-Acceptance: the deterministic sync tests and the 40-draw randomized test pass; a preflight failure performs no writes; primitive variables are unchanged.
+Acceptance: the deterministic sync tests and the 40-draw randomized test pass, including in-place name restore when the `token` key matches and adoption when the key is empty; a preflight failure performs no writes; primitive variables are unchanged and gain no plugin data.
 
 Verified by `npm test` and `npm run figma:build`. Still no menu, so still no Figma run.
 
@@ -361,8 +392,9 @@ Verified by `npm test`, `npm run figma:build`, and `node scripts/docs/check-feat
 | A later Light/Dark column on `Primitives` would change resolution | **Inferred** | The pointer does not store a primitive mode. Extra primitive modes are not part of 2C. |
 | Empty descriptions get cleared on sync | **Observed** rule, **Observed** empty strings | JSON wins, and these tokens have no `$description`. Surprise-prone if you annotate in Figma. |
 | A crash between create-collection and `addMode` sticks until the empty collection is deleted by hand | **Inferred** from the preflight | Rare (two API calls). Documented under halfway stops. The sync will not delete the collection. |
-| Renaming a token or a Figma variable orphans bindings | **Approved** gap | Roadmap open question 1. Unchanged by 2C. |
-| This plan's scope table is wrong for how you design | **Proposal** | Decision 2. Fixing scopes later reuses variable ids. |
+| A Figma-side rename of a keyed semantic variable | **Inferred** | The sync sets `name` back on the same id. Not yet watched in this file (**Unknown** as a Figma observation). |
+| A JSON path change still creates a new variable and leaves the old one | **Approved** gap | Roadmap open question 1. 2C stores the key and does not build the workflow that would rewrite it. |
+| This plan's scope table | **Approved** (CJ, 2026-10-20) | Decision 2. A later correction reuses variable ids. |
 | The fake does not execute Figma | **Observed** limit | Same limit as 2B, stated in `docs/verification.md`. |
 
 ## Code this follows

@@ -69,6 +69,6 @@ Tests for the plugin run against a fake Figma API. They do not prove behavior in
 
 ## Status
 
-Phases 2A (plugin scaffold) and 2B (primitive variable sync) are on `main`. The next agreed task is to plan Phase 2C, semantic light/dark sync, and wait for approval before writing that code. See [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md).
+Phases 2A (plugin scaffold) and 2B (primitive variable sync) are on `main`. The Phase 2C plan is merged. PR 1 (the planner) is merged. PR 2 (sync against the fake Figma API) is open as [PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12). PR 3 (menu commands and the desktop checklist) is next. Current status lives in [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md).
 
 The React demo is a token reference, not a component library.

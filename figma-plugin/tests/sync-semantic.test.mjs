@@ -188,6 +188,15 @@ function removeVariables(ids) {
   }
 }
 
+function primitiveNamedInPlan(type) {
+  const row = semanticPlan.variables.find((variable) => variable.type === type);
+  assert.ok(row, `semantic plan has no ${type} row`);
+  const modeName = semanticPlan.modeNames[0];
+  const primitiveName = row.aliases[modeName];
+  assert.equal(typeof primitiveName, "string", `${row.name} ${modeName}`);
+  return primitiveName;
+}
+
 test("dry run on an empty semantic collection reports 41 creates and writes nothing", async () => {
   await seedPrimitives();
   const counts = snapshotCounts();
@@ -465,17 +474,27 @@ test("primitive variables are unchanged and gain no plugin data", async () => {
 
 test("a missing primitive throws before any semantic write and lists every missing name", async () => {
   await seedPrimitives();
-  removeVariables(
-    new Set([findPrimitive("color/primitive/blue/600").id, findPrimitive("space/4").id]),
-  );
+  const colorName = primitiveNamedInPlan("COLOR");
+  const floatName = primitiveNamedInPlan("FLOAT");
+  assert.notEqual(colorName, floatName);
+  removeVariables(new Set([findPrimitive(colorName).id, findPrimitive(floatName).id]));
   const counts = snapshotCounts();
 
   await assert.rejects(
     () => sync(),
     (error) => {
       assert.ok(error instanceof Error);
-      assert.match(error.message, /color\/primitive\/blue\/600 is missing/);
-      assert.match(error.message, /space\/4 is missing/);
+      const listed = error.message
+        .split("\n")
+        .filter((line) => line.endsWith(" is missing"))
+        .map((line) => line.slice(0, -" is missing".length))
+        .sort();
+      assert.deepEqual(listed, [colorName, floatName].sort());
+      const other = error.message
+        .split("\n")
+        .slice(1)
+        .filter((line) => !line.endsWith(" is missing"));
+      assert.deepEqual(other, []);
       return true;
     },
   );

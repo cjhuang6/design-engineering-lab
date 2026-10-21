@@ -12,6 +12,9 @@
     { "name": "Inventory (read-only)", "command": "inventory" },
     { "separator": true },
     { "name": "Sync Primitives — dry run", "command": "sync-primitives-dry-run" },
-    { "name": "Sync Primitives", "command": "sync-primitives" }
+    { "name": "Sync Primitives", "command": "sync-primitives" },
+    { "separator": true },
+    { "name": "Sync Semantic — dry run", "command": "sync-semantic-dry-run" },
+    { "name": "Sync Semantic", "command": "sync-semantic" }
   ]
 }

@@ -17,7 +17,7 @@ Every entry is labelled:
 |---|---|
 | Phases complete | 2A and 2B (Observed: merged to `main` in [PR #5](https://github.com/cjhuang6/design-engineering-lab/pull/5), merge commit `6f4058f`). Phase 2C build PRs 1–3 are merged ([PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11), [PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12), [PR #14](https://github.com/cjhuang6/design-engineering-lab/pull/14)). Desktop verification of 2C is not done |
 | Current phase | 2C, Semantic Light/Dark sync, plus rename-safe ids for the 41 semantic tokens. The ids are in this change. Figma has not run them |
-| **Next agreed task** | **CJ runs the [Semantic desktop checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md),** including the permanent-id migration and one JSON rename. Do not start [primitive ids](#add-permanent-ids-to-primitives-too-deferred) or Phase 2D from this line alone |
+| **Next agreed task** | **CJ runs the desktop checklists:** [Semantic](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md) (permanent-id migration and one JSON rename) and [Primitives](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md) (primitive-id migration, then a rerun that changes nothing, with rectangle `61:117` still bound). Do not start Phase 2D from this line alone |
 | Figma file state | Observed 2026-10-13: one `Primitives` collection with 110 variables and one `Value` mode; no other collections or styles. Test rectangle `61:117` is bound to `feedback/success` and `radius/xl` |
 
 ## Architecture (Approved)
@@ -46,7 +46,7 @@ src/styles/tokens.css   Figma variables and styles
 - Update existing variables and styles in place, preserving their IDs, so Figma layers stay bound to them.
 - Create what is missing. Never delete everything and recreate it.
 - Report variables that exist only in Figma; never delete them (decided 2026-10-13).
-- Recognise a primitive by its name, e.g. `color/primitive/blue/600` (decided 2026-10-13). Recognise a semantic token by its permanent id (CJ, 2026-10-21; see [Rename-safe token IDs](#rename-safe-token-ids)). A file that was synced before those ids existed is adopted once from the old name tag.
+- Recognise a primitive and a semantic token by its permanent id (CJ, 2026-10-21; see [Rename-safe token IDs](#rename-safe-token-ids)). A file synced before those ids existed is adopted once: primitives by the visible name, semantic tokens by the old private name tag. The visible name, for example `color/primitive/blue/600`, is still what you read in the variables table.
 - Set appropriate Figma scopes, and a WEB code syntax that maps to the CSS variable.
 - Keep each phase independently testable. Stop at the end of each phase and wait for CJ's approval.
 
@@ -88,11 +88,11 @@ src/styles/tokens.css   Figma variables and styles
   - `layout.*` and `control.*` are mode-independent aliases of `space.*`. The JSON marks them for the Semantic collection, in both modes.
   - The collection and mode names come from `$extensions.com.cjhuang.camellia.targets.figma`.
 - **Details:** see the [Phase 2C task brief](#phase-2c-task-brief).
-- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. Build PRs 1–3 are merged (PR #11, PR #12, PR #14). The plan's variable-identity section stored the Figma path in plugin data. [Rename-safe token IDs](#rename-safe-token-ids) replaces that for semantic tokens. Nothing in 2C has been run in Figma yet.
+- **Plan:** [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). Decisions 1–5 there were approved by CJ on 2026-10-20. Build PRs 1–3 are merged (PR #11, PR #12, PR #14). The plan's variable-identity section stored the Figma path in plugin data, and it said primitives keep matching by name. [Rename-safe token IDs](#rename-safe-token-ids) replaces that for semantic tokens and for primitives. Nothing in 2C has been run in Figma yet.
 
 ### Rename-safe token IDs
 
-Not a phase. CJ approved the semantic-token JSON change on 2026-10-21. This change adds those ids and teaches semantic sync to match on them. **Observed** against the fake Figma: a JSON rename keeps the variable id, and migration from the legacy name tag creates 0 and deletes 0. **Not observed in Figma** until CJ runs the checklist.
+Not a phase. CJ approved the semantic-token JSON change on 2026-10-21, and the primitive-token JSON change in the same way. Semantic sync and primitive sync both match on those ids. **Observed** against the fake Figma: a JSON rename keeps the variable id, and migration creates 0 and deletes 0. **Not observed in Figma** until CJ runs the checklists.
 
 - Every semantic token leaf under `theme.light` and `theme.dark` has `"$extensions": { "com.cjhuang.camellia": { "id": "sem-xxxxxx" } }`. The light and dark leaves of the same path share one id, because together they are one Figma variable with Light and Dark modes. `layout` and `control` leaves have an id too: they are 15 of the 41 semantic variables, and each leaf is already one variable. The eight composite border leaves have ids as well and are still not created as Figma variables.
 - An id is `sem-` plus 6 lowercase hex characters, chosen once. It is the token's identity. It is not a Figma setting, so it does not sit under a key with `figma` in the name.
@@ -100,13 +100,15 @@ Not a phase. CJ approved the semantic-token JSON change on 2026-10-21. This chan
 - A file synced before this change has private plugin data `token` set to the variable's name and no shared id. The sync adopts, in order: a variable whose shared id matches; otherwise the variable whose private `token` equals the token's current name; otherwise an untagged variable with that name. It writes the shared id. It clears the private `token` only when that API works, and a failure there does not fail the sync. Renaming the JSON path before that migration does not match the old name tag: the old variable stays, and a new one is created. The sync still refuses a rename that would collide with a different variable's name, and it still never deletes a variable.
 - A renamed path that stays in the same group (for example `color/action/primary` to `color/action/main`) keeps that group's picker scopes. A path that fits no group still fails the plan.
 - Phases 2D–2G stay as approved. This item does not replace them.
+- Primitive tokens have the same kind of id, with the prefix `prim-` instead of `sem-`. See the primitive paragraphs below. An id is unique across the whole file: a `prim-` id never equals a `sem-` id, and light/dark pairs are the only leaves that share an id (they are one semantic variable).
 
-### Add permanent IDs to primitives too (deferred)
+Every primitive token that becomes a Figma variable (110 of them) has `"$extensions": { "com.cjhuang.camellia": { "id": "prim-xxxxxx" } }`. Tokens that are not primitive variables (typography composites, shadow, frost, expression, `z`, `border.style`) do not get one. Semantic alias references such as `{color.primitive.blue.600}` are unchanged.
 
-Not started. Do not implement unless CJ asks.
-
-- Primitive variables still match by their visible name, for example `color/primitive/blue/600`. They have no permanent id, and primitive sync does not read plugin data.
-- The idea is the same as the semantic ids, applied to the `Primitives` collection. It is a separate later change.
+- An id is `prim-` plus 6 lowercase hex characters, chosen once. It is the token's identity. It is not a Figma setting.
+- Primitive sync stores the id with the same shared plugin data as semantic sync: namespace `com.cjhuang.camellia`, key `id`. It does not call private `setPluginData`. Private plugin data throws in the connector runtime.
+- A file synced before this change has variables and no shared id. The sync adopts, in order: a variable whose shared id matches; otherwise an untagged variable with the token's current visible name. It writes the shared id. Renaming the JSON path before that migration does not match the old name: the old variable stays, and a new one is created. The sync still refuses a rename that would collide with a different variable's name, and it still never deletes a variable.
+- After the ids are stored, renaming the JSON path renames that same Figma variable. Semantic sync finds the aliased primitive by that id, so an alias stays on the variable even when the visible name has not caught up yet. Until the id is stored, it falls back to the visible name.
+- **Observed** against the fake Figma: a JSON rename keeps the variable id, a name-match migration creates 0 and deletes 0, and a second run changes nothing. **Not observed in Figma** until CJ runs the [Primitives checklist](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md). On the file from 2026-10-13 that dry run should show 0 created and 110 updated.
 
 ### Phase 2D: Text Styles
 
@@ -171,7 +173,7 @@ Not started. Do not implement unless CJ asks.
 
 ## Phase 2C task brief
 
-This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Build PRs 1–3 are merged. None of 2C has been run in Figma. Semantic tokens now have permanent ids ([Rename-safe token IDs](#rename-safe-token-ids)). Do not start [primitive ids](#add-permanent-ids-to-primitives-too-deferred) or Phase 2D unless CJ asks.
+This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Build PRs 1–3 are merged. None of 2C has been run in Figma. Semantic tokens and primitive tokens now have permanent ids ([Rename-safe token IDs](#rename-safe-token-ids)). Do not start Phase 2D unless CJ asks.
 
 - **Phase:** 2C, Semantic Light/Dark sync.
 - **Scope:** the approved scope above, plus the rules for every sync phase. Out of scope: text, effect and paint styles; the audit; component tokens. Permanent semantic ids are a separate approved change and are already in the JSON.
@@ -189,7 +191,7 @@ This is the starting summary for the next agent. It contains approved facts. The
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Renaming tokens safely.** Semantic tokens now have a permanent id in `$extensions.com.cjhuang.camellia.id` (CJ, 2026-10-21). Sync matches shared plugin data `com.cjhuang.camellia` / `id`, so a JSON rename renames the same variable. A file synced under the old private name tag is migrated once. Private plugin data throws in the connector runtime (observed 2026-10-21). Whether a bound layer stays bound after a JSON rename is still a desktop check. Primitives still match by name ([deferred](#add-permanent-ids-to-primitives-too-deferred)) | Approved for semantic tokens. Unknown in Figma until the checklist. Deferred for primitives | Primitive renames |
+| 1 | **Renaming tokens safely.** Semantic tokens and primitive tokens now have a permanent id in `$extensions.com.cjhuang.camellia.id` (CJ, 2026-10-21). Sync matches shared plugin data `com.cjhuang.camellia` / `id`, so a JSON rename renames the same variable. A semantic file synced under the old private name tag is migrated once. A primitive file synced by visible name is migrated once, by that name. Private plugin data throws in the connector runtime (observed 2026-10-21). Whether a bound layer stays bound after a JSON rename is still a desktop check | Approved. Unknown in Figma until the [Semantic](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md) and [Primitives](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md) checklists | Nothing in code. The Figma proof is still open |
 | 2 | **Composite border tokens, deferred** (CJ, 2026-10-20). The eight tokens `theme.light.border` and `theme.dark.border` × `subtle`, `default`, `strong`, and `focus` are not created as Figma variables in 2C. Each value is a color, a width, and a style. Figma variables have no type for that composite, so a color variable would not be the token. The color syncs as `color/border/*` and `color/focus`; `border/width/*` already syncs in Primitives; `border.style` stays CSS-only. Unblocked when a later phase has a Figma object that can carry color, width, and style together | Approved (deferred) | Does not block 2C. Blocks a Figma form of the border shorthand |
 | 3 | **Semantic scopes.** Text as `TEXT_FILL`, surfaces as `FRAME_FILL`/`SHAPE_FILL`, borders and focus as `STROKE_COLOR`, icons as `SHAPE_FILL`, layout and control as `GAP`. Full table in the [2C plan](plans/phase-2c-semantic-sync.md) | Approved (CJ, 2026-10-20) | Nothing |
 | 4 | **Dark aliases to alpha primitives** (e.g. `color/border/subtle` → `alpha/blue-400/18`). Plain aliasing should work; not yet verified in Figma | Unknown | 2C verification |

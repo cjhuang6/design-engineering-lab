@@ -2,7 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { planPrimitives } from "../src/plan-primitives.ts";
+import {
+  planPrimitives,
+  PRIMITIVE_SHARED_ID_KEY,
+  PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
+} from "../src/plan-primitives.ts";
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
 const tokens = readJson("../../tokens/camellia.tokens.json");
@@ -57,6 +61,33 @@ test("plans the expected number of variables per group", () => {
 test("every variable name is unique", () => {
   assert.equal(byName.size, plan.variables.length);
 });
+
+test("every primitive variable has a unique permanent id", () => {
+  assert.equal(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, "com.cjhuang.camellia");
+  assert.equal(PRIMITIVE_SHARED_ID_KEY, "id");
+  const ids = plan.variables.map((variable) => variable.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(ids.length, 110);
+  const semanticIds = new Set();
+  const walk = (node) => {
+    if (!node || typeof node !== "object") return;
+    const id = node.$extensions?.["com.cjhuang.camellia"]?.id;
+    if (typeof id === "string" && id.startsWith("sem-")) semanticIds.add(id);
+    for (const value of Object.values(node)) walk(value);
+  };
+  walk(tokens);
+  for (const variable of plan.variables) {
+    assert.match(variable.id, /^prim-[0-9a-f]{6}$/, variable.name);
+    assert.equal(semanticIds.has(variable.id), false, variable.name);
+    assert.equal(nodeAt(tokens, variable.name).$extensions["com.cjhuang.camellia"].id, variable.id, variable.name);
+  }
+});
+
+function nodeAt(root, name) {
+  let node = root;
+  for (const part of name.split("/")) node = node[part];
+  return node;
+}
 
 test("excluded groups never become Primitives variables", () => {
   const excluded = [
@@ -168,6 +199,67 @@ test("every WEB code syntax names a variable that exists in tokens.css", () => {
     assert.match(tokensCss, declaration, `${match[1]} is not declared in tokens.css`);
   }
   assert.equal(get("color/primitive/blue/600").webSyntax, "var(--color-primitive-blue-600)");
+});
+
+test("a primitive with no id names the path", () => {
+  const broken = cloneTokens();
+  delete broken.space["4"].$extensions;
+  assert.throws(
+    () => planPrimitives(broken),
+    /plan-primitives: space\.4 id is missing; expected prim-\[0-9a-f\]\{6\}/,
+  );
+});
+
+test("a primitive id in the wrong format names the path", () => {
+  const broken = cloneTokens();
+  broken.space["4"].$extensions["com.cjhuang.camellia"].id = "prim-ABC123";
+  assert.throws(
+    () => planPrimitives(broken),
+    /plan-primitives: space\.4 id is "prim-ABC123"; expected prim-\[0-9a-f\]\{6\}/,
+  );
+});
+
+test("a semantic id on a primitive names the path", () => {
+  const broken = cloneTokens();
+  broken.space["4"].$extensions["com.cjhuang.camellia"].id = "sem-4c4a41";
+  assert.throws(
+    () => planPrimitives(broken),
+    /plan-primitives: space\.4 id is "sem-4c4a41"; expected prim-\[0-9a-f\]\{6\}/,
+  );
+});
+
+test("two primitives that share an id name both paths", () => {
+  const broken = cloneTokens();
+  const [first, second] = plan.variables.filter((variable) => variable.name.startsWith("space/"));
+  nodeAt(broken, second.name).$extensions["com.cjhuang.camellia"].id = first.id;
+  assert.throws(
+    () => planPrimitives(broken),
+    new RegExp(`plan-primitives: ${second.name} reuses id "${first.id}" already used by ${first.name}`),
+  );
+});
+
+test("a primitive id copied onto another token fails", () => {
+  const broken = cloneTokens();
+  const id = get("color/base/white").id;
+  broken.shadow.none.$extensions["com.cjhuang.camellia"].id = id;
+  assert.throws(
+    () => planPrimitives(broken),
+    new RegExp(`plan-primitives: color/base/white reuses id "${id}" already used by shadow/none`),
+  );
+});
+
+test("renaming a primitive path keeps its id", () => {
+  const renamed = cloneTokens();
+  const previous = get("color/primitive/blue/600");
+  renamed.color.primitive.blue.action = renamed.color.primitive.blue["600"];
+  delete renamed.color.primitive.blue["600"];
+
+  const planned = planPrimitives(renamed);
+  const action = planned.variables.find((variable) => variable.name === "color/primitive/blue/action");
+  assert.ok(action);
+  assert.equal(action.id, previous.id);
+  assert.equal(planned.variables.some((variable) => variable.name === "color/primitive/blue/600"), false);
+  assert.equal(planned.variables.length, plan.variables.length);
 });
 
 test("token descriptions are copied to Figma", () => {

@@ -13,7 +13,7 @@ Read [the feature map](features/README.md) first, then the feature file you're v
 
 - Install dependencies with `npm ci` (no changes to the manifest or lockfile).
 - **Terminal:** nothing to keep running. Each check is a one-shot command run from the repository root.
-- **Figma:** run `npm run figma:build`. Ready means the output ends with `figma-plugin/dist/code.js` and a size of about 112 KB. Then CJ runs the plugin from Figma desktop → Plugins → Development → Camellia Figma Sync.
+- **Figma:** run `npm run figma:build`. Ready means the output ends with `figma-plugin/dist/code.js` and a size of about 130 KB. Then CJ runs the plugin from Figma desktop → Plugins → Development → Camellia Figma Sync.
 - **Demo app:** `npm run dev` serves at the URL Vite prints. Stop it with Ctrl+C when done.
 
 ## Doctor

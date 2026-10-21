@@ -1,6 +1,6 @@
 # Figma Semantic sync
 
-CJ makes the Figma `Semantic` collection match the semantic tokens: 41 variables, with modes `Light` and `Dark` (Light first). Each value is a link to a primitive, not a copied color or number. A dry run reports what would change and writes nothing. The real sync creates what is missing and updates what differs, keeping the same variable so a shape bound to it stays bound. A variable that exists only in Figma is listed and left alone.
+CJ makes the Figma `Semantic` collection match the semantic tokens: 41 variables, with modes `Light` and `Dark` (Light first). Each value is a link to a primitive, not a copied color or number. Each semantic token has a permanent id, so renaming that token in the JSON renames the same Figma variable and a shape bound to it stays bound. A dry run reports what would change and writes nothing. The real sync creates what is missing and updates what differs. A variable that exists only in Figma is listed and left alone. On a file synced before these ids existed, the first sync retags the 41 variables and creates none.
 
 ## Sub-features
 
@@ -12,6 +12,8 @@ CJ makes the Figma `Semantic` collection match the semantic tokens: 41 variables
 - `semantic-scopes` offers spacing variables in the gap field, and records whether padding fields list them too.
 - `semantic-rename-restore` puts a renamed semantic variable's name back on the same variable, so a bound shape stays bound.
 - `semantic-binding-survival` keeps a bound shape on the same variable when a token's reference changes.
+- `semantic-id-migration` retags the 41 variables that were stored under their names, creates none, and deletes none.
+- `semantic-json-rename` renames the same variable when the JSON path changes and the id stays, so a bound shape stays bound.
 - `semantic-orphans` lists a Figma-only variable under Not in JSON and does not delete it.
 - `semantic-primitives-untouched` does not change the `Primitives` collection.
 
@@ -61,6 +63,15 @@ Words used below: a **collection** is the variables table. A **mode** is a colum
   5. Put the `$value` back to `{color.primitive.blue.600}`. Run `npm run figma:build`, then `Sync Semantic`. The original color is back, and the rectangle is still bound.
   6. `git status` does not list `tokens/camellia.tokens.json`.
 - **Figma-only variable.** In `Semantic`, create a color variable by hand named `color/scratch`. Choose `Sync Semantic`. The console lists `color/scratch` under `In Figma but not in JSON (left untouched)`. It still exists. Delete `color/scratch` yourself when you are done. The plugin will not delete it.
+- **Permanent ids, on a file that already has Semantic.** Do this after the steps above, or on the file you already synced with the previous plugin. That file's 41 variables are tagged with their names. This build tags them with a permanent id instead. If this file has no `Semantic` collection yet, skip to the rename steps after the first sync: that sync creates the 41 with ids already, so there is nothing to migrate.
+  1. Choose `Sync Semantic — dry run`. The toast is `Camellia · Semantic (dry run) · Would create 0 · Would update 41 · Unchanged 0 · Not in JSON 0 · Errors 0`. The console lists 41 lines under `Would update`, each like `color/action/primary [token id, legacy token] (VariableID:…)`. Close and reopen Local variables. Nothing was written: the collection is unchanged.
+  2. Choose `Sync Semantic`. The toast has `Created 0` and `Updated 41`. Copy the `VariableID` from the `color/action/primary` line.
+  3. Choose `Sync Semantic` again. The toast has `Created 0` and `Updated 0`. The console does not list Created or Updated.
+  4. Select rectangle `61:117`. Its fill is `feedback/success` and its corners are `radius/xl`. Write that down. Bind the fill to `color/action/primary`. Leave the corners on `radius/xl`. The fill follows Light and Dark.
+  5. In `tokens/camellia.tokens.json`, rename `theme.light.color.action.primary` to `theme.light.color.action.main`, and rename `theme.dark.color.action.primary` to `theme.dark.color.action.main`. Move the whole object, including `$extensions`. Change no `$value`. The light and dark `id` stay the same, and they stay equal to each other.
+  6. Rebuild the plugin without the test suite. From the repository folder run `npm run figma:typecheck` and then `npm run figma:bundle`. Do not run `npm run figma:build` while the token is renamed: that command also runs the tests, and the tests expect the name `color/action/primary`.
+  7. Choose `Sync Semantic`. The console lists one Updated line, `color/action/main [name, code syntax] (VariableID:…)`, and that id is the one you copied. There is no second variable and no leftover `color/action/primary`. `Created 0`. Rectangle `61:117` is still bound to that variable. The fill is not a loose hex, and it is not unbound.
+  8. Put both objects back to `primary`. Run `npm run figma:build`. Choose `Sync Semantic`. The name is `color/action/primary` again, the `VariableID` is the same, and the rectangle is still bound. Put the rectangle's fill back to `feedback/success`. `git status` does not list `tokens/camellia.tokens.json`.
 - **Primitives untouched.** Inventory still shows `Collection "Primitives": 110 variables, modes: Value`. Spot-check one primitive value you already know. Rectangle `61:117` is still bound to `feedback/success` and `radius/xl`.
 
 **What to send back**
@@ -82,7 +93,9 @@ Do not delete `Semantic` to get a clean retry, unless the failure is the empty o
 
 - Figma runs `figma-plugin/dist/code.js`, not the TypeScript you read in the repo. A JSON edit does nothing in Figma until `npm run figma:build` succeeds.
 - Dry run writes nothing. After a dry run the file should look the same, including no new plugin data on the variables.
+- The permanent id is shared plugin data. That works in the Figma desktop app and through the connector, and it stays if the plugin id changes. Private plugin data does neither. Other plugins can read the id. It is not a secret.
 - The second `Sync Semantic`, before any experiment, is the no-change check. A later run can show an update because you renamed a variable or edited the JSON. That update is the repair. The run after the repair should again report no changes.
 - Typing a description on a semantic variable in Figma does not stick. These tokens have no description in the JSON, so the next sync clears it.
-- Renaming the token in the JSON is a different case. This checklist does not cover that. The plugin would leave the old variable in place and create a new one.
+- Renaming a semantic token in the JSON renames the same Figma variable when its id stays on the token. Do that only after the migration sync, on a file that already has the ids. If you rename the JSON before that migration, the old variable is left in place and a new one is created. The steps are in **Permanent ids, on a file that already has Semantic**. Revert the JSON and the rectangle when you are done.
+- `npm run figma:build` fails while `color/action/primary` is temporarily renamed, because the tests expect that name. Use `npm run figma:typecheck` and `npm run figma:bundle` for that experiment, then `npm run figma:build` after you revert.
 - A toast that starts with `Camellia Sync failed:` means the run stopped before writing, except for the rare case where `Semantic` was created and adding `Dark` then failed. The error text says which one it is.

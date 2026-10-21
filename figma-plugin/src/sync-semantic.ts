@@ -1,8 +1,14 @@
 // Make the Figma "Semantic" collection match the plan. Variables are matched
-// by the `token` plugin-data key and updated in place (same ID). Nothing is
-// ever deleted. Aliases point at primitives; this file does not write to them.
+// by shared plugin data and updated in place (same variable ID). A file
+// synced before ids existed is adopted by its legacy private `token` tag.
+// Nothing is ever deleted. Aliases point at primitives; this file does not
+// write to them.
 
-import { SEMANTIC_TOKEN_PLUGIN_DATA_KEY } from "./plan-semantic.ts";
+import {
+  SEMANTIC_SHARED_ID_KEY,
+  SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE,
+  SEMANTIC_TOKEN_PLUGIN_DATA_KEY,
+} from "./plan-semantic.ts";
 import type { PlannedSemanticVariable, SemanticPlan } from "./plan-semantic.ts";
 
 export interface SemanticSyncReport {
@@ -140,36 +146,50 @@ async function indexSemantic(collection: VariableCollection, plan: SemanticPlan)
     byName.set(variable.name, variable);
   }
 
-  const byToken = new Map<string, Variable>();
+  const byId = new Map<string, Variable>();
   for (const variable of variables) {
-    const token = variable.getPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY);
+    const tokenId = sharedId(variable);
+    if (tokenId === "") continue;
+    if (byId.has(tokenId)) {
+      throw new Error(`"${collection.name}" has two variables with id "${tokenId}"`);
+    }
+    byId.set(tokenId, variable);
+  }
+
+  const byLegacy = new Map<string, Variable>();
+  for (const variable of variables) {
+    const token = legacyToken(variable);
     if (token === "") continue;
-    if (byToken.has(token)) {
+    if (byLegacy.has(token)) {
       throw new Error(`"${collection.name}" has two variables with token "${token}"`);
     }
-    byToken.set(token, variable);
+    byLegacy.set(token, variable);
   }
 
   const matches: Match[] = [];
   const used = new Set<Variable>();
   for (const planned of plan.variables) {
-    const keyed = byToken.get(planned.token);
-    if (keyed) {
-      const holder = byName.get(planned.name);
-      if (holder && holder !== keyed) throw nameCollision(collection.name, planned.name, holder);
-      used.add(keyed);
-      matches.push({ planned, variable: keyed });
+    const tagged = byId.get(planned.id);
+    if (tagged) {
+      adopt(collection.name, planned, tagged, byName, used, matches);
+      continue;
+    }
+
+    const legacy = byLegacy.get(planned.name);
+    if (legacy && sharedId(legacy) === "") {
+      adopt(collection.name, planned, legacy, byName, used, matches);
       continue;
     }
 
     const holder = byName.get(planned.name);
-    const token = holder?.getPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY);
-    if (holder && token === "") {
-      used.add(holder);
-      matches.push({ planned, variable: holder });
-      continue;
+    if (holder) {
+      if (sharedId(holder) === "" && legacyToken(holder) === "") {
+        adopt(collection.name, planned, holder, byName, used, matches);
+        continue;
+      }
+      throw nameCollision(collection.name, planned.name, holder);
     }
-    if (holder) throw nameCollision(collection.name, planned.name, holder);
+
     matches.push({ planned });
   }
 
@@ -177,6 +197,25 @@ async function indexSemantic(collection: VariableCollection, plan: SemanticPlan)
     matches,
     notInJson: variables.filter((variable) => !used.has(variable)).map((variable) => variable.name),
   };
+}
+
+function adopt(
+  collectionName: string,
+  planned: PlannedSemanticVariable,
+  variable: Variable,
+  byName: Map<string, Variable>,
+  used: Set<Variable>,
+  matches: Match[],
+): void {
+  if (used.has(variable)) {
+    throw new Error(
+      `${planned.name} reuses id "${planned.id}" already matched to another variable`,
+    );
+  }
+  const holder = byName.get(planned.name);
+  if (holder && holder !== variable) throw nameCollision(collectionName, planned.name, holder);
+  used.add(variable);
+  matches.push({ planned, variable });
 }
 
 function nameCollision(collectionName: string, name: string, holder: Variable): Error {
@@ -313,7 +352,7 @@ function valueField(modeName: string): string {
 }
 
 function everyField(modeNames: readonly string[]): string[] {
-  return ["name", ...modeNames.map(valueField), "scopes", "code syntax", "description", "token"];
+  return ["name", ...modeNames.map(valueField), "scopes", "code syntax", "description", "token id"];
 }
 
 function differences(
@@ -335,7 +374,8 @@ function differences(
   if (!sameSet(variable.scopes, planned.scopes)) changed.push("scopes");
   if (variable.codeSyntax.WEB !== planned.webSyntax) changed.push("code syntax");
   if (variable.description !== planned.description) changed.push("description");
-  if (variable.getPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY) !== planned.token) changed.push("token");
+  if (sharedId(variable) !== planned.id) changed.push("token id");
+  if (legacyToken(variable) !== "") changed.push("legacy token");
   return changed;
 }
 
@@ -359,7 +399,30 @@ function apply(
   if (fields.includes("scopes")) variable.scopes = [...planned.scopes];
   if (fields.includes("code syntax")) variable.setVariableCodeSyntax("WEB", planned.webSyntax);
   if (fields.includes("description")) variable.description = planned.description;
-  if (fields.includes("token")) variable.setPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY, planned.token);
+  if (fields.includes("token id")) {
+    variable.setSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY, planned.id);
+  }
+  if (fields.includes("legacy token")) clearLegacyToken(variable);
+}
+
+function sharedId(variable: Variable): string {
+  return variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY);
+}
+
+function legacyToken(variable: Variable): string {
+  try {
+    return variable.getPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY);
+  } catch {
+    return "";
+  }
+}
+
+function clearLegacyToken(variable: Variable): void {
+  try {
+    variable.setPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY, "");
+  } catch {
+    // The connector runtime rejects private plugin data. The shared id is already stored.
+  }
 }
 
 function sameAlias(actual: VariableValue | undefined, primitiveId: string): boolean {

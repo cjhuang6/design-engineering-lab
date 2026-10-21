@@ -19,6 +19,13 @@ const get = (name) => {
 const cloneTokens = () => structuredClone(tokens);
 const camellia = (node) => node.$extensions["com.cjhuang.camellia"];
 
+const referenceToFigmaName = (reference) => {
+  assert.match(reference, /^\{[^{}]+\}$/);
+  return reference.slice(1, -1).replaceAll(".", "/");
+};
+
+const actionPrimaryLight = referenceToFigmaName(tokens.theme.light.color.action.primary.$value);
+
 const FILL = ["FRAME_FILL", "SHAPE_FILL"];
 const TEXT = ["TEXT_FILL"];
 const STROKE = ["STROKE_COLOR"];
@@ -42,7 +49,7 @@ const expected = [
   ["color/border/subtle", "COLOR", "color/primitive/ice/200", "color/primitive/alpha/blue-400/18", STROKE],
   ["color/border/default", "COLOR", "color/primitive/ice/300", "color/primitive/alpha/blue-400/30", STROKE],
   ["color/border/strong", "COLOR", "color/primitive/ice/400", "color/primitive/alpha/blue-400/50", STROKE],
-  ["color/action/primary", "COLOR", "color/primitive/blue/600", "color/primitive/blue/400", FILL],
+  ["color/action/primary", "COLOR", actionPrimaryLight, "color/primitive/blue/400", FILL],
   ["color/action/primary-hover", "COLOR", "color/primitive/blue/700", "color/primitive/blue/300", FILL],
   ["color/action/primary-pressed", "COLOR", "color/primitive/blue/800", "color/primitive/blue/500", FILL],
   ["color/action/primary-text", "COLOR", "color/base/white", "color/primitive/ice/950", TEXT],

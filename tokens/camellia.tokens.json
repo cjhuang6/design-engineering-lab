@@ -1847,43 +1847,88 @@
     "content-gap": {
       "sm": {
         "$type": "dimension",
-        "$value": "{space.2}"
+        "$value": "{space.2}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-4c4a41"
+          }
+        }
       },
       "md": {
         "$type": "dimension",
-        "$value": "{space.4}"
+        "$value": "{space.4}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-34dfc8"
+          }
+        }
       },
       "lg": {
         "$type": "dimension",
-        "$value": "{space.6}"
+        "$value": "{space.6}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-98f49e"
+          }
+        }
       }
     },
     "section-gap": {
       "sm": {
         "$type": "dimension",
-        "$value": "{space.6}"
+        "$value": "{space.6}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-a47d2f"
+          }
+        }
       },
       "md": {
         "$type": "dimension",
-        "$value": "{space.12}"
+        "$value": "{space.12}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-8d6c16"
+          }
+        }
       },
       "lg": {
         "$type": "dimension",
-        "$value": "{space.16}"
+        "$value": "{space.16}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-0db534"
+          }
+        }
       }
     },
     "page-gutter": {
       "mobile": {
         "$type": "dimension",
-        "$value": "{space.4}"
+        "$value": "{space.4}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-31e7b8"
+          }
+        }
       },
       "tablet": {
         "$type": "dimension",
-        "$value": "{space.6}"
+        "$value": "{space.6}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-d44858"
+          }
+        }
       },
       "desktop": {
         "$type": "dimension",
-        "$value": "{space.8}"
+        "$value": "{space.8}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-f2118a"
+          }
+        }
       }
     }
   },
@@ -1901,29 +1946,59 @@
     "padding-inline": {
       "sm": {
         "$type": "dimension",
-        "$value": "{space.3}"
+        "$value": "{space.3}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-c5bb00"
+          }
+        }
       },
       "md": {
         "$type": "dimension",
-        "$value": "{space.4}"
+        "$value": "{space.4}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-7d81ad"
+          }
+        }
       },
       "lg": {
         "$type": "dimension",
-        "$value": "{space.5}"
+        "$value": "{space.5}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-3454c0"
+          }
+        }
       }
     },
     "padding-block": {
       "sm": {
         "$type": "dimension",
-        "$value": "{space.2}"
+        "$value": "{space.2}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-4b6ddc"
+          }
+        }
       },
       "md": {
         "$type": "dimension",
-        "$value": "{space.3}"
+        "$value": "{space.3}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-53fe38"
+          }
+        }
       },
       "lg": {
         "$type": "dimension",
-        "$value": "{space.4}"
+        "$value": "{space.4}",
+        "$extensions": {
+          "com.cjhuang.camellia": {
+            "id": "sem-25eb44"
+          }
+        }
       }
     }
   },
@@ -1947,121 +2022,251 @@
         "background": {
           "canvas": {
             "$type": "color",
-            "$value": "{color.base.white}"
+            "$value": "{color.base.white}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-fea279"
+              }
+            }
           }
         },
         "surface": {
           "primary": {
             "$type": "color",
-            "$value": "{color.base.white}"
+            "$value": "{color.base.white}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-d65b3d"
+              }
+            }
           },
           "secondary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.50}"
+            "$value": "{color.primitive.ice.50}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-ee9797"
+              }
+            }
           },
           "subtle": {
             "$type": "color",
-            "$value": "{color.primitive.ice.100}"
+            "$value": "{color.primitive.ice.100}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-b75cb4"
+              }
+            }
           },
           "selected": {
             "$type": "color",
-            "$value": "{color.primitive.blue.50}"
+            "$value": "{color.primitive.blue.50}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-4dab6c"
+              }
+            }
           }
         },
         "text": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.900}"
+            "$value": "{color.primitive.ice.900}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-7b5c45"
+              }
+            }
           },
           "secondary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.600}"
+            "$value": "{color.primitive.ice.600}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-63d2c8"
+              }
+            }
           },
           "tertiary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.500}"
+            "$value": "{color.primitive.ice.500}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-6b9cd9"
+              }
+            }
           },
           "inverse": {
             "$type": "color",
-            "$value": "{color.base.white}"
+            "$value": "{color.base.white}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-4ecab3"
+              }
+            }
           }
         },
         "icon": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.800}"
+            "$value": "{color.primitive.ice.800}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-e63455"
+              }
+            }
           },
           "secondary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.600}"
+            "$value": "{color.primitive.ice.600}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-ac452f"
+              }
+            }
           }
         },
         "border": {
           "subtle": {
             "$type": "color",
-            "$value": "{color.primitive.ice.200}"
+            "$value": "{color.primitive.ice.200}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-2bd7d0"
+              }
+            }
           },
           "default": {
             "$type": "color",
-            "$value": "{color.primitive.ice.300}"
+            "$value": "{color.primitive.ice.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-f31a78"
+              }
+            }
           },
           "strong": {
             "$type": "color",
-            "$value": "{color.primitive.ice.400}"
+            "$value": "{color.primitive.ice.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-b4c92f"
+              }
+            }
           }
         },
         "action": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.blue.600}"
+            "$value": "{color.primitive.blue.600}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-93b6b7"
+              }
+            }
           },
           "primary-hover": {
             "$type": "color",
-            "$value": "{color.primitive.blue.700}"
+            "$value": "{color.primitive.blue.700}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-f99f99"
+              }
+            }
           },
           "primary-pressed": {
             "$type": "color",
-            "$value": "{color.primitive.blue.800}"
+            "$value": "{color.primitive.blue.800}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-5d0c16"
+              }
+            }
           },
           "primary-text": {
             "$type": "color",
-            "$value": "{color.base.white}"
+            "$value": "{color.base.white}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-2c6d30"
+              }
+            }
           },
           "link": {
             "$type": "color",
-            "$value": "{color.primitive.blue.700}"
+            "$value": "{color.primitive.blue.700}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-1aa242"
+              }
+            }
           },
           "link-hover": {
             "$type": "color",
-            "$value": "{color.primitive.blue.800}"
+            "$value": "{color.primitive.blue.800}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-db83ee"
+              }
+            }
           }
         },
         "focus": {
           "$type": "color",
-          "$value": "{color.primitive.blue.500}"
+          "$value": "{color.primitive.blue.500}",
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-a57c44"
+            }
+          }
         },
         "functional": {
           "accent": {
             "$type": "color",
-            "$value": "{color.primitive.green.500}"
+            "$value": "{color.primitive.green.500}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-526d99"
+              }
+            }
           },
           "surface": {
             "$type": "color",
-            "$value": "{color.primitive.green.50}"
+            "$value": "{color.primitive.green.50}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-d976ab"
+              }
+            }
           }
         },
         "expression": {
           "pink": {
             "$type": "color",
-            "$value": "{color.primitive.pink.400}"
+            "$value": "{color.primitive.pink.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-ad49ae"
+              }
+            }
           },
           "blue": {
             "$type": "color",
-            "$value": "{color.primitive.blue.300}"
+            "$value": "{color.primitive.blue.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-00cd92"
+              }
+            }
           },
           "green": {
             "$type": "color",
-            "$value": "{color.primitive.green.300}"
+            "$value": "{color.primitive.green.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-e6fa49"
+              }
+            }
           }
         }
       },
@@ -2072,6 +2277,11 @@
             "color": "{theme.light.color.border.subtle}",
             "width": "{border.width.1}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-0b6831"
+            }
           }
         },
         "default": {
@@ -2080,6 +2290,11 @@
             "color": "{theme.light.color.border.default}",
             "width": "{border.width.1}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-35580c"
+            }
           }
         },
         "strong": {
@@ -2088,6 +2303,11 @@
             "color": "{theme.light.color.border.strong}",
             "width": "{border.width.1}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-c79c4b"
+            }
           }
         },
         "focus": {
@@ -2096,6 +2316,11 @@
             "color": "{theme.light.color.focus}",
             "width": "{border.width.2}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-13e699"
+            }
           }
         }
       }
@@ -2105,121 +2330,251 @@
         "background": {
           "canvas": {
             "$type": "color",
-            "$value": "{color.base.black}"
+            "$value": "{color.base.black}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-fea279"
+              }
+            }
           }
         },
         "surface": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.950}"
+            "$value": "{color.primitive.ice.950}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-d65b3d"
+              }
+            }
           },
           "secondary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.900}"
+            "$value": "{color.primitive.ice.900}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-ee9797"
+              }
+            }
           },
           "subtle": {
             "$type": "color",
-            "$value": "{color.primitive.ice.950}"
+            "$value": "{color.primitive.ice.950}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-b75cb4"
+              }
+            }
           },
           "selected": {
             "$type": "color",
-            "$value": "{color.primitive.blue.950}"
+            "$value": "{color.primitive.blue.950}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-4dab6c"
+              }
+            }
           }
         },
         "text": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.50}"
+            "$value": "{color.primitive.ice.50}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-7b5c45"
+              }
+            }
           },
           "secondary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.300}"
+            "$value": "{color.primitive.ice.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-63d2c8"
+              }
+            }
           },
           "tertiary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.400}"
+            "$value": "{color.primitive.ice.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-6b9cd9"
+              }
+            }
           },
           "inverse": {
             "$type": "color",
-            "$value": "{color.primitive.ice.950}"
+            "$value": "{color.primitive.ice.950}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-4ecab3"
+              }
+            }
           }
         },
         "icon": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.100}"
+            "$value": "{color.primitive.ice.100}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-e63455"
+              }
+            }
           },
           "secondary": {
             "$type": "color",
-            "$value": "{color.primitive.ice.300}"
+            "$value": "{color.primitive.ice.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-ac452f"
+              }
+            }
           }
         },
         "border": {
           "subtle": {
             "$type": "color",
-            "$value": "{color.primitive.alpha.blue-400.18}"
+            "$value": "{color.primitive.alpha.blue-400.18}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-2bd7d0"
+              }
+            }
           },
           "default": {
             "$type": "color",
-            "$value": "{color.primitive.alpha.blue-400.30}"
+            "$value": "{color.primitive.alpha.blue-400.30}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-f31a78"
+              }
+            }
           },
           "strong": {
             "$type": "color",
-            "$value": "{color.primitive.alpha.blue-400.50}"
+            "$value": "{color.primitive.alpha.blue-400.50}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-b4c92f"
+              }
+            }
           }
         },
         "action": {
           "primary": {
             "$type": "color",
-            "$value": "{color.primitive.blue.400}"
+            "$value": "{color.primitive.blue.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-93b6b7"
+              }
+            }
           },
           "primary-hover": {
             "$type": "color",
-            "$value": "{color.primitive.blue.300}"
+            "$value": "{color.primitive.blue.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-f99f99"
+              }
+            }
           },
           "primary-pressed": {
             "$type": "color",
-            "$value": "{color.primitive.blue.500}"
+            "$value": "{color.primitive.blue.500}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-5d0c16"
+              }
+            }
           },
           "primary-text": {
             "$type": "color",
-            "$value": "{color.primitive.ice.950}"
+            "$value": "{color.primitive.ice.950}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-2c6d30"
+              }
+            }
           },
           "link": {
             "$type": "color",
-            "$value": "{color.primitive.blue.300}"
+            "$value": "{color.primitive.blue.300}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-1aa242"
+              }
+            }
           },
           "link-hover": {
             "$type": "color",
-            "$value": "{color.primitive.blue.200}"
+            "$value": "{color.primitive.blue.200}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-db83ee"
+              }
+            }
           }
         },
         "focus": {
           "$type": "color",
-          "$value": "{color.primitive.blue.400}"
+          "$value": "{color.primitive.blue.400}",
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-a57c44"
+            }
+          }
         },
         "functional": {
           "accent": {
             "$type": "color",
-            "$value": "{color.primitive.green.400}"
+            "$value": "{color.primitive.green.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-526d99"
+              }
+            }
           },
           "surface": {
             "$type": "color",
-            "$value": "{color.primitive.alpha.green-400.12}"
+            "$value": "{color.primitive.alpha.green-400.12}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-d976ab"
+              }
+            }
           }
         },
         "expression": {
           "pink": {
             "$type": "color",
-            "$value": "{color.primitive.pink.400}"
+            "$value": "{color.primitive.pink.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-ad49ae"
+              }
+            }
           },
           "blue": {
             "$type": "color",
-            "$value": "{color.primitive.blue.400}"
+            "$value": "{color.primitive.blue.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-00cd92"
+              }
+            }
           },
           "green": {
             "$type": "color",
-            "$value": "{color.primitive.green.400}"
+            "$value": "{color.primitive.green.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-e6fa49"
+              }
+            }
           }
         }
       },
@@ -2230,6 +2585,11 @@
             "color": "{theme.dark.color.border.subtle}",
             "width": "{border.width.1}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-0b6831"
+            }
           }
         },
         "default": {
@@ -2238,6 +2598,11 @@
             "color": "{theme.dark.color.border.default}",
             "width": "{border.width.1}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-35580c"
+            }
           }
         },
         "strong": {
@@ -2246,6 +2611,11 @@
             "color": "{theme.dark.color.border.strong}",
             "width": "{border.width.1}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-c79c4b"
+            }
           }
         },
         "focus": {
@@ -2254,6 +2624,11 @@
             "color": "{theme.dark.color.focus}",
             "width": "{border.width.2}",
             "style": "{border.style.solid}"
+          },
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-13e699"
+            }
           }
         }
       }

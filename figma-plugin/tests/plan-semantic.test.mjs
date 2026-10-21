@@ -2,7 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { planSemantic, SEMANTIC_TOKEN_PLUGIN_DATA_KEY } from "../src/plan-semantic.ts";
+import {
+  planSemantic,
+  SEMANTIC_SHARED_ID_KEY,
+  SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE,
+} from "../src/plan-semantic.ts";
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
 const tokens = readJson("../../tokens/camellia.tokens.json");
@@ -104,16 +108,61 @@ test("every approved row has its type, both aliases, scopes, code syntax, and de
     assert.deepEqual(variable.scopes, scopes, name);
     assert.equal(variable.webSyntax, `var(--${name.replaceAll("/", "-")})`, name);
     assert.equal(variable.description, "", name);
-    assert.equal(variable.token, name, name);
+    assert.match(variable.id, /^sem-[0-9a-f]{6}$/, name);
   }
 });
 
-test("the plugin-data token key is the Figma path", () => {
-  assert.equal(SEMANTIC_TOKEN_PLUGIN_DATA_KEY, "token");
+test("every semantic variable has a unique permanent id", () => {
+  assert.equal(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, "com.cjhuang.camellia");
+  assert.equal(SEMANTIC_SHARED_ID_KEY, "id");
+  const ids = plan.variables.map((variable) => variable.id);
+  assert.equal(new Set(ids).size, ids.length);
   for (const variable of plan.variables) {
-    assert.equal(variable.token, variable.name, variable.name);
+    assert.match(variable.id, /^sem-[0-9a-f]{6}$/, variable.name);
+    assert.notEqual(variable.id, variable.name, variable.name);
+    const root = variable.name.startsWith("color/") ? tokens.theme.light : tokens;
+    assert.equal(nodeAt(root, variable.name).$extensions["com.cjhuang.camellia"].id, variable.id, variable.name);
   }
 });
+
+test("light and dark leaves share one id, including deferred borders", () => {
+  const seen = new Set(plan.variables.map((variable) => variable.id));
+  for (const variable of plan.variables.filter((item) => item.name.startsWith("color/"))) {
+    const light = nodeAt(tokens.theme.light, variable.name);
+    const dark = nodeAt(tokens.theme.dark, variable.name);
+    assert.equal(light.$extensions["com.cjhuang.camellia"].id, variable.id, variable.name);
+    assert.equal(dark.$extensions["com.cjhuang.camellia"].id, variable.id, variable.name);
+  }
+  for (const leaf of ["subtle", "default", "strong", "focus"]) {
+    const light = tokens.theme.light.border[leaf].$extensions["com.cjhuang.camellia"].id;
+    const dark = tokens.theme.dark.border[leaf].$extensions["com.cjhuang.camellia"].id;
+    assert.equal(light, dark, `border/${leaf}`);
+    assert.match(light, /^sem-[0-9a-f]{6}$/, `border/${leaf}`);
+    assert.equal(seen.has(light), false, `border/${leaf} is not a Figma variable`);
+  }
+});
+
+function nodeAt(root, name) {
+  let node = root;
+  for (const part of name.split("/")) node = node[part];
+  return node;
+}
+
+function unusedId(tree) {
+  const used = new Set();
+  const walk = (node) => {
+    if (!node || typeof node !== "object") return;
+    const id = node.$extensions?.["com.cjhuang.camellia"]?.id;
+    if (typeof id === "string") used.add(id);
+    for (const value of Object.values(node)) walk(value);
+  };
+  walk(tree);
+  for (let n = 0; n <= 0xffffff; n++) {
+    const id = `sem-${n.toString(16).padStart(6, "0")}`;
+    if (!used.has(id)) return id;
+  }
+  throw new Error("no free semantic id");
+}
 
 test("every WEB code syntax names a variable that exists in tokens.css", () => {
   for (const variable of plan.variables) {
@@ -234,9 +283,88 @@ test("an unexpected $type fails the plan", () => {
 
 test("a color with no approved scopes fails the plan", () => {
   const broken = cloneTokens();
-  broken.theme.light.color.extra = { $type: "color", $value: "{color.base.white}" };
-  broken.theme.dark.color.extra = { $type: "color", $value: "{color.base.black}" };
+  const id = unusedId(broken);
+  const extensions = { $extensions: { "com.cjhuang.camellia": { id } } };
+  broken.theme.light.color.extra = { $type: "color", $value: "{color.base.white}", ...extensions };
+  broken.theme.dark.color.extra = { $type: "color", $value: "{color.base.black}", ...extensions };
   assert.throws(() => planSemantic(broken), /color\/extra has no approved scopes/);
+});
+
+test("renaming a semantic path keeps its id and its group's scopes", () => {
+  const renamed = cloneTokens();
+  const light = renamed.theme.light.color.action;
+  const dark = renamed.theme.dark.color.action;
+  const previous = plan.variables.find((variable) => variable.name === "color/action/primary");
+  light.main = light.primary;
+  dark.main = dark.primary;
+  delete light.primary;
+  delete dark.primary;
+
+  const planned = planSemantic(renamed);
+  const main = planned.variables.find((variable) => variable.name === "color/action/main");
+  assert.ok(main);
+  assert.equal(main.id, previous.id);
+  assert.deepEqual(main.scopes, previous.scopes);
+  assert.equal(planned.variables.some((variable) => variable.name === "color/action/primary"), false);
+  assert.equal(planned.variables.length, plan.variables.length);
+});
+
+test("a semantic token with no id names the path", () => {
+  const broken = cloneTokens();
+  delete broken.theme.light.color.focus.$extensions;
+  assert.throws(
+    () => planSemantic(broken),
+    /plan-semantic: theme\.light\.color\.focus id is missing; expected sem-\[0-9a-f\]\{6\}/,
+  );
+});
+
+test("a semantic id in the wrong format names the path", () => {
+  const broken = cloneTokens();
+  broken.theme.dark.color.focus.$extensions["com.cjhuang.camellia"].id = "sem-ABC123";
+  assert.throws(
+    () => planSemantic(broken),
+    /plan-semantic: theme\.dark\.color\.focus id is "sem-ABC123"; expected sem-\[0-9a-f\]\{6\}/,
+  );
+});
+
+test("light and dark ids that differ name the path", () => {
+  const broken = cloneTokens();
+  const id = unusedId(broken);
+  broken.theme.dark.color.action.primary.$extensions["com.cjhuang.camellia"].id = id;
+  assert.throws(
+    () => planSemantic(broken),
+    new RegExp(`plan-semantic: color/action/primary ids differ between Light \\(sem-[0-9a-f]{6}\\) and Dark \\(${id}\\)`),
+  );
+});
+
+test("two semantic paths that share an id name both paths", () => {
+  const broken = cloneTokens();
+  const id = broken.theme.light.color.action.primary.$extensions["com.cjhuang.camellia"].id;
+  broken.theme.light.color.focus.$extensions["com.cjhuang.camellia"].id = id;
+  broken.theme.dark.color.focus.$extensions["com.cjhuang.camellia"].id = id;
+  assert.throws(
+    () => planSemantic(broken),
+    new RegExp(`plan-semantic: color/focus reuses id "${id}" already used by color/action/primary`),
+  );
+});
+
+test("a layout token with no id names the path", () => {
+  const broken = cloneTokens();
+  delete broken.layout["content-gap"].md.$extensions;
+  assert.throws(
+    () => planSemantic(broken),
+    /plan-semantic: layout\.content-gap\.md id is missing; expected sem-\[0-9a-f\]\{6\}/,
+  );
+});
+
+test("deferred border ids that differ name the path", () => {
+  const broken = cloneTokens();
+  const id = unusedId(broken);
+  broken.theme.dark.border.subtle.$extensions["com.cjhuang.camellia"].id = id;
+  assert.throws(
+    () => planSemantic(broken),
+    new RegExp(`plan-semantic: border/subtle ids differ between Light \\(sem-[0-9a-f]{6}\\) and Dark \\(${id}\\)`),
+  );
 });
 
 test("descriptions are copied when both modes agree, and a disagreement fails", () => {

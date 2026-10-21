@@ -8,12 +8,20 @@ export interface DtcgToken {
   type: string;
   value: unknown;
   description: string;
+  camellia: Record<string, unknown>;
 }
 
 export const CAMELLIA = "com.cjhuang.camellia";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** Camellia's `$extensions` object on a token or group. Empty when absent. */
+export function camelliaExtensions(node: Record<string, unknown>): Record<string, unknown> {
+  const extensions = isObject(node.$extensions) ? node.$extensions : {};
+  const camellia = extensions[CAMELLIA];
+  return isObject(camellia) ? camellia : {};
+}
 
 /**
  * Every token in the tree, in source order. A token is any object with a
@@ -30,7 +38,7 @@ export function collectTokens(
   if ("$value" in node) {
     if (!type) throw new Error(`dtcg: token ${path.join(".")} has no $type`);
     const description = typeof node.$description === "string" ? node.$description : "";
-    return [{ path, type, value: node.$value, description }];
+    return [{ path, type, value: node.$value, description, camellia: camelliaExtensions(node) }];
   }
 
   const tokens: DtcgToken[] = [];

@@ -1,18 +1,25 @@
 // DTCG semantic tokens → the rows the Figma "Semantic" collection should contain.
 // No Figma APIs here (types only), so tests can run it in Node.
 
-import { CAMELLIA, collectTokens, figmaTargets, isReference } from "./dtcg.ts";
+import { CAMELLIA, camelliaExtensions, collectTokens, figmaTargets, isReference } from "./dtcg.ts";
 import type { DtcgToken, DtcgTree } from "./dtcg.ts";
 import { planPrimitives } from "./plan-primitives.ts";
 import type { PlannedVariable } from "./plan-primitives.ts";
 
-/** Plugin-data key used to match a Semantic variable across a later rename. */
+export { CAMELLIA as SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE };
+
+/** Shared plugin-data key for the permanent id. The namespace is `SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE`. */
+export const SEMANTIC_SHARED_ID_KEY = "id";
+
+/** Earlier syncs stored the Figma path under private plugin data `token`. */
 export const SEMANTIC_TOKEN_PLUGIN_DATA_KEY = "token";
+
+const SEMANTIC_ID_PATTERN = /^sem-[0-9a-f]{6}$/;
 
 export interface PlannedSemanticVariable {
   name: string;
-  /** Plugin-data `token` value. The Figma path, same as `name`. */
-  token: string;
+  /** Permanent id from the token JSON. Light and Dark share it. */
+  id: string;
   type: "COLOR" | "FLOAT";
   /** Primitive variable name for each Semantic mode (`Light`, `Dark`, …). */
   aliases: Record<string, string>;
@@ -74,9 +81,15 @@ const MODE_INDEPENDENT_GROUPS = ["layout", "control"];
 
 interface Draft {
   name: string;
+  id: string;
   type: "COLOR" | "FLOAT";
   description: string;
   aliases: Record<string, string>;
+}
+
+interface ThemeIdentity {
+  id: string;
+  modeName: string;
 }
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -93,8 +106,10 @@ export function planSemantic(tree: DtcgTree): SemanticPlan {
     planPrimitives(tree).variables.map((variable) => [variable.name, variable]),
   );
   const drafts = new Map<string, Draft>();
+  const idOwners = new Map<string, string>();
+  const themeIds = new Map<string, ThemeIdentity>();
 
-  planTheme(tree, modeNames, targets.semanticCollection, primitiveByName, drafts);
+  planTheme(tree, modeNames, targets.semanticCollection, primitiveByName, drafts, idOwners, themeIds);
   for (const groupName of MODE_INDEPENDENT_GROUPS) {
     planModeIndependentGroup(
       tree,
@@ -103,6 +118,7 @@ export function planSemantic(tree: DtcgTree): SemanticPlan {
       targets.semanticCollection,
       primitiveByName,
       drafts,
+      idOwners,
     );
   }
 
@@ -119,9 +135,11 @@ function planTheme(
   semanticCollection: string,
   primitiveByName: Map<string, PlannedVariable>,
   drafts: Map<string, Draft>,
+  idOwners: Map<string, string>,
+  themeIds: Map<string, ThemeIdentity>,
 ): void {
   const theme = requireGroup(tree, "theme");
-  const extensions = camelliaOf(theme);
+  const extensions = camelliaExtensions(theme);
   requireSameCollection("theme", extensions, semanticCollection);
   const keyByMode = themeModeKeys(extensions.modeMap, modeNames);
 
@@ -135,12 +153,16 @@ function planTheme(
       throw new Error(`plan-semantic: theme.${jsonKey} group is missing`);
     }
     for (const token of collectTokens(modeNode, ["theme", jsonKey])) {
-      if (token.type === "border" && isDeferredCompositeBorder(token.path)) continue;
       const name = token.path.slice(2).join("/");
       if (name.length === 0) {
         throw new Error(`plan-semantic: ${token.path.join(".")} has no semantic name`);
       }
-      addThemeAlias(drafts, token, name, modeName, primitiveByName);
+      const deferred = token.type === "border" && isDeferredCompositeBorder(token.path);
+      if (deferred) {
+        rememberThemeId(themeIds, idOwners, name, requireSemanticId(token), modeName);
+        continue;
+      }
+      addThemeAlias(drafts, token, name, modeName, primitiveByName, idOwners, themeIds);
     }
   }
 
@@ -160,22 +182,25 @@ function planModeIndependentGroup(
   semanticCollection: string,
   primitiveByName: Map<string, PlannedVariable>,
   drafts: Map<string, Draft>,
+  idOwners: Map<string, string>,
 ): void {
   const group = requireGroup(tree, groupName);
-  const extensions = camelliaOf(group);
+  const extensions = camelliaExtensions(group);
   requireSameCollection(groupName, extensions, semanticCollection);
   requireSameModes(groupName, extensions.modes, modeNames);
 
   for (const token of collectTokens(group, [groupName])) {
     const type = figmaTypeFor(token, "spacing");
+    const id = requireSemanticId(token);
     const primitive = resolveAlias(token, primitiveByName, type);
     const name = token.path.join("/");
     if (drafts.has(name)) {
       throw new Error(`plan-semantic: ${name} is planned twice`);
     }
+    claimSemanticId(idOwners, name, id);
     const aliases: Record<string, string> = {};
     for (const modeName of modeNames) aliases[modeName] = primitive;
-    drafts.set(name, { name, type, description: token.description, aliases });
+    drafts.set(name, { name, id, type, description: token.description, aliases });
   }
 }
 
@@ -185,13 +210,18 @@ function addThemeAlias(
   name: string,
   modeName: string,
   primitiveByName: Map<string, PlannedVariable>,
+  idOwners: Map<string, string>,
+  themeIds: Map<string, ThemeIdentity>,
 ): void {
   const type = figmaTypeFor(token, "theme");
+  const id = requireSemanticId(token);
+  rememberThemeId(themeIds, idOwners, name, id, modeName);
   const primitive = resolveAlias(token, primitiveByName, type);
   const existing = drafts.get(name);
   if (!existing) {
     drafts.set(name, {
       name,
+      id,
       type,
       description: token.description,
       aliases: { [modeName]: primitive },
@@ -213,7 +243,7 @@ function addThemeAlias(
 function toPlannedVariable(draft: Draft): PlannedSemanticVariable {
   return {
     name: draft.name,
-    token: draft.name,
+    id: draft.id,
     type: draft.type,
     aliases: { ...draft.aliases },
     scopes: scopesFor(draft.name, draft.type),
@@ -227,9 +257,66 @@ function scopesFor(name: string, type: "COLOR" | "FLOAT"): VariableScope[] {
     if (name.startsWith("layout/") || name.startsWith("control/")) return GAP;
     throw new Error(`plan-semantic: ${name} has no approved scopes`);
   }
-  const scopes = COLOR_SCOPES[name];
+  const scopes = COLOR_SCOPES[name] ?? colorScopeFamily(name);
   if (!scopes) throw new Error(`plan-semantic: ${name} has no approved scopes`);
   return scopes;
+}
+
+// A renamed path is not in the table. It keeps the scopes of the group it still belongs to.
+const COLOR_SCOPE_FAMILIES: { prefix: string; scopes: VariableScope[] }[] = [
+  { prefix: "color/action/primary-text", scopes: TEXT },
+  { prefix: "color/action/link", scopes: TEXT },
+  { prefix: "color/action/", scopes: FRAME_AND_SHAPE },
+  { prefix: "color/text/", scopes: TEXT },
+  { prefix: "color/icon/", scopes: SHAPE },
+  { prefix: "color/border/", scopes: STROKE },
+  { prefix: "color/focus", scopes: STROKE },
+  { prefix: "color/background/", scopes: FRAME_AND_SHAPE },
+  { prefix: "color/surface/", scopes: FRAME_AND_SHAPE },
+  { prefix: "color/expression/", scopes: FRAME_AND_SHAPE },
+  { prefix: "color/functional/accent", scopes: SHAPE_AND_STROKE },
+  { prefix: "color/functional/", scopes: FRAME_AND_SHAPE },
+];
+
+function colorScopeFamily(name: string): VariableScope[] | undefined {
+  return COLOR_SCOPE_FAMILIES.find((family) => name.startsWith(family.prefix))?.scopes;
+}
+
+function requireSemanticId(token: DtcgToken): string {
+  const id = token.camellia.id;
+  if (typeof id === "string" && SEMANTIC_ID_PATTERN.test(id)) return id;
+  const shown = id === undefined ? "missing" : JSON.stringify(id);
+  throw new Error(
+    `plan-semantic: ${token.path.join(".")} id is ${shown}; expected sem-[0-9a-f]{6}`,
+  );
+}
+
+function claimSemanticId(idOwners: Map<string, string>, name: string, id: string): void {
+  const owner = idOwners.get(id);
+  if (owner !== undefined && owner !== name) {
+    throw new Error(`plan-semantic: ${name} reuses id "${id}" already used by ${owner}`);
+  }
+  idOwners.set(id, name);
+}
+
+function rememberThemeId(
+  themeIds: Map<string, ThemeIdentity>,
+  idOwners: Map<string, string>,
+  name: string,
+  id: string,
+  modeName: string,
+): void {
+  const prior = themeIds.get(name);
+  if (prior === undefined) {
+    themeIds.set(name, { id, modeName });
+    claimSemanticId(idOwners, name, id);
+    return;
+  }
+  if (prior.id !== id) {
+    throw new Error(
+      `plan-semantic: ${name} ids differ between ${prior.modeName} (${prior.id}) and ${modeName} (${id})`,
+    );
+  }
 }
 
 function figmaTypeFor(token: DtcgToken, group: "theme" | "spacing"): "COLOR" | "FLOAT" {
@@ -277,12 +364,6 @@ function requireGroup(tree: DtcgTree, name: string): Record<string, unknown> {
   const group = tree[name];
   if (!isObject(group)) throw new Error(`plan-semantic: ${name} group is missing`);
   return group;
-}
-
-function camelliaOf(node: Record<string, unknown>): Record<string, unknown> {
-  const extensions = isObject(node.$extensions) ? node.$extensions : {};
-  const camellia = extensions[CAMELLIA];
-  return isObject(camellia) ? camellia : {};
 }
 
 function requireSameCollection(

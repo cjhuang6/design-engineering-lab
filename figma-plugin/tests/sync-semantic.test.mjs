@@ -4,7 +4,11 @@ import { readFileSync } from "node:fs";
 
 import { figmaTargets } from "../src/dtcg.ts";
 import { planPrimitives } from "../src/plan-primitives.ts";
-import { planSemantic } from "../src/plan-semantic.ts";
+import {
+  planSemantic,
+  SEMANTIC_SHARED_ID_KEY,
+  SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE,
+} from "../src/plan-semantic.ts";
 import { syncPrimitives } from "../src/sync-primitives.ts";
 import { syncSemantic } from "../src/sync-semantic.ts";
 
@@ -25,6 +29,9 @@ const primitiveCollectionName = figmaTargets(tokens).primitiveCollection;
  *   https://developers.figma.com/docs/plugins/api/Variable/ (valuesByMode)
  * - getPluginData returns "" when the key is absent, and setPluginData(key, "")
  *   removes the key (PluginDataMixin in @figma/plugin-typings)
+ * - getSharedPluginData / setSharedPluginData behave the same way, keyed by
+ *   namespace then key. An empty value removes the entry
+ *   https://developers.figma.com/docs/plugins/api/properties/figma-setsharedplugindata/
  * - addMode returns the new mode id. When modeLimit is set, it throws
  *   "in addMode: Limited to N modes only"
  *   https://developers.figma.com/docs/plugins/api/VariableCollection/ (addMode)
@@ -56,6 +63,7 @@ function createFakeFigma() {
     valueWrites: 0,
     codeSyntaxWrites: 0,
     pluginDataWrites: 0,
+    sharedPluginDataWrites: 0,
     primitiveValueWrites: 0,
   };
 
@@ -75,6 +83,7 @@ function createFakeFigma() {
   const fake = {
     modeLimit: null,
     counts,
+    privatePluginData: true,
     collections,
     variables,
     variables_api: {
@@ -117,6 +126,7 @@ function createFakeFigma() {
       createVariable(name, collection, resolvedType) {
         counts.variablesCreated++;
         const pluginData = Object.create(null);
+        const sharedPluginData = Object.create(null);
         const variable = {
           id: `VariableID:${nextId++}`,
           name,
@@ -137,12 +147,32 @@ function createFakeFigma() {
             this.codeSyntax[platform] = value;
           },
           getPluginData(key) {
+            if (fake.privatePluginData === false) {
+              throw new Error(
+                "figma.getPluginData is not supported in this host runtime (only private plugins on web can use it). Use figma.getSharedPluginData(namespace, key) instead",
+              );
+            }
             return key in pluginData ? pluginData[key] : "";
           },
           setPluginData(key, value) {
+            if (fake.privatePluginData === false) {
+              throw new Error(
+                "figma.setPluginData is not supported in this host runtime (only private plugins on web can use it). Use figma.setSharedPluginData(namespace, key, value) instead",
+              );
+            }
             counts.pluginDataWrites++;
             if (value === "") delete pluginData[key];
             else pluginData[key] = value;
+          },
+          getSharedPluginData(namespace, key) {
+            const bucket = sharedPluginData[namespace];
+            return bucket && key in bucket ? bucket[key] : "";
+          },
+          setSharedPluginData(namespace, key, value) {
+            counts.sharedPluginDataWrites++;
+            if (!sharedPluginData[namespace]) sharedPluginData[namespace] = Object.create(null);
+            if (value === "") delete sharedPluginData[namespace][key];
+            else sharedPluginData[namespace][key] = value;
           },
         };
         variables.push(variable);
@@ -239,7 +269,8 @@ test("first sync creates Semantic with Light then Dark and 41 aliases", async ()
     assert.deepEqual(variable.scopes, planned.scopes, planned.name);
     assert.equal(variable.codeSyntax.WEB, planned.webSyntax, planned.name);
     assert.equal(variable.description, "", planned.name);
-    assert.equal(variable.getPluginData("token"), planned.name, planned.name);
+    assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), planned.id, planned.name);
+    assert.equal(variable.getPluginData("token"), "", planned.name);
     for (const [modeName, primitiveName] of Object.entries(planned.aliases)) {
       assert.deepEqual(
         variable.valuesByMode[modeId(modeName)],
@@ -267,6 +298,34 @@ test("first sync creates Semantic with Light then Dark and 41 aliases", async ()
       semanticName,
     );
   }
+});
+
+test("private plugin data throwing still creates 41 and a second run changes nothing", async () => {
+  await seedPrimitives();
+  fake.privatePluginData = false;
+
+  const report = await sync();
+
+  assert.equal(report.created.length, 41);
+  assert.deepEqual(report.updated, []);
+  assert.deepEqual(report.errors, []);
+  assert.equal(semanticVariables().length, 41);
+  for (const planned of semanticPlan.variables) {
+    const variable = findSemantic(planned.name);
+    assert.equal(
+      variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY),
+      planned.id,
+      planned.name,
+    );
+  }
+
+  const counts = snapshotCounts();
+  const again = await sync();
+  assert.equal(again.created.length, 0);
+  assert.deepEqual(again.updated, []);
+  assert.equal(again.unchanged, 41);
+  assert.deepEqual(again.errors, []);
+  assert.deepEqual(snapshotCounts(), counts);
 });
 
 test("second sync creates nothing, updates nothing, and does not write", async () => {
@@ -374,23 +433,25 @@ test("a renamed variable is restored in place when its token key matches", async
   assert.equal(fake.counts.variablesCreated, countsBeforeCreate);
 });
 
-test("a variable with an empty token key and a planned name is adopted", async () => {
+test("a variable with no token id and a planned name is adopted", async () => {
   await seedPrimitives();
   await sync();
   const variable = findSemantic("layout/content-gap/md");
   const idBefore = variable.id;
-  variable.setPluginData("token", "");
-  const writes = fake.counts.pluginDataWrites;
+  const plannedId = semanticPlan.variables.find((item) => item.name === variable.name).id;
+  variable.setSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY, "");
+  const writes = fake.counts.sharedPluginDataWrites;
 
   const report = await sync();
 
   assert.equal(report.created.length, 0);
   assert.equal(report.updated.length, 1);
-  assert.match(report.updated[0], /^layout\/content-gap\/md \[token\] \(VariableID:/);
+  assert.match(report.updated[0], /^layout\/content-gap\/md \[token id\] \(VariableID:/);
   assert.equal(variable.id, idBefore);
-  assert.equal(variable.getPluginData("token"), "layout/content-gap/md");
+  assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), plannedId);
+  assert.equal(variable.getPluginData("token"), "");
   assert.equal(semanticVariables().length, 41);
-  assert.equal(fake.counts.pluginDataWrites, writes + 1);
+  assert.equal(fake.counts.sharedPluginDataWrites, writes + 1);
 });
 
 test("variables that exist only in Figma are reported and kept", async () => {
@@ -410,8 +471,163 @@ test("variables that exist only in Figma are reported and kept", async () => {
   assert.equal(semanticVariables().includes(emptyKey), true);
   assert.equal(semanticVariables().includes(otherKey), true);
   assert.equal(emptyKey.getPluginData("token"), "");
+  assert.equal(emptyKey.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
   assert.equal(otherKey.getPluginData("token"), "made-up");
+  assert.equal(otherKey.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
   assert.equal(semanticVariables().length, 43);
+});
+
+function installLegacyNameTags() {
+  const ids = new Map();
+  for (const variable of semanticVariables()) {
+    ids.set(variable.id, variable.name);
+    variable.setSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY, "");
+    variable.setPluginData("token", variable.name);
+  }
+  return ids;
+}
+
+test("dry run reports a migration from legacy name tags and writes nothing", async () => {
+  await seedPrimitives();
+  await sync();
+  const ids = installLegacyNameTags();
+  const counts = snapshotCounts();
+
+  const report = await sync(true);
+
+  assert.equal(report.collectionCreated, false);
+  assert.deepEqual(report.created, []);
+  assert.equal(report.updated.length, ids.size);
+  assert.equal(report.unchanged, 0);
+  assert.deepEqual(report.notInJson, []);
+  assert.deepEqual(report.errors, []);
+  for (const line of report.updated) {
+    assert.match(line, /\[token id, legacy token\] \(VariableID:/);
+  }
+  assert.deepEqual(snapshotCounts(), counts);
+  for (const variable of semanticVariables()) {
+    assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
+    assert.equal(variable.getPluginData("token"), variable.name);
+    assert.equal(ids.get(variable.id), variable.name);
+  }
+});
+
+test("migration from legacy name tags creates 0 and deletes 0, then a second run changes nothing", async () => {
+  await seedPrimitives();
+  await sync();
+  const ids = installLegacyNameTags();
+  const createdBefore = fake.counts.variablesCreated;
+  const countBefore = semanticVariables().length;
+
+  const report = await sync();
+
+  assert.equal(report.created.length, 0);
+  assert.equal(report.updated.length, ids.size);
+  assert.deepEqual(report.notInJson, []);
+  assert.deepEqual(report.errors, []);
+  assert.equal(semanticVariables().length, countBefore);
+  assert.equal(fake.counts.variablesCreated, createdBefore);
+  for (const variable of semanticVariables()) {
+    const planned = semanticPlan.variables.find((item) => item.name === variable.name);
+    assert.equal(ids.has(variable.id), true, variable.name);
+    assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), planned.id, variable.name);
+    assert.equal(variable.getPluginData("token"), "", variable.name);
+  }
+
+  const counts = snapshotCounts();
+  const again = await sync();
+  assert.equal(again.created.length, 0);
+  assert.deepEqual(again.updated, []);
+  assert.equal(again.unchanged, countBefore);
+  assert.deepEqual(snapshotCounts(), counts);
+});
+
+test("a JSON rename keeps the variable id", async () => {
+  await seedPrimitives();
+  await sync();
+  const before = findSemantic("color/action/primary");
+  const idBefore = before.id;
+  const tokenId = before.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY);
+  const valuesBefore = structuredClone(before.valuesByMode);
+  const scopesBefore = [...before.scopes];
+  const createdBefore = fake.counts.variablesCreated;
+
+  const renamed = structuredClone(tokens);
+  const light = renamed.theme.light.color.action;
+  const dark = renamed.theme.dark.color.action;
+  light.main = light.primary;
+  dark.main = dark.primary;
+  delete light.primary;
+  delete dark.primary;
+  const plan = planSemantic(renamed);
+
+  const report = await sync(false, plan);
+
+  assert.equal(report.created.length, 0);
+  assert.equal(report.updated.length, 1);
+  assert.match(report.updated[0], /^color\/action\/main \[name, code syntax\] \(VariableID:/);
+  assert.equal(semanticVariables().length, 41);
+  assert.equal(fake.counts.variablesCreated, createdBefore);
+  const after = findSemantic("color/action/main");
+  assert.equal(after.id, idBefore);
+  assert.equal(after.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), tokenId);
+  assert.equal(after.getPluginData("token"), "");
+  assert.equal(after.codeSyntax.WEB, "var(--color-action-main)");
+  assert.deepEqual(after.scopes, scopesBefore);
+  assert.deepEqual(after.valuesByMode, valuesBefore);
+  assert.equal(findSemantic("color/action/primary"), undefined);
+
+  const counts = snapshotCounts();
+  const again = await sync(false, plan);
+  assert.equal(again.created.length, 0);
+  assert.deepEqual(again.updated, []);
+  assert.equal(again.unchanged, 41);
+  assert.deepEqual(snapshotCounts(), counts);
+});
+
+test("renaming the JSON before migration leaves the old variable and creates the new name", async () => {
+  await seedPrimitives();
+  await sync();
+  const before = findSemantic("color/action/primary");
+  const idBefore = before.id;
+  installLegacyNameTags();
+  const createdBefore = fake.counts.variablesCreated;
+
+  const renamed = structuredClone(tokens);
+  const light = renamed.theme.light.color.action;
+  const dark = renamed.theme.dark.color.action;
+  light.main = light.primary;
+  dark.main = dark.primary;
+  delete light.primary;
+  delete dark.primary;
+
+  const report = await sync(false, planSemantic(renamed));
+
+  assert.equal(report.created.length, 1);
+  assert.deepEqual(report.created, ["color/action/main"]);
+  assert.deepEqual(report.notInJson, ["color/action/primary"]);
+  assert.equal(semanticVariables().length, 42);
+  assert.equal(fake.counts.variablesCreated, createdBefore + 1);
+  assert.equal(before.id, idBefore);
+  assert.equal(before.name, "color/action/primary");
+  assert.notEqual(findSemantic("color/action/main").id, idBefore);
+});
+
+test("two variables with the same token id throw before any write", async () => {
+  await seedPrimitives();
+  await sync();
+  const original = findSemantic("color/action/primary");
+  const before = structuredClone(original.valuesByMode);
+  const tokenId = original.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY);
+  const extra = fake.variables_api.createVariable("local/dup", semanticCollection(), "COLOR");
+  extra.setSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY, tokenId);
+  const counts = snapshotCounts();
+
+  await assert.rejects(sync(), new RegExp(`two variables with id "${tokenId}"`));
+
+  assert.deepEqual(snapshotCounts(), counts);
+  assert.deepEqual(original.valuesByMode, before);
+  assert.equal(semanticVariables().length, 42);
 });
 
 test("two variables with the same token value throw before any write", async () => {
@@ -419,6 +635,7 @@ test("two variables with the same token value throw before any write", async () 
   await sync();
   const original = findSemantic("color/action/primary");
   const before = structuredClone(original.valuesByMode);
+  original.setPluginData("token", "color/action/primary");
   const extra = fake.variables_api.createVariable("local/dup", semanticCollection(), "COLOR");
   extra.setPluginData("token", "color/action/primary");
   const counts = snapshotCounts();
@@ -469,6 +686,7 @@ test("primitive variables are unchanged and gain no plugin data", async () => {
   assert.equal(fake.counts.primitiveValueWrites, primitiveWrites);
   for (const variable of primitiveVariables()) {
     assert.equal(variable.getPluginData("token"), "");
+    assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
   }
 });
 
@@ -639,7 +857,9 @@ test("an error on one variable is reported without stopping the others", async (
   assert.equal(findSemantic("color/action/primary"), undefined);
   const focus = findSemantic("color/focus");
   assert.equal(focus.valuesByMode[modeId("Light")].type, "VARIABLE_ALIAS");
-  assert.equal(focus.getPluginData("token"), "color/focus");
+  const focusPlan = semanticPlan.variables.find((item) => item.name === "color/focus");
+  assert.equal(focus.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), focusPlan.id);
+  assert.equal(focus.getPluginData("token"), "");
 });
 
 // mulberry32, Tommy Ettinger, public domain. Master seed is fixed.
@@ -680,6 +900,7 @@ function serializeVariable(variable) {
     codeSyntax: { ...variable.codeSyntax },
     description: variable.description,
     token: variable.getPluginData("token"),
+    tokenId: variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY),
   };
 }
 
@@ -749,7 +970,7 @@ async function runDraw(seed) {
         removeVariables(new Set(shuffle(rng, present).slice(0, removeCount).map((variable) => variable.id)));
       }
       const remaining = semanticVariables().filter((variable) =>
-        semanticPlan.variables.some((planned) => planned.token === variable.getPluginData("token")),
+        semanticPlan.variables.some((planned) => planned.id === variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY)),
       );
       if (remaining.length > 0 && rng() < 0.8) {
         label += ", broken";
@@ -779,23 +1000,27 @@ async function runDraw(seed) {
 
     assert.deepEqual(primitiveVariables().map(serializeVariable), primitivesBefore);
 
-    const plannedNames = new Set(semanticPlan.variables.map((planned) => planned.name));
-    const plannedTokens = new Set(semanticPlan.variables.map((planned) => planned.token));
+    const plannedById = new Map(semanticPlan.variables.map((planned) => [planned.id, planned]));
+    const plannedByName = new Map(semanticPlan.variables.map((planned) => [planned.name, planned]));
     const idsBefore = new Map();
     const orphanSnapshots = [];
     for (const variable of semanticVariables()) {
-      const token = variable.getPluginData("token");
-      if (plannedTokens.has(token)) idsBefore.set(token, variable.id);
-      else if (token === "" && plannedNames.has(variable.name)) idsBefore.set(variable.name, variable.id);
+      const tokenId = variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY);
+      const legacy = variable.getPluginData("token");
+      const planned =
+        plannedById.get(tokenId) ??
+        (tokenId === "" && legacy !== "" ? plannedByName.get(legacy) : undefined) ??
+        (tokenId === "" && legacy === "" ? plannedByName.get(variable.name) : undefined);
+      if (planned) idsBefore.set(planned.id, variable.id);
       else orphanSnapshots.push(serializeVariable(variable));
     }
 
     const report1 = await sync();
     assert.deepEqual(report1.errors, [], report1.errors.join("\n"));
     assertSemanticMatchesPlan(orphanSnapshots);
-    for (const [identity, id] of idsBefore) {
-      const variable = semanticVariables().find((item) => item.getPluginData("token") === identity);
-      assert.equal(variable?.id, id, identity);
+    for (const [tokenId, id] of idsBefore) {
+      const variable = semanticVariables().find((item) => item.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY) === tokenId);
+      assert.equal(variable?.id, id, tokenId);
     }
     assert.deepEqual(primitiveVariables().map(serializeVariable), primitivesBefore);
 
@@ -828,15 +1053,16 @@ function assertSemanticMatchesPlan(orphanSnapshots) {
   const variables = semanticVariables();
   const byToken = new Map();
   for (const variable of variables) {
-    const token = variable.getPluginData("token");
-    if (token === "") continue;
-    assert.equal(byToken.has(token), false, token);
-    byToken.set(token, variable);
+    const tokenId = variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY);
+    if (tokenId === "") continue;
+    assert.equal(byToken.has(tokenId), false, tokenId);
+    byToken.set(tokenId, variable);
   }
 
   for (const planned of semanticPlan.variables) {
-    const variable = byToken.get(planned.token);
+    const variable = byToken.get(planned.id);
     assert.ok(variable, planned.name);
+    assert.equal(variable.getPluginData("token"), "", planned.name);
     assert.equal(variable.name, planned.name, planned.name);
     assert.equal(variable.resolvedType, planned.type, planned.name);
     assert.equal(variable.description, planned.description, planned.name);
@@ -850,7 +1076,7 @@ function assertSemanticMatchesPlan(orphanSnapshots) {
   }
 
   const extras = variables.filter(
-    (variable) => !semanticPlan.variables.some((planned) => planned.token === variable.getPluginData("token")),
+    (variable) => !semanticPlan.variables.some((planned) => planned.id === variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY)),
   );
   assert.equal(extras.length, orphanSnapshots.length);
   for (const orphan of orphanSnapshots) {

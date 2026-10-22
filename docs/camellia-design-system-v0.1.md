@@ -771,7 +771,9 @@ Suggested next validation component: **Button**, because it exercises typography
 
 ---
 
-# 20. CSS starter mapping
+# 20. CSS starter mapping (historical)
+
+**Approved (2026-10-22):** this section is historical. It predates the generated `src/styles/tokens.css`. It is not a source of truth. `tokens/camellia.tokens.json` is canonical.
 
 The following is a starter implementation of the approved foundation. It is intentionally readable rather than exhaustive.
 

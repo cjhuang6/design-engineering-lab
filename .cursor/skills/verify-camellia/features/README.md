@@ -2,7 +2,7 @@
 
 This directory is the maintained source for what Camellia can do today and how to prove it. Read this index before driving anything, then use the matching feature file as the recipe. Planned work is in the [roadmap](../../../../docs/token-pipeline-roadmap.md), not here.
 
-**Last verified against revision:** `5a6653e`, on 2026-10-17 for the terminal checks and the demo page. Figma procedures were not re-run; the last Figma verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`). Semantic sync has a desktop checklist, including permanent ids, and has not been run in Figma.
+**Last verified against revision:** `5a6653e`, on 2026-10-17 for the terminal checks and the demo page. Figma procedures were not re-run; the last Figma verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`). Semantic sync and primitive permanent ids each have a desktop checklist and have not been run in Figma.
 
 ## Baseline preconditions
 
@@ -43,7 +43,7 @@ Keep implementation details out of the feature files. Source locations appear on
 - [CSS tokens](./css-tokens.md) covers building `src/styles/tokens.css` from the token JSON and validating it. Code: `scripts/tokens/build-css.mjs`, `scripts/tokens/check-css.mjs`.
 - [Figma plugin build](./figma-plugin-build.md) covers the type check, the tests and the bundle. Code: `figma-plugin/tsconfig.json`, `figma-plugin/tests/`.
 - [Figma Inventory](./figma-inventory.md) covers the read-only inventory command. Code: `figma-plugin/code.ts`, `figma-plugin/manifest.json`.
-- [Figma Primitives sync](./figma-primitives-sync.md) covers the dry run, the sync, idempotency and binding survival. Code: `figma-plugin/src/dtcg.ts`, `figma-plugin/src/plan-primitives.ts`, `figma-plugin/src/sync-primitives.ts`.
+- [Figma Primitives sync](./figma-primitives-sync.md) covers the dry run, the sync, idempotency, migration onto permanent ids, a JSON rename, and binding survival. Code: `figma-plugin/src/dtcg.ts`, `figma-plugin/src/plan-primitives.ts`, `figma-plugin/src/sync-primitives.ts`.
 - [Figma Semantic sync](./figma-semantic-sync.md) covers the dry run, the sync, both modes, idempotency, a Figma-side rename, migration onto permanent ids, a JSON rename, and binding survival. Code: `figma-plugin/code.ts`, `figma-plugin/manifest.json`, `figma-plugin/src/plan-semantic.ts`, `figma-plugin/src/sync-semantic.ts`.
 - [Demo app](./demo-app.md) covers the Vite + React token reference page. Code: `src/App.jsx`, `src/parseTokenCss.js`, `src/styles/global.css`.
 

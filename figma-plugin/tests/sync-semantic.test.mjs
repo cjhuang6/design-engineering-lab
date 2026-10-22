@@ -3,7 +3,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import { figmaTargets } from "../src/dtcg.ts";
-import { planPrimitives } from "../src/plan-primitives.ts";
+import {
+  planPrimitives,
+  PRIMITIVE_SHARED_ID_KEY,
+  PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
+} from "../src/plan-primitives.ts";
 import {
   planSemantic,
   SEMANTIC_SHARED_ID_KEY,
@@ -542,6 +546,84 @@ test("migration from legacy name tags creates 0 and deletes 0, then a second run
   assert.deepEqual(snapshotCounts(), counts);
 });
 
+test("semantic aliases resolve by primitive name before permanent ids are tagged", async () => {
+  await seedPrimitives();
+  for (const variable of primitiveVariables()) {
+    variable.setSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY, "");
+  }
+  const report = await sync();
+  assert.equal(report.created.length, 41);
+  assert.deepEqual(report.errors, []);
+  const planned = semanticPlan.variables.find((item) => item.name === "color/action/primary");
+  assert.equal(
+    findSemantic("color/action/primary").valuesByMode[modeId("Light")].id,
+    findPrimitive(planned.aliases.Light).id,
+  );
+  for (const variable of primitiveVariables()) {
+    assert.equal(variable.getSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY), "");
+  }
+});
+
+function renamePrimitive(tree, fromName, toName) {
+  const from = fromName.split("/");
+  const to = toName.split("/");
+  let parent = tree;
+  for (const key of from.slice(0, -1)) parent = parent[key];
+  parent[to[to.length - 1]] = parent[from[from.length - 1]];
+  delete parent[from[from.length - 1]];
+  const fromRef = `{${from.join(".")}}`;
+  const toRef = `{${to.join(".")}}`;
+  const walk = (node) => {
+    if (!node || typeof node !== "object") return;
+    if (node.$value === fromRef) node.$value = toRef;
+    for (const value of Object.values(node)) walk(value);
+  };
+  walk(tree);
+}
+
+test("a renamed primitive stays the semantic alias, resolved by its permanent id", async () => {
+  await seedPrimitives();
+  await sync();
+  const before = findPrimitive("color/primitive/blue/600");
+  const figmaId = before.id;
+  const tokenId = before.getSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY);
+  assert.equal(findSemantic("color/action/primary").valuesByMode[modeId("Light")].id, figmaId);
+
+  const renamed = structuredClone(tokens);
+  renamePrimitive(renamed, "color/primitive/blue/600", "color/primitive/blue/action");
+  const primitivePlan = planPrimitives(renamed);
+  const semantic = planSemantic(renamed);
+  const row = semantic.variables.find((item) => item.name === "color/action/primary");
+  assert.equal(row.aliases.Light, "color/primitive/blue/action");
+  assert.equal(row.aliasIds.Light, tokenId);
+
+  const early = await sync(false, semantic);
+  assert.deepEqual(early.errors, []);
+  assert.equal(early.created.length, 0);
+  assert.deepEqual(early.updated, []);
+  assert.equal(early.unchanged, 41);
+  assert.equal(findPrimitive("color/primitive/blue/action"), undefined);
+  assert.equal(findSemantic("color/action/primary").valuesByMode[modeId("Light")].id, figmaId);
+
+  const primitiveReport = await syncPrimitives(primitivePlan, { dryRun: false });
+  assert.equal(primitiveReport.created.length, 0);
+  assert.equal(primitiveReport.updated.length, 1);
+  assert.match(primitiveReport.updated[0], /^color\/primitive\/blue\/action \[name, code syntax\] \(VariableID:/);
+  assert.deepEqual(primitiveReport.notInJson, []);
+  const after = findPrimitive("color/primitive/blue/action");
+  assert.equal(after.id, figmaId);
+  assert.equal(
+    after.getSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY),
+    tokenId,
+  );
+  assert.equal(findPrimitive("color/primitive/blue/600"), undefined);
+
+  const again = await sync(false, semantic);
+  assert.deepEqual(again.updated, []);
+  assert.equal(again.unchanged, 41);
+  assert.equal(findSemantic("color/action/primary").valuesByMode[modeId("Light")].id, figmaId);
+});
+
 test("a JSON rename keeps the variable id", async () => {
   await seedPrimitives();
   await sync();
@@ -674,7 +756,7 @@ test("two variables with the same name throw before any write", async () => {
   assert.deepEqual(snapshotCounts(), counts);
 });
 
-test("primitive variables are unchanged and gain no plugin data", async () => {
+test("semantic sync does not change primitive variables or their ids", async () => {
   await seedPrimitives();
   const before = primitiveVariables().map(serializeVariable);
   const primitiveWrites = fake.counts.primitiveValueWrites;
@@ -686,7 +768,12 @@ test("primitive variables are unchanged and gain no plugin data", async () => {
   assert.equal(fake.counts.primitiveValueWrites, primitiveWrites);
   for (const variable of primitiveVariables()) {
     assert.equal(variable.getPluginData("token"), "");
-    assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
+    const planned = primitivesPlan.variables.find((item) => item.name === variable.name);
+    assert.equal(
+      variable.getSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY),
+      planned.id,
+      variable.name,
+    );
   }
 });
 

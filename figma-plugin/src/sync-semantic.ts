@@ -1,9 +1,14 @@
 // Make the Figma "Semantic" collection match the plan. Variables are matched
 // by shared plugin data and updated in place (same variable ID). A file
 // synced before ids existed is adopted by its legacy private `token` tag.
-// Nothing is ever deleted. Aliases point at primitives; this file does not
-// write to them.
+// Nothing is ever deleted. Aliases point at primitives, found by the
+// primitive's permanent id when that variable is already tagged, and by
+// visible name until then. This file does not write to primitives.
 
+import {
+  PRIMITIVE_SHARED_ID_KEY,
+  PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
+} from "./plan-primitives.ts";
 import {
   SEMANTIC_SHARED_ID_KEY,
   SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE,
@@ -240,7 +245,12 @@ function typeConflictMessage(matches: readonly Match[]): string | null {
   );
 }
 
-async function loadPrimitives(name: string): Promise<Map<string, Variable>> {
+interface PrimitiveIndex {
+  byName: Map<string, Variable>;
+  byId: Map<string, Variable>;
+}
+
+async function loadPrimitives(name: string): Promise<PrimitiveIndex> {
   const collections = (await figma.variables.getLocalVariableCollectionsAsync()).filter(
     (collection) => collection.name === name,
   );
@@ -263,12 +273,32 @@ async function loadPrimitives(name: string): Promise<Map<string, Variable>> {
     }
     byName.set(variable.name, variable);
   }
-  return byName;
+  const byId = new Map<string, Variable>();
+  for (const variable of variables) {
+    const tokenId = variable.getSharedPluginData(
+      PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
+      PRIMITIVE_SHARED_ID_KEY,
+    );
+    if (tokenId === "") continue;
+    if (byId.has(tokenId)) {
+      throw new Error(`"${name}" has two variables with id "${tokenId}"`);
+    }
+    byId.set(tokenId, variable);
+  }
+  return { byName, byId };
+}
+
+function primitiveFor(index: PrimitiveIndex, name: string, id: string | undefined): Variable | undefined {
+  if (id) {
+    const tagged = index.byId.get(id);
+    if (tagged) return tagged;
+  }
+  return index.byName.get(name);
 }
 
 function aliasProblems(
   plan: SemanticPlan,
-  primitives: Map<string, Variable>,
+  primitives: PrimitiveIndex,
   primitiveCollectionName: string,
 ): string[] {
   const problems: string[] = [];
@@ -286,7 +316,7 @@ function aliasProblems(
         add(`${planned.name} has no ${modeName} alias in the plan`);
         continue;
       }
-      const primitive = primitives.get(primitiveName);
+      const primitive = primitiveFor(primitives, primitiveName, planned.aliasIds[modeName]);
       if (!primitive) {
         add(`${primitiveName} is missing`);
         continue;
@@ -360,13 +390,15 @@ function differences(
   planned: PlannedSemanticVariable,
   modeNames: readonly string[],
   modeIds: Map<string, string>,
-  primitives: Map<string, Variable>,
+  primitives: PrimitiveIndex,
 ): string[] {
   const changed: string[] = [];
   if (variable.name !== planned.name) changed.push("name");
   for (const modeName of modeNames) {
     const primitiveName = planned.aliases[modeName];
-    const primitive = primitiveName ? primitives.get(primitiveName) : undefined;
+    const primitive = primitiveName
+      ? primitiveFor(primitives, primitiveName, planned.aliasIds[modeName])
+      : undefined;
     const modeId = modeIds.get(modeName);
     const actual = modeId ? variable.valuesByMode[modeId] : undefined;
     if (!primitive || !modeId || !sameAlias(actual, primitive.id)) changed.push(valueField(modeName));
@@ -384,14 +416,16 @@ function apply(
   planned: PlannedSemanticVariable,
   modeNames: readonly string[],
   modeIds: Map<string, string>,
-  primitives: Map<string, Variable>,
+  primitives: PrimitiveIndex,
   fields: readonly string[],
 ): void {
   if (fields.includes("name")) variable.name = planned.name;
   for (const modeName of modeNames) {
     if (!fields.includes(valueField(modeName))) continue;
     const primitiveName = planned.aliases[modeName];
-    const primitive = primitiveName ? primitives.get(primitiveName) : undefined;
+    const primitive = primitiveName
+      ? primitiveFor(primitives, primitiveName, planned.aliasIds[modeName])
+      : undefined;
     const modeId = modeIds.get(modeName);
     if (!primitive || !modeId) throw new Error(`cannot write ${planned.name} ${modeName}`);
     variable.setValueForMode(modeId, figma.variables.createVariableAlias(primitive));

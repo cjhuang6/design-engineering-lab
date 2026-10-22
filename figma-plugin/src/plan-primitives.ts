@@ -1,13 +1,22 @@
 // DTCG tokens → the list of variables the Figma "Primitives" collection
 // should contain. No Figma APIs here (types only), so tests can run it in Node.
 
-import { collectTokens, figmaTargets, isReference } from "./dtcg.ts";
+import { CAMELLIA, camelliaExtensions, collectTokens, figmaTargets, isReference } from "./dtcg.ts";
 import type { DtcgToken, DtcgTree } from "./dtcg.ts";
+
+export { CAMELLIA as PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE };
+
+/** Shared plugin-data key for the permanent id. The namespace is `PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE`. */
+export const PRIMITIVE_SHARED_ID_KEY = "id";
+
+const PRIMITIVE_ID_PATTERN = /^prim-[0-9a-f]{6}$/;
 
 export type PlannedValue = RGBA | number | string | MotionEasing;
 
 export interface PlannedVariable {
   name: string;
+  /** Permanent id from the token JSON. */
+  id: string;
   type: VariableResolvedDataType;
   value: PlannedValue;
   /** null = leave Figma's default. Motion variables have no matching scope. */
@@ -76,6 +85,7 @@ const startsWith = (path: string[], prefix: string[]) =>
 
 export function planPrimitives(tree: DtcgTree): PrimitivesPlan {
   const variables: PlannedVariable[] = [];
+  const idOwners = foreignIds(tree);
 
   for (const token of collectTokens(tree)) {
     const rule = RULES.find((r) => startsWith(token.path, r.prefix));
@@ -92,8 +102,12 @@ export function planPrimitives(tree: DtcgTree): PrimitivesPlan {
     }
 
     const { type, value } = toFigmaValue(token, rule);
+    const name = token.path.join("/");
+    const id = requirePrimitiveId(token);
+    claimPrimitiveId(idOwners, name, id);
     variables.push({
-      name: token.path.join("/"),
+      name,
+      id,
       type,
       value,
       scopes: rule.scopes,
@@ -175,3 +189,43 @@ function toFigmaValue(
 
 /** Strip float noise: 0.64 * 100 = 64.00000000000001 → 64. */
 const round = (n: number) => Number(n.toFixed(6));
+
+function requirePrimitiveId(token: DtcgToken): string {
+  const id = token.camellia.id;
+  if (typeof id === "string" && PRIMITIVE_ID_PATTERN.test(id)) return id;
+  const shown = id === undefined ? "missing" : JSON.stringify(id);
+  throw new Error(
+    `plan-primitives: ${token.path.join(".")} id is ${shown}; expected prim-[0-9a-f]{6}`,
+  );
+}
+
+function claimPrimitiveId(idOwners: Map<string, string>, name: string, id: string): void {
+  const owner = idOwners.get(id);
+  if (owner !== undefined) {
+    throw new Error(`plan-primitives: ${name} reuses id "${id}" already used by ${owner}`);
+  }
+  idOwners.set(id, name);
+}
+
+/** Ids on every node that is not itself a primitive token, so a prim- id cannot copy a sem- id. */
+function foreignIds(tree: DtcgTree): Map<string, string> {
+  const owners = new Map<string, string>();
+  walk(tree, [], owners);
+  return owners;
+}
+
+function walk(node: unknown, path: string[], owners: Map<string, string>): void {
+  if (!isRecord(node)) return;
+  const id = camelliaExtensions(node).id;
+  const primitiveToken = "$value" in node && RULES.some((rule) => startsWith(path, rule.prefix));
+  if (typeof id === "string" && !primitiveToken && !owners.has(id)) {
+    owners.set(id, path.length === 0 ? "(root)" : path.join("/"));
+  }
+  for (const [key, child] of Object.entries(node)) {
+    if (key.startsWith("$")) continue;
+    walk(child, [...path, key], owners);
+  }
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);

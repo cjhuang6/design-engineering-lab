@@ -13,15 +13,23 @@ The token pipeline roadmap uses "Phase 3" for a designer-review workflow and "Ph
 
 ## Direction (Approved)
 
-Finish the token pipeline first. Then build components with the emphasis on behavior: how a component responds, and the interaction model behind that response.
+**Approved (2026-10-22):** Phase 2D (Text Styles) and Phase 2E (Effect Styles) come first. Then build components with the emphasis on behavior: how a component responds, and the interaction model behind that response.
 
 The goal is original interaction concepts, prototyped and shipped in code. Invent the interaction. Do not implement a component by following a spec line by line. The approved goal includes prototyping in Figma and with AI tools, alongside code. What ships is the coded component in this repository. Whether at least one interaction must be AI-assisted is a [proposal](#proposals) below, not a requirement yet.
 
 ## Entry criteria
 
-**Approved:** Phase 3 does not start until the token pipeline's remaining items are closed or CJ explicitly defers them.
+**Approved (2026-10-22):** Phase 3 starts after Phase 2D (Text Styles) and Phase 2E (Effect Styles) are merged and desktop-verified.
 
-What is still open is [Current status](roadmap.md#current-status). Do not copy that list into this file. An agent does not open a component pull request from this document alone.
+These deferred token-pipeline items do not block that start. **Approved (deferred, 2026-10-22).** The trigger is: until a component needs them, except where a tighter trigger is named.
+
+- Phase 2F Expression Paint Styles.
+- Phase 2G Figma validation and audit. Today's dry runs already report the diffs: the primitive and semantic commands report created, updated, unchanged, and in-Figma-only.
+- The designer review workflow (Figma back to the JSON).
+- Component tokens (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Trigger: decided with the first component.
+- Motion variable binding in Figma (token pipeline [open question 8](token-pipeline-roadmap.md#open-questions)). The Figma Motion API is in beta. Trigger: until a component needs that binding.
+
+What is merged and desktop-verified is [Current status](roadmap.md#current-status). An agent does not open a component pull request from this document alone.
 
 ## Working method (Approved)
 
@@ -100,5 +108,5 @@ What a designer learning to ship in code should take from this component.
 | # | Question | Status | Blocks |
 |---|---|---|---|
 | 1 | **Which component is first?** The candidates above are a proposal. CJ chooses | Unknown | Starting Phase 3 |
-| 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist | Unknown | A component-token layer. It does not block a component that only references existing tokens |
+| 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist | **Approved (deferred, 2026-10-22).** Decide it with the first component. The location is still open then. It does not block starting Phase 3 | A component-token layer, until that first component |
 | 3 | **Figma component sync scope.** Whether each component is also a Figma component, whether the plugin syncs it, and whether Code Connect is in scope. The earlier pipeline note said Code Connect gets evaluated when components exist. That evaluation has not happened | Unknown | Figma component parity. It does not block the React demo |

@@ -2,7 +2,7 @@
 
 This directory is the maintained source for what Camellia can do today and how to prove it. Read this index before driving anything, then use the matching feature file as the recipe. Planned work is in the [project roadmap](../../../../docs/roadmap.md), not here.
 
-**Last verified against revision:** `5a6653e`, on 2026-10-17 for the terminal checks and the demo page. Figma procedures were not re-run; the last Figma verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`). Semantic sync has a desktop checklist, including permanent ids, and has not been run in Figma.
+**Last verified against revision:** `5a6653e`, on 2026-10-17 for the terminal checks and the demo page. **Observed** (CJ's report from Figma desktop on his real Camellia file, 2026-10-21): he ran the [PR #14](https://github.com/cjhuang6/design-engineering-lab/pull/14) semantic desktop checklist and every check passed. The same day, semantic permanent-id migration on that file reported 0 created and 41 updated for the dry run and the sync, a rerun reported 41 unchanged, and rectangle `61:117` stayed bound. The file then had a `Primitives` collection with 110 variables (`Value` mode) and a `Semantic` collection with 41 variables (`Light` and `Dark`), and every semantic variable was tagged with a permanent id. Primitive sync's earlier desktop verification remains 2026-10-13 (`9937929`, merged to `main` as `6f4058f`). A connector test on a scratch Figma file, not CJ's file, passed for [PR #16](https://github.com/cjhuang6/design-engineering-lab/pull/16) that day: 0 created and 110 updated, a rerun 110 unchanged, and renaming `blue/600` renamed the same variable. That scratch run is not a check of his file.
 
 ## Baseline preconditions
 

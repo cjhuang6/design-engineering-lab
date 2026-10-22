@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const MAP_DIR = ".cursor/skills/verify-camellia/features";
+const MAP_DIR = "docs/verification";
 const INDEX = "README.md";
 const MANIFEST = "figma-plugin/manifest.json";
 const PACKAGE = "package.json";

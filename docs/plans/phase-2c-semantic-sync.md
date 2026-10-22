@@ -319,7 +319,7 @@ What this does not prove: Figma's alias resolver, the mode picker, a Starter-pla
 
 ### What only Figma desktop can show
 
-The feature file added with the menu commands (`.cursor/skills/verify-camellia/features/figma-semantic-sync.md`) carries this checklist, in the same shape as `figma-primitives-sync.md`. CJ runs it. An agent does not.
+The feature file added with the menu commands (`docs/verification/figma-semantic-sync.md`) carries this checklist, in the same shape as `figma-primitives-sync.md`. CJ runs it. An agent does not.
 
 Preconditions: `npm run figma:build` on the revision under test, the Camellia file open, console open. Leave rectangle `61:117` bound to `feedback/success` and `radius/xl`. Use a new rectangle for the semantic binding test.
 
@@ -372,7 +372,7 @@ Verified by `npm test` and `npm run figma:build`. Still no menu, so still no Fig
 
 ### PR 3 — Menu, report text, and the checklist
 
-Files: `figma-plugin/manifest.json`, `figma-plugin/code.ts`, `.cursor/skills/verify-camellia/features/figma-semantic-sync.md`, the index link in `features/README.md`, and the bundle-size sentence in the verify-camellia skill if `dist/code.js` is no longer about 76 KB.
+Files: `figma-plugin/manifest.json`, `figma-plugin/code.ts`, `docs/verification/figma-semantic-sync.md`, the index link in `docs/verification/README.md`, and the bundle-size sentence in the verify-camellia skill if `dist/code.js` is no longer about 76 KB.
 
 `code.ts` gains the two commands next to `syncPrimitivesCommand`. The toast matches the primitives shape: `Camellia · Semantic` plus created, updated, unchanged, not in JSON, and errors. Updated rows in the console include the variable id.
 
@@ -409,4 +409,4 @@ Verified by `npm test`, `npm run figma:build`, and `node scripts/docs/check-feat
 | `figma-plugin/src/sync-primitives.ts` | Preflight, in-place update, orphan report, per-variable errors. |
 | `figma-plugin/tests/sync-primitives.test.mjs` | The fake to copy and extend. |
 | `figma-plugin/code.ts`, `figma-plugin/manifest.json` | Where PR 3 adds commands. |
-| `.cursor/skills/verify-camellia/features/figma-primitives-sync.md` | The checklist shape PR 3 copies. |
+| `docs/verification/figma-primitives-sync.md` | The checklist shape PR 3 copies. |

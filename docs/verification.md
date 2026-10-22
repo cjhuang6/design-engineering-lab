@@ -1,6 +1,6 @@
 # Verification
 
-What each check proves and can't prove, the automated guardrails, and how implementation and verification are handed off. Step-by-step recipes for driving each feature live in the [verify-camellia skill](../.cursor/skills/verify-camellia/SKILL.md) and its [feature map](../.cursor/skills/verify-camellia/features/README.md). Reporting rules are in [AGENTS.md](../AGENTS.md#reporting-evidence).
+What each check proves and can't prove, the automated guardrails, and how implementation and verification are handed off. Step-by-step recipes for driving each feature live in the [verification checklists](verification/README.md). The Cursor skill [verify-camellia](../.cursor/skills/verify-camellia/SKILL.md) points at that folder. Reporting rules are in [AGENTS.md](../AGENTS.md#reporting-evidence).
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ What each check proves and can't prove, the automated guardrails, and how implem
 | `node --test tests/guardrails/*.test.mjs` | `pass 18`, `fail 0` | Real GitHub behavior for the approval tests. GitHub is simulated with a fake `gh` and throwaway repositories. Three further tests check that the demo only references generated custom properties; they do not open a browser. One test checks that `docs/roadmap.md` links every top-level `docs/*.md` file besides itself |
 | `git status --short` | Only the intended changes | Run it before and after checks to show nothing else changed |
 
-**Figma behavior is proven only in Figma.** That means the Figma recipes in the feature map, run by CJ, or read-only inspection through the Figma MCP when the task authorizes it. Compilation and fake-Figma tests are never evidence of Figma behavior. Semantic sync's desktop proof is the [Semantic checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md): both modes, translucent dark aliases, spacing pickers, and a rename that keeps the binding. Primitive permanent ids are proved in Figma by the [Primitives checklist](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md): a dry run that updates 110 and creates 0, a second run that changes nothing, and rectangle `61:117` still bound. `npm test` does not run those checklists.
+**Figma behavior is proven only in Figma.** That means the Figma recipes in the feature map, run by CJ, or read-only inspection through the Figma MCP when the task authorizes it. Compilation and fake-Figma tests are never evidence of Figma behavior. Semantic sync's desktop proof is the [Semantic checklist](verification/figma-semantic-sync.md): both modes, translucent dark aliases, spacing pickers, and a rename that keeps the binding. Primitive permanent ids are proved in Figma by the [Primitives checklist](verification/figma-primitives-sync.md): a dry run that updates 110 and creates 0, a second run that changes nothing, and rectangle `61:117` still bound. `npm test` does not run those checklists.
 
 ## Guardrails
 
@@ -114,4 +114,4 @@ For substantive changes, implementation and verification are done by different a
 
 A starting prompt for the verifier:
 
-> You are the independent verifier. Read `AGENTS.md`, then `docs/verification.md`. Here are the task brief, the diff and the implementer's report: … Check each acceptance criterion against the diff, run the relevant checks yourself, and exercise the behavior with `.cursor/skills/verify-camellia`. Report pass or fail per criterion, with the evidence. Do not edit the code under review.
+> You are the independent verifier. Read `AGENTS.md`, then `docs/verification.md`. Here are the task brief, the diff and the implementer's report: … Check each acceptance criterion against the diff, run the relevant checks yourself, and exercise the behavior with the checklists in `docs/verification/`. Report pass or fail per criterion, with the evidence. Do not edit the code under review.

@@ -30,7 +30,7 @@ Light and mode-independent tokens land on `:root`. Dark semantic overrides use `
 | `docs/token-pipeline-roadmap.md` | Token pipeline phases, decisions, and open questions |
 | `docs/components-roadmap.md` | Components and interactions, after the token pipeline |
 | `docs/verification.md` | What each check proves and does not prove |
-| `.cursor/skills/verify-camellia/` | Feature map: how to exercise what exists today |
+| `docs/verification/` | Feature checklists: how to exercise what exists today. The Cursor skill at `.cursor/skills/verify-camellia/` points here |
 
 ## Requirements
 
@@ -69,7 +69,7 @@ The menu commands today are:
 - Sync Semantic — dry run
 - Sync Semantic
 
-`Sync Semantic — dry run` writes nothing. `Sync Semantic` creates or updates the `Semantic` collection. Tests for the plugin run against a fake Figma API. They do not prove behavior inside Figma. The steps for the Mac desktop check are in [the Semantic checklist](.cursor/skills/verify-camellia/features/figma-semantic-sync.md).
+`Sync Semantic — dry run` writes nothing. `Sync Semantic` creates or updates the `Semantic` collection. Tests for the plugin run against a fake Figma API. They do not prove behavior inside Figma. The steps for the Mac desktop check are in [the Semantic checklist](docs/verification/figma-semantic-sync.md).
 
 ## Status
 

@@ -54,12 +54,13 @@ How components are designed around behavior, then prototyped and shipped. Detail
 | [Token pipeline roadmap](token-pipeline-roadmap.md) | Pipeline phases, sync rules, decisions, and open questions |
 | [Components roadmap](components-roadmap.md) | Components and interactions, after the token pipeline |
 | [Verification](verification.md) | What each check proves and does not prove, and the implement/verify handoff |
-| [Feature map](../.cursor/skills/verify-camellia/features/README.md) | What exists today, and how to drive it. Planned work stays in the roadmaps, not in the map |
+| [Feature map](verification/README.md) | What exists today, and how to drive it. Planned work stays in the roadmaps, not in the map |
 
 ## How to start as a new agent
 
 1. Read [AGENTS.md](../AGENTS.md) in full and follow it. This file does not replace it.
 2. Read **Current status** in this file, including the next agreed task.
 3. Read the phase document for that task — the [token pipeline roadmap](token-pipeline-roadmap.md) or the [components roadmap](components-roadmap.md) — and then the docs that task names.
+4. To drive what exists today, use the [verification checklists](verification/README.md).
 
 Take the next task from this file only. A phase document that still says "start here" or "do not start that other change" is stale if it disagrees with **Current status**.

@@ -111,7 +111,7 @@ Every primitive token that becomes a Figma variable (110 of them) has `"$extensi
   - No fake STRING variables.
   - Stop after validation.
 - **Approved (2026-10-13):** tracking is applied as a percentage letter spacing in the styles, because em ratios can't be pixel variables.
-- **Approved (2026-10-22):** this is the next pipeline phase. Do it now. The four decisions in the [Phase 2D task brief](#phase-2d-task-brief) are decided, including binding family and weight. The project-wide next agreed task is in [docs/roadmap.md](roadmap.md).
+- **Approved (2026-10-22):** this is the next pipeline phase. The four decisions in the [Phase 2D task brief](#phase-2d-task-brief) are decided, including binding family and weight. The project-wide next agreed task is the planner pull request, stated in [docs/roadmap.md](roadmap.md). The sync pull request and the menu pull request come after that planner.
 - **Details:** the [Phase 2D task brief](#phase-2d-task-brief).
 
 ### Phase 2E: Effect Styles
@@ -190,7 +190,7 @@ This brief holds the approved facts for Phase 2C. It is not the project-wide nex
 
 ## Phase 2D task brief
 
-This is the starting summary for the Phase 2D build. **Approved (2026-10-22):** Text Styles are the next pipeline phase, and the four decisions under [Decisions for CJ](#decisions-for-cj) are decided. The project-wide next task is in [docs/roadmap.md](roadmap.md). Phase 2E starts after 2D is merged and desktop-verified. This brief does not start 2E.
+This brief records the approved facts for Phase 2D Text Styles. **Approved (2026-10-22):** the four decisions under [Decisions for CJ](#decisions-for-cj) are decided. The project-wide next agreed task is the planner pull request, stated in [docs/roadmap.md](roadmap.md). That planner is item 1 of the [planned pull-request split](#planned-pull-request-split). The sync pull request, the menu pull request, and Phase 2E do not start from this brief. Phase 2E starts after 2D is merged and desktop-verified.
 
 Words used here, the first time they matter:
 

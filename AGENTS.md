@@ -18,14 +18,16 @@ Read this file first, before doing anything in this repository.
 
 | Document | What it's for |
 |---|---|
-| [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md) | Phases, scope, decisions, **current status and the next agreed task**, open questions |
+| [docs/roadmap.md](docs/roadmap.md) | Project roadmap: **current status and the next agreed task**, every phase, and where things live. Start here |
+| [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md) | Token pipeline phases, scope, decisions, and open questions |
+| [docs/components-roadmap.md](docs/components-roadmap.md) | Components and interactions phase: interaction-brief method and open questions |
 | [.cursor/skills/verify-camellia/](.cursor/skills/verify-camellia/SKILL.md) | The verification skill and its [feature map](.cursor/skills/verify-camellia/features/README.md): what exists today, user entry points, and how to drive and prove each feature. Source locations are in the map's index |
 | [docs/verification.md](docs/verification.md) | Check inventory and what each check can't prove, guardrails, and the implement/verify handoff |
 | [docs/camellia-design-system-v0.1.md](docs/camellia-design-system-v0.1.md) | Design intent: principles, palette, type scale. The JSON wins wherever the spec's values differ |
 
 ## Starting a task
 
-1. Read the roadmap's **Current status**, then the docs relevant to your task.
+1. Read [docs/roadmap.md](docs/roadmap.md) **Current status**, then the phase roadmap and docs relevant to your task.
 2. Inspect the checkout: `git status`, `git branch -vv`, `git log --oneline -5`. Never assume the state of the code.
 3. Before making changes, state the relevant phase (if applicable), scope, acceptance criteria, and verification plan. An explicit task from CJ may authorize maintenance work not listed in the roadmap. Ask CJ only if the work would conflict with the approved roadmap, expand the requested scope, or require a protected action.
 

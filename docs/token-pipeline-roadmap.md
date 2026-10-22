@@ -1,6 +1,6 @@
 # Camellia token pipeline roadmap
 
-**Project-wide current status and the next agreed task live in [docs/roadmap.md](roadmap.md).** Read that file before you treat anything below as the next task. [AGENTS.md](../AGENTS.md) still sends agents to this file first, so this pointer is the handoff: open the project roadmap, then come back here for pipeline detail only.
+**Project-wide current status and the next agreed task live in [docs/roadmap.md](roadmap.md).** [AGENTS.md](../AGENTS.md) sends agents there first. Read that file before you treat anything below as the next task. This file is the token-pipeline detail only.
 
 This file is the detailed plan for the token pipeline: approved phases, their order and scope, decisions, and open questions. It does not state the next agreed task. Only CJ can approve changes to it (see [AGENTS.md](../AGENTS.md#authorization-and-autonomy)).
 

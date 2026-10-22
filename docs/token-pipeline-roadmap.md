@@ -1,8 +1,10 @@
 # Camellia token pipeline roadmap
 
-This is the single roadmap for the Camellia token pipeline: approved phases, their order and scope, decisions, progress, and open questions. Only CJ can approve changes to it (see [AGENTS.md](../AGENTS.md#authorization-and-autonomy)).
+**Project-wide current status and the next agreed task live in [docs/roadmap.md](roadmap.md).** Read that file before you treat anything below as the next task. [AGENTS.md](../AGENTS.md) still sends agents to this file first, so this pointer is the handoff: open the project roadmap, then come back here for pipeline detail only.
 
-What already works today, and how to exercise it, lives in the [feature map](../.cursor/skills/verify-camellia/features/README.md). How to obtain evidence lives in [verification](verification.md). Design intent (principles, palette, type scale) lives in the [design system spec](camellia-design-system-v0.1.md).
+This file is the detailed plan for the token pipeline: approved phases, their order and scope, decisions, and open questions. It does not state the next agreed task. Only CJ can approve changes to it (see [AGENTS.md](../AGENTS.md#authorization-and-autonomy)).
+
+What already works today, and how to exercise it, lives in the [feature map](../.cursor/skills/verify-camellia/features/README.md). How to obtain evidence lives in [verification](verification.md). Design intent (principles, palette, type scale) lives in the [design system spec](camellia-design-system-v0.1.md). The project phase list lives in [docs/roadmap.md](roadmap.md).
 
 Every entry is labelled:
 
@@ -10,15 +12,6 @@ Every entry is labelled:
 - **Observed**: verified in the repository or in Figma, with the evidence noted.
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
-
-## Current status
-
-| | |
-|---|---|
-| Phases complete | 2A and 2B (Observed: merged to `main` in [PR #5](https://github.com/cjhuang6/design-engineering-lab/pull/5), merge commit `6f4058f`). Phase 2C build PRs 1–3 are merged ([PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11), [PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12), [PR #14](https://github.com/cjhuang6/design-engineering-lab/pull/14)). Desktop verification of 2C is not done |
-| Current phase | 2C, Semantic Light/Dark sync, plus rename-safe ids for the 41 semantic tokens. The ids are in this change. Figma has not run them |
-| **Next agreed task** | **CJ runs the [Semantic desktop checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md),** including the permanent-id migration and one JSON rename. Do not start [primitive ids](#add-permanent-ids-to-primitives-too-deferred) or Phase 2D from this line alone |
-| Figma file state | Observed 2026-10-13: one `Primitives` collection with 110 variables and one `Value` mode; no other collections or styles. Test rectangle `61:117` is bound to `feedback/success` and `radius/xl` |
 
 ## Architecture (Approved)
 
@@ -92,7 +85,7 @@ src/styles/tokens.css   Figma variables and styles
 
 ### Rename-safe token IDs
 
-Not a phase. CJ approved the semantic-token JSON change on 2026-10-21. This change adds those ids and teaches semantic sync to match on them. **Observed** against the fake Figma: a JSON rename keeps the variable id, and migration from the legacy name tag creates 0 and deletes 0. **Not observed in Figma** until CJ runs the checklist.
+Not a phase. CJ approved the semantic-token JSON change on 2026-10-21. It is merged in [PR #15](https://github.com/cjhuang6/design-engineering-lab/pull/15). That work adds those ids and teaches semantic sync to match on them. **Observed** against the fake Figma: a JSON rename keeps the variable id, and migration from the legacy name tag creates 0 and deletes 0. **Not observed in Figma** until CJ runs the checklist.
 
 - Every semantic token leaf under `theme.light` and `theme.dark` has `"$extensions": { "com.cjhuang.camellia": { "id": "sem-xxxxxx" } }`. The light and dark leaves of the same path share one id, because together they are one Figma variable with Light and Dark modes. `layout` and `control` leaves have an id too: they are 15 of the 41 semantic variables, and each leaf is already one variable. The eight composite border leaves have ids as well and are still not created as Figma variables.
 - An id is `sem-` plus 6 lowercase hex characters, chosen once. It is the token's identity. It is not a Figma setting, so it does not sit under a key with `figma` in the name.
@@ -101,12 +94,14 @@ Not a phase. CJ approved the semantic-token JSON change on 2026-10-21. This chan
 - A renamed path that stays in the same group (for example `color/action/primary` to `color/action/main`) keeps that group's picker scopes. A path that fits no group still fails the plan.
 - Phases 2D–2G stay as approved. This item does not replace them.
 
-### Add permanent IDs to primitives too (deferred)
+### Add permanent IDs to primitives too
 
-Not started. Do not implement unless CJ asks.
+**Observed:** not on `main`. The change is the open pull request [PR #16](https://github.com/cjhuang6/design-engineering-lab/pull/16). Do not start a second implementation from this section. The next agreed task is in [docs/roadmap.md](roadmap.md).
+
+On `main` today the description below is still what the code does:
 
 - Primitive variables still match by their visible name, for example `color/primitive/blue/600`. They have no permanent id, and primitive sync does not read plugin data.
-- The idea is the same as the semantic ids, applied to the `Primitives` collection. It is a separate later change.
+- The idea is the same as the semantic ids, applied to the `Primitives` collection. [PR #16](https://github.com/cjhuang6/design-engineering-lab/pull/16) is that change. It is not merged.
 
 ### Phase 2D: Text Styles
 
@@ -164,6 +159,8 @@ Not started. Do not implement unless CJ asks.
 
 ### Phase 4: component system — do not build yet
 
+The component plan now lives in [Components & interactions](components-roadmap.md). Do not start component work from this section. The bullets below are the earlier approved intent. Which component comes first is **Unknown** in that document, not settled by the Button note here.
+
 - **Approved intent:** only after the foundations are stable.
 - Button is the likely first validation component: it exercises color, typography, spacing, radius, states, focus, dark mode and motion.
 - Future parity looks like Figma `Button` (`Style=Primary`, `Size=MD`, `State=Default`) mapping to React `<Button variant="primary" size="md" />`. Figma Code Connect gets evaluated at that point.
@@ -171,7 +168,7 @@ Not started. Do not implement unless CJ asks.
 
 ## Phase 2C task brief
 
-This is the starting summary for the next agent. It contains approved facts. The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Build PRs 1–3 are merged. None of 2C has been run in Figma. Semantic tokens now have permanent ids ([Rename-safe token IDs](#rename-safe-token-ids)). Do not start [primitive ids](#add-permanent-ids-to-primitives-too-deferred) or Phase 2D unless CJ asks.
+This brief holds the approved facts for Phase 2C. It is not the project-wide next task. That task is in [docs/roadmap.md](roadmap.md). The design is the [Phase 2C implementation plan](plans/phase-2c-semantic-sync.md). CJ approved decisions 1–5 on 2026-10-20. Build PRs 1–3 are merged. None of 2C has been run in Figma. Semantic tokens now have permanent ids ([Rename-safe token IDs](#rename-safe-token-ids)), merged in [PR #15](https://github.com/cjhuang6/design-engineering-lab/pull/15). Primitive ids are the open [PR #16](https://github.com/cjhuang6/design-engineering-lab/pull/16). Do not start Phase 2D from this brief.
 
 - **Phase:** 2C, Semantic Light/Dark sync.
 - **Scope:** the approved scope above, plus the rules for every sync phase. Out of scope: text, effect and paint styles; the audit; component tokens. Permanent semantic ids are a separate approved change and are already in the JSON.
@@ -189,13 +186,13 @@ This is the starting summary for the next agent. It contains approved facts. The
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Renaming tokens safely.** Semantic tokens now have a permanent id in `$extensions.com.cjhuang.camellia.id` (CJ, 2026-10-21). Sync matches shared plugin data `com.cjhuang.camellia` / `id`, so a JSON rename renames the same variable. A file synced under the old private name tag is migrated once. Private plugin data throws in the connector runtime (observed 2026-10-21). Whether a bound layer stays bound after a JSON rename is still a desktop check. Primitives still match by name ([deferred](#add-permanent-ids-to-primitives-too-deferred)) | Approved for semantic tokens. Unknown in Figma until the checklist. Deferred for primitives | Primitive renames |
+| 1 | **Renaming tokens safely.** Semantic tokens now have a permanent id in `$extensions.com.cjhuang.camellia.id` (CJ, 2026-10-21), merged in [PR #15](https://github.com/cjhuang6/design-engineering-lab/pull/15). Sync matches shared plugin data `com.cjhuang.camellia` / `id`, so a JSON rename renames the same variable. A file synced under the old private name tag is migrated once. Private plugin data throws in the connector runtime (observed 2026-10-21). Whether a bound layer stays bound after a JSON rename is still a desktop check. On `main`, primitives still match by name ([primitive ids](#add-permanent-ids-to-primitives-too)). That change is open in [PR #16](https://github.com/cjhuang6/design-engineering-lab/pull/16) and is not merged | Approved for semantic tokens, and merged. Unknown in Figma until the semantic checklist. Primitive ids are an open pull request, not on `main` | Primitive renames until PR #16 is merged and checked in Figma |
 | 2 | **Composite border tokens, deferred** (CJ, 2026-10-20). The eight tokens `theme.light.border` and `theme.dark.border` × `subtle`, `default`, `strong`, and `focus` are not created as Figma variables in 2C. Each value is a color, a width, and a style. Figma variables have no type for that composite, so a color variable would not be the token. The color syncs as `color/border/*` and `color/focus`; `border/width/*` already syncs in Primitives; `border.style` stays CSS-only. Unblocked when a later phase has a Figma object that can carry color, width, and style together | Approved (deferred) | Does not block 2C. Blocks a Figma form of the border shorthand |
 | 3 | **Semantic scopes.** Text as `TEXT_FILL`, surfaces as `FRAME_FILL`/`SHAPE_FILL`, borders and focus as `STROKE_COLOR`, icons as `SHAPE_FILL`, layout and control as `GAP`. Full table in the [2C plan](plans/phase-2c-semantic-sync.md) | Approved (CJ, 2026-10-20) | Nothing |
 | 4 | **Dark aliases to alpha primitives** (e.g. `color/border/subtle` → `alpha/blue-400/18`). Plain aliasing should work; not yet verified in Figma | Unknown | 2C verification |
 | 5 | **Feedback colors have no semantic Light/Dark layer.** They stay in `Primitives`, visible in pickers. The spec lists them as single accents, and the JSON has no `theme.*.feedback` | Approved (CJ, 2026-10-20) | Nothing |
 | 6 | **Section 20 ("CSS starter mapping") of the design system spec** is a hand-written CSS block that predates the generated `tokens.css`. The JSON is canonical, so it is at least historical. Remove it, label it, or keep it? | Unknown | Nothing; risks a duplicate source |
-| 7 | **The design spec's "Components" collection and Profile Card component tokens** aren't in the JSON (`componentTokensIncluded: false`). Deferred to Phase 4? | Unknown | Phase 4 |
+| 7 | **The design spec's "Components" collection and Profile Card component tokens** aren't in the JSON (`componentTokensIncluded: false`). Where a component-token layer would live is [open](components-roadmap.md#open-questions). Changing the canonical schema needs CJ's approval | Unknown | Component tokens |
 | 8 | **Motion variables in actual use.** EASING and TIMING variables were created (Observed), but binding them to Figma Motion keyframes was not verified. The Figma Motion API is in Beta | Unknown | Nothing yet |
 | 9 | **Text Styles binding to the font family and weight variables** in 2D | Unknown | 2D plan |
 | 10 | **Existing explanatory comments.** The CSS scripts and the plugin carry many explanatory comments that predate the no-comments default in AGENTS.md. They stay until CJ asks for a cleanup; new code follows the default | Approved (deferred) | Nothing |

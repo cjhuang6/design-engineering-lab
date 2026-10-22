@@ -25,8 +25,10 @@ Light and mode-independent tokens land on `:root`. Dark semantic overrides use `
 | `src/` | Vite + React demo: a token reference page |
 | `scripts/tokens/` | CSS build and check |
 | `figma-plugin/` | Camellia Figma Sync, TypeScript |
+| `docs/roadmap.md` | Project roadmap. Current status and the next agreed task live here |
 | `docs/camellia-design-system-v0.1.md` | Design intent. The JSON wins where values differ |
-| `docs/token-pipeline-roadmap.md` | Phases, decisions, and current status |
+| `docs/token-pipeline-roadmap.md` | Token pipeline phases, decisions, and open questions |
+| `docs/components-roadmap.md` | Components and interactions, after the token pipeline |
 | `docs/verification.md` | What each check proves and does not prove |
 | `.cursor/skills/verify-camellia/` | Feature map: how to exercise what exists today |
 
@@ -71,6 +73,4 @@ The menu commands today are:
 
 ## Status
 
-Phases 2A (plugin scaffold) and 2B (primitive variable sync) are on `main`. Phase 2C build PR 1 (the planner, [PR #11](https://github.com/cjhuang6/design-engineering-lab/pull/11)) and PR 2 (sync against the fake Figma API, [PR #12](https://github.com/cjhuang6/design-engineering-lab/pull/12)) are merged. PR 3 adds the Semantic menu commands and the desktop checklist. CJ still has to run that checklist in Figma. The next planned pull request after 2C, not started, is rename-safe token IDs. Current status lives in [docs/token-pipeline-roadmap.md](docs/token-pipeline-roadmap.md).
-
-The React demo is a token reference, not a component library.
+Current status and the next agreed task are in [docs/roadmap.md](docs/roadmap.md). This page does not copy them.

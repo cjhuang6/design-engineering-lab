@@ -19,7 +19,7 @@ What each check proves and can't prove, the automated guardrails, and how implem
 | `npm run lint` | Exit code 0 | Anything about `.ts` or `.mjs` files: ESLint only covers `.js` and `.jsx` |
 | `npm run build` | Vite build succeeds | That the demo app renders correctly |
 | `node scripts/docs/check-feature-map.mjs` | `PASS`, exit code 0 | That the feature descriptions are accurate. It checks names, links, paths and structure only |
-| `node --test tests/guardrails/*.test.mjs` | `pass 17`, `fail 0` | Real GitHub behavior for the approval tests. GitHub is simulated with a fake `gh` and throwaway repositories. Three further tests check that the demo only references generated custom properties; they do not open a browser |
+| `node --test tests/guardrails/*.test.mjs` | `pass 18`, `fail 0` | Real GitHub behavior for the approval tests. GitHub is simulated with a fake `gh` and throwaway repositories. Three further tests check that the demo only references generated custom properties; they do not open a browser. One test checks that `docs/roadmap.md` links every top-level `docs/*.md` file besides itself |
 | `git status --short` | Only the intended changes | Run it before and after checks to show nothing else changed |
 
 **Figma behavior is proven only in Figma.** That means the Figma recipes in the feature map, run by CJ, or read-only inspection through the Figma MCP when the task authorizes it. Compilation and fake-Figma tests are never evidence of Figma behavior. Semantic sync's desktop proof is the [Semantic checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md): both modes, translucent dark aliases, spacing pickers, and a rename that keeps the binding. Primitive permanent ids are proved in Figma by the [Primitives checklist](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md): a dry run that updates 110 and creates 0, a second run that changes nothing, and rectangle `61:117` still bound. `npm test` does not run those checklists.
@@ -36,6 +36,12 @@ Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, th
 - **Limits:**
   - It can't run anything in Figma.
   - It never blocks merging: branch protection isn't available for this repository (see [GitHub settings](#github-settings)). A red ❌ is a warning that CJ treats as "don't merge."
+
+### Docs index (`tests/guardrails/docs-roadmap-links.test.mjs`)
+
+- **Checks:** every markdown file directly in `docs/` (not files under `docs/plans/`) is linked from `docs/roadmap.md`. The roadmap file itself is the index, so it is not required to link to itself.
+- **Prevents:** a new top-level doc that agents cannot find from the project roadmap, which is the only home for current status.
+- **Limits:** it does not read the prose, and it does not check files nested under `docs/plans/`. A link with a heading fragment still counts.
 
 ### Feature map drift check (`scripts/docs/check-feature-map.mjs`)
 

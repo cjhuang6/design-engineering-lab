@@ -105,6 +105,8 @@ test("every approved row has its type, both aliases, scopes, code syntax, and de
     const variable = get(name);
     assert.equal(variable.type, type, name);
     assert.deepEqual(variable.aliases, { Light: light, Dark: dark }, name);
+    assert.equal(variable.aliasIds.Light, nodeAt(tokens, light).$extensions["com.cjhuang.camellia"].id, name);
+    assert.equal(variable.aliasIds.Dark, nodeAt(tokens, dark).$extensions["com.cjhuang.camellia"].id, name);
     assert.deepEqual(variable.scopes, scopes, name);
     assert.equal(variable.webSyntax, `var(--${name.replaceAll("/", "-")})`, name);
     assert.equal(variable.description, "", name);
@@ -288,6 +290,22 @@ test("a color with no approved scopes fails the plan", () => {
   broken.theme.light.color.extra = { $type: "color", $value: "{color.base.white}", ...extensions };
   broken.theme.dark.color.extra = { $type: "color", $value: "{color.base.black}", ...extensions };
   assert.throws(() => planSemantic(broken), /color\/extra has no approved scopes/);
+});
+
+test("renaming a primitive keeps the semantic alias on that primitive's id", () => {
+  const renamed = cloneTokens();
+  const previousId = tokens.color.primitive.blue["600"].$extensions["com.cjhuang.camellia"].id;
+  renamed.color.primitive.blue.action = renamed.color.primitive.blue["600"];
+  delete renamed.color.primitive.blue["600"];
+  renamed.theme.light.color.action.primary.$value = "{color.primitive.blue.action}";
+
+  const planned = planSemantic(renamed);
+  const row = planned.variables.find((variable) => variable.name === "color/action/primary");
+  assert.ok(row);
+  assert.equal(row.aliases.Light, "color/primitive/blue/action");
+  assert.equal(row.aliasIds.Light, previousId);
+  assert.equal(row.aliases.Dark, "color/primitive/blue/400");
+  assert.equal(row.aliasIds.Dark, tokens.color.primitive.blue["400"].$extensions["com.cjhuang.camellia"].id);
 });
 
 test("renaming a semantic path keeps its id and its group's scopes", () => {

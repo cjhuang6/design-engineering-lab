@@ -23,6 +23,8 @@ export interface PlannedSemanticVariable {
   type: "COLOR" | "FLOAT";
   /** Primitive variable name for each Semantic mode (`Light`, `Dark`, …). */
   aliases: Record<string, string>;
+  /** Permanent id of the primitive each mode aliases. Same keys as `aliases`. */
+  aliasIds: Record<string, string>;
   scopes: VariableScope[];
   webSyntax: string;
   description: string;
@@ -85,6 +87,7 @@ interface Draft {
   type: "COLOR" | "FLOAT";
   description: string;
   aliases: Record<string, string>;
+  aliasIds: Record<string, string>;
 }
 
 interface ThemeIdentity {
@@ -199,8 +202,12 @@ function planModeIndependentGroup(
     }
     claimSemanticId(idOwners, name, id);
     const aliases: Record<string, string> = {};
-    for (const modeName of modeNames) aliases[modeName] = primitive;
-    drafts.set(name, { name, id, type, description: token.description, aliases });
+    const aliasIds: Record<string, string> = {};
+    for (const modeName of modeNames) {
+      aliases[modeName] = primitive.name;
+      aliasIds[modeName] = primitive.id;
+    }
+    drafts.set(name, { name, id, type, description: token.description, aliases, aliasIds });
   }
 }
 
@@ -224,7 +231,8 @@ function addThemeAlias(
       id,
       type,
       description: token.description,
-      aliases: { [modeName]: primitive },
+      aliases: { [modeName]: primitive.name },
+      aliasIds: { [modeName]: primitive.id },
     });
     return;
   }
@@ -237,7 +245,8 @@ function addThemeAlias(
   if (modeName in existing.aliases) {
     throw new Error(`plan-semantic: ${name} appears twice under ${modeName}`);
   }
-  existing.aliases[modeName] = primitive;
+  existing.aliases[modeName] = primitive.name;
+  existing.aliasIds[modeName] = primitive.id;
 }
 
 function toPlannedVariable(draft: Draft): PlannedSemanticVariable {
@@ -246,6 +255,7 @@ function toPlannedVariable(draft: Draft): PlannedSemanticVariable {
     id: draft.id,
     type: draft.type,
     aliases: { ...draft.aliases },
+    aliasIds: { ...draft.aliasIds },
     scopes: scopesFor(draft.name, draft.type),
     webSyntax: `var(--${draft.name.split("/").join("-")})`,
     description: draft.description,
@@ -329,7 +339,7 @@ function resolveAlias(
   token: DtcgToken,
   primitiveByName: Map<string, PlannedVariable>,
   figmaType: "COLOR" | "FLOAT",
-): string {
+): { name: string; id: string } {
   const where = token.path.join(".");
   if (!isReference(token.value)) {
     throw new Error(
@@ -346,7 +356,7 @@ function resolveAlias(
   if (primitive.type !== figmaType) {
     throw new Error(`plan-semantic: ${where} is ${figmaType} but ${primitiveName} is ${primitive.type}`);
   }
-  return primitiveName;
+  return { name: primitiveName, id: primitive.id };
 }
 
 function isDeferredCompositeBorder(path: string[]): boolean {

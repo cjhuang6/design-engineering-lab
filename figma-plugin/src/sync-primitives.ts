@@ -1,7 +1,12 @@
 // Make the Figma "Primitives" collection match the plan. Variables are
-// updated in place (same ID) so layers bound to them stay bound. Nothing is
-// ever deleted.
+// matched by shared plugin data and updated in place (same variable ID).
+// A file synced before ids existed is adopted by its visible name.
+// Nothing is ever deleted.
 
+import {
+  PRIMITIVE_SHARED_ID_KEY,
+  PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
+} from "./plan-primitives.ts";
 import type { PlannedValue, PlannedVariable, PrimitivesPlan } from "./plan-primitives.ts";
 
 export interface SyncReport {
@@ -14,6 +19,11 @@ export interface SyncReport {
   unchanged: number;
   notInJson: string[];
   errors: string[];
+}
+
+interface Match {
+  planned: PlannedVariable;
+  variable?: Variable;
 }
 
 export async function syncPrimitives(
@@ -32,7 +42,6 @@ export async function syncPrimitives(
     errors: [],
   };
 
-  // --- 1. Find everything and check for blocking problems before any change.
   const collections = (await figma.variables.getLocalVariableCollectionsAsync()).filter(
     (c) => c.name === plan.collectionName,
   );
@@ -41,37 +50,20 @@ export async function syncPrimitives(
   }
   let collection: VariableCollection | undefined = collections[0];
 
-  const existing = new Map<string, Variable>();
+  let matches: Match[];
   if (collection) {
     if (collection.modes.length !== 1) {
       throw new Error(`"${plan.collectionName}" has ${collection.modes.length} modes; expected 1`);
     }
-    const collectionId = collection.id;
-    const variables = (await figma.variables.getLocalVariablesAsync()).filter(
-      (v) => v.variableCollectionId === collectionId,
-    );
-    for (const variable of variables) {
-      if (existing.has(variable.name)) {
-        throw new Error(`"${plan.collectionName}" has two variables named ${variable.name}`);
-      }
-      existing.set(variable.name, variable);
-    }
+    const indexed = await indexPrimitives(collection, plan);
+    matches = indexed.matches;
+    report.notInJson = indexed.notInJson;
+    const typeConflict = typeConflictMessage(matches);
+    if (typeConflict) throw new Error(typeConflict);
+  } else {
+    matches = plan.variables.map((planned) => ({ planned }));
   }
 
-  const typeConflicts = plan.variables
-    .filter((p) => existing.has(p.name) && existing.get(p.name)!.resolvedType !== p.type)
-    .map((p) => `${p.name} is ${existing.get(p.name)!.resolvedType} in Figma but ${p.type} in JSON`);
-  if (typeConflicts.length > 0) {
-    throw new Error(
-      `type changes need a manual decision (Figma can't change a variable's type in place):\n` +
-        typeConflicts.join("\n"),
-    );
-  }
-
-  const planned = new Set(plan.variables.map((p) => p.name));
-  report.notInJson = [...existing.keys()].filter((name) => !planned.has(name));
-
-  // --- 2. Collection and its single mode.
   if (!collection) {
     report.collectionCreated = true;
     if (!dryRun) {
@@ -83,52 +75,151 @@ export async function syncPrimitives(
     if (!dryRun) collection.renameMode(collection.modes[0].modeId, plan.modeName);
   }
 
-  // --- 3. Create or update each variable.
-  for (const p of plan.variables) {
-    const variable = existing.get(p.name);
+  for (const match of matches) {
+    const planned = match.planned;
     try {
-      if (!variable) {
+      if (!match.variable) {
         if (!dryRun && collection) {
-          const created = figma.variables.createVariable(p.name, collection, p.type);
-          apply(created, p, collection.modes[0].modeId, allFields);
+          const created = figma.variables.createVariable(planned.name, collection, planned.type);
+          apply(created, planned, collection.modes[0].modeId, allFields);
         }
-        report.created.push(p.name);
+        report.created.push(planned.name);
         continue;
       }
 
       const modeId = collection!.modes[0].modeId;
-      const changed = differences(variable, p, modeId);
+      const changed = differences(match.variable, planned, modeId);
       if (changed.length === 0) {
         report.unchanged++;
         continue;
       }
-      report.updated.push(`${p.name} [${changed.join(", ")}] (${variable.id})`);
-      if (!dryRun) apply(variable, p, modeId, changed);
+      report.updated.push(`${planned.name} [${changed.join(", ")}] (${match.variable.id})`);
+      if (!dryRun) apply(match.variable, planned, modeId, changed);
     } catch (error) {
-      report.errors.push(`${p.name}: ${error instanceof Error ? error.message : String(error)}`);
+      report.errors.push(`${planned.name}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   return report;
 }
 
-type Field = "value" | "scopes" | "code syntax" | "description";
-const allFields: Field[] = ["value", "scopes", "code syntax", "description"];
+async function indexPrimitives(collection: VariableCollection, plan: PrimitivesPlan): Promise<{
+  matches: Match[];
+  notInJson: string[];
+}> {
+  const variables = (await figma.variables.getLocalVariablesAsync()).filter(
+    (variable) => variable.variableCollectionId === collection.id,
+  );
+
+  const byName = new Map<string, Variable>();
+  for (const variable of variables) {
+    if (byName.has(variable.name)) {
+      throw new Error(`"${collection.name}" has two variables named ${variable.name}`);
+    }
+    byName.set(variable.name, variable);
+  }
+
+  const byId = new Map<string, Variable>();
+  for (const variable of variables) {
+    const tokenId = sharedId(variable);
+    if (tokenId === "") continue;
+    if (byId.has(tokenId)) {
+      throw new Error(`"${collection.name}" has two variables with id "${tokenId}"`);
+    }
+    byId.set(tokenId, variable);
+  }
+
+  const matches: Match[] = [];
+  const used = new Set<Variable>();
+  for (const planned of plan.variables) {
+    const tagged = byId.get(planned.id);
+    if (tagged) {
+      adopt(collection.name, planned, tagged, byName, used, matches);
+      continue;
+    }
+
+    const holder = byName.get(planned.name);
+    if (holder && sharedId(holder) === "") {
+      adopt(collection.name, planned, holder, byName, used, matches);
+      continue;
+    }
+    if (holder) throw nameCollision(collection.name, planned.name, holder);
+
+    matches.push({ planned });
+  }
+
+  return {
+    matches,
+    notInJson: variables.filter((variable) => !used.has(variable)).map((variable) => variable.name),
+  };
+}
+
+function adopt(
+  collectionName: string,
+  planned: PlannedVariable,
+  variable: Variable,
+  byName: Map<string, Variable>,
+  used: Set<Variable>,
+  matches: Match[],
+): void {
+  if (used.has(variable)) {
+    throw new Error(`${planned.name} reuses id "${planned.id}" already matched to another variable`);
+  }
+  const holder = byName.get(planned.name);
+  if (holder && holder !== variable) throw nameCollision(collectionName, planned.name, holder);
+  used.add(variable);
+  matches.push({ planned, variable });
+}
+
+function nameCollision(collectionName: string, name: string, holder: Variable): Error {
+  return new Error(
+    `setting ${name} would collide with another "${collectionName}" variable (${holder.id})`,
+  );
+}
+
+function typeConflictMessage(matches: readonly Match[]): string | null {
+  const lines: string[] = [];
+  for (const match of matches) {
+    if (!match.variable) continue;
+    if (match.variable.resolvedType === match.planned.type) continue;
+    lines.push(
+      `${match.planned.name} is ${match.variable.resolvedType} in Figma but ${match.planned.type} in JSON`,
+    );
+  }
+  if (lines.length === 0) return null;
+  return (
+    `type changes need a manual decision (Figma can't change a variable's type in place):\n` +
+    lines.join("\n")
+  );
+}
+
+type Field = "name" | "value" | "scopes" | "code syntax" | "description" | "token id";
+const allFields: Field[] = ["name", "value", "scopes", "code syntax", "description", "token id"];
 
 function apply(variable: Variable, p: PlannedVariable, modeId: string, fields: Field[]): void {
+  if (fields.includes("name")) variable.name = p.name;
   if (fields.includes("value")) variable.setValueForMode(modeId, p.value);
   if (fields.includes("scopes") && p.scopes !== null) variable.scopes = p.scopes;
   if (fields.includes("code syntax")) variable.setVariableCodeSyntax("WEB", p.webSyntax);
   if (fields.includes("description")) variable.description = p.description;
+  if (fields.includes("token id")) {
+    variable.setSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY, p.id);
+  }
 }
 
 function differences(variable: Variable, p: PlannedVariable, modeId: string): Field[] {
   const changed: Field[] = [];
+  if (variable.name !== p.name) changed.push("name");
   if (!sameValue(variable.valuesByMode[modeId], p.value)) changed.push("value");
   if (p.scopes !== null && !sameSet(variable.scopes, p.scopes)) changed.push("scopes");
   if (variable.codeSyntax.WEB !== p.webSyntax) changed.push("code syntax");
   if (variable.description !== p.description) changed.push("description");
+  if (sharedId(variable) !== p.id) changed.push("token id");
   return changed;
+}
+
+function sharedId(variable: Variable): string {
+  return variable.getSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY);
 }
 
 /**

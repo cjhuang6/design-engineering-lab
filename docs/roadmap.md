@@ -46,7 +46,7 @@ How components are designed around behavior, then prototyped and shipped. Detail
 - **Approved (2026-10-22):** this phase starts after Phase 2D and Phase 2E are merged and desktop-verified. The deferred token-pipeline items do not block it.
 - **Approved:** one component per pull request, from an interaction brief written before code.
 - **Proposal:** at least one AI-assisted interaction, and a candidate list CJ has not picked. See that roadmap.
-- **Unknown:** which component is first, and how far Figma component sync goes.
+- **Approved (CJ, 2026-10-23):** the first component is a proximity hex color picker ([brief](components/color-picker-brief.md)). **Unknown:** how far Figma component sync goes.
 - **Approved (deferred, 2026-10-22):** where component tokens live is decided with the first component. The location is still open then.
 
 ## Where things live

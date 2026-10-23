@@ -12,7 +12,7 @@ The idea comes from Gabriel (@gabriell_lab): use proximity, not just hover. [His
 
 ## Palette
 
-**Observed** on `main` at `995ce87`, counted from [`tokens/camellia.tokens.json`](../../tokens/camellia.tokens.json) on 2026-10-23. The honeycomb has **44** solid color tokens. The four ramps are 42 of them. White and black are the other two.
+**Observed** on `main` at `995ce87`, counted from [`tokens/camellia.tokens.json`](../../tokens/camellia.tokens.json) on 2026-10-23. The four ramps are 42 tokens (11 + 11 + 10 + 10). White and black bring the honeycomb to **44** cells.
 
 | Token path | Steps | Count |
 |---|---|---|

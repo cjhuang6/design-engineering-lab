@@ -19,7 +19,8 @@ What each check proves and can't prove, the automated guardrails, and how implem
 | `npm run lint` | Exit code 0 | Anything about `.ts` or `.mjs` files: ESLint only covers `.js` and `.jsx` |
 | `npm run build` | Vite build succeeds | That the demo app renders correctly |
 | `node scripts/docs/check-feature-map.mjs` | `PASS`, exit code 0 | That the feature descriptions are accurate. It checks names, links, paths and structure only |
-| `node --test tests/guardrails/*.test.mjs` | `pass 18`, `fail 0` | Real GitHub behavior for the approval tests. GitHub is simulated with a fake `gh` and throwaway repositories. Three further tests check that the demo only references generated custom properties; they do not open a browser. One test checks that `docs/roadmap.md` links every top-level `docs/*.md` file besides itself |
+| `node --test tests/guardrails/*.test.mjs` | `pass 19`, `fail 0` | Real GitHub behavior for the approval tests. GitHub is simulated with a fake `gh` and throwaway repositories. The demo guardrail checks that `src/` only references generated custom properties, with one exception: the hex picker's labeled placeholder block. They do not open a browser. One test checks that `docs/roadmap.md` links every top-level `docs/*.md` file besides itself |
+| `node --test tests/components/*.test.mjs` | `pass 7`, `fail 0` | Pointer proximity, idle timers, or anything in a browser. The tests cover the hex layout, neighbor keys, contrast pick, smoothstep falloff, CSS time parsing, and the placeholder values |
 | `git status --short` | Only the intended changes | Run it before and after checks to show nothing else changed |
 
 **Figma behavior is proven only in Figma.** That means the Figma recipes in the feature map, run by CJ, or read-only inspection through the Figma MCP when the task authorizes it. Compilation and fake-Figma tests are never evidence of Figma behavior. Semantic sync's desktop proof is the [Semantic checklist](../.cursor/skills/verify-camellia/features/figma-semantic-sync.md): both modes, translucent dark aliases, spacing pickers, and a rename that keeps the binding. Primitive permanent ids are proved in Figma by the [Primitives checklist](../.cursor/skills/verify-camellia/features/figma-primitives-sync.md): a dry run that updates 110 and creates 0, a second run that changes nothing, and rectangle `61:117` still bound. `npm test` does not run those checklists.
@@ -30,7 +31,7 @@ Automated checks that catch recurring mistakes. Each one names the failure it pr
 
 ### CI (`.github/workflows/ci.yml`)
 
-Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, the `tokens.css` freshness diff, `figma:build`, `lint`, `build`, the feature-map check, and the AGENTS.md approval check's regression tests.
+Runs on every pull request and on pushes to `main`: `npm ci`, `tokens:build`, the `tokens.css` freshness diff, `figma:build`, `lint`, `build`, the feature-map check, the guardrail tests, the hex color picker model tests, and the AGENTS.md approval check's regression tests.
 
 - **Prevents:** merging a change that breaks a build or a test, a hand-edited or stale `tokens.css`, and a feature map that names commands, scripts or files that no longer exist.
 - **Limits:**

@@ -1,6 +1,8 @@
 # Interaction brief: proximity hex color picker
 
-**Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. No component code in this repo yet. Building waits until Phase 2D and Phase 2E are merged and desktop-verified ([entry criteria](../components-roadmap.md#entry-criteria)).
+**Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. The rest of Phase 3 still waits until Phase 2D and Phase 2E are merged and desktop-verified ([entry criteria](../components-roadmap.md#entry-criteria)).
+
+**In progress (CJ, 2026-10-24).** CJ approved building the picker now, in parallel with Phase 2D. The component is in the demo. Values that are not tokens yet are component-local placeholders. The decisions below are unchanged.
 
 **Decided (CJ, 2026-10-23).** The interaction below comes from a throwaway prototype: a standalone HTML file outside this repo. That file is not part of the repository.
 

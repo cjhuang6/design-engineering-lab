@@ -13,6 +13,7 @@ import {
   planTextStyles,
 } from "../src/plan-text-styles.ts";
 import { syncTextStyles } from "../src/sync-text-styles.ts";
+import { runTextStyleSync } from "../src/text-style-command.ts";
 
 const tokens = JSON.parse(
   readFileSync(new URL("../../tokens/camellia.tokens.json", import.meta.url), "utf8"),
@@ -650,4 +651,140 @@ test("no primitive collection throws before any text style is written", async ()
   assert.equal(fake.styles.length, 0);
   assert.equal(fake.counts.stylesCreated, 0);
   assert.equal(fake.counts.fontLoads, 0);
+});
+
+const DRY_RUN_TOAST =
+  "Camellia · Text Styles (dry run) · Would create 13 · Would update 0 · Unchanged 0 · Not in JSON 0 · Errors 0";
+const APPLY_TOAST =
+  "Camellia · Text Styles · Created 13 · Updated 0 · Unchanged 0 · Not in JSON 0 · Errors 0";
+
+async function captureCommand(dryRun) {
+  const lines = [];
+  const original = console.log;
+  console.log = (...args) => {
+    lines.push(args.map((part) => String(part)).join(" "));
+  };
+  try {
+    const message = await runTextStyleSync(tokens, dryRun);
+    return { message, log: lines.join("\n") };
+  } finally {
+    console.log = original;
+  }
+}
+
+test("the manifest registers the Text Style commands after Semantic", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
+  const commands = manifest.menu
+    .filter((item) => item.command)
+    .map((item) => ({ name: item.name, command: item.command }));
+  const semantic = commands.findIndex((item) => item.command === "sync-semantic");
+  assert.ok(semantic > 0);
+  assert.deepEqual(commands.slice(semantic + 1), [
+    { name: "Sync Text Styles — dry run", command: "sync-text-styles-dry-run" },
+    { name: "Sync Text Styles", command: "sync-text-styles" },
+  ]);
+});
+
+test("the plugin entry dispatches dry run and apply to the Text Style command", () => {
+  const source = readFileSync(new URL("../code.ts", import.meta.url), "utf8");
+  assert.match(source, /"sync-text-styles-dry-run": \(\) => syncTextStylesCommand\(true\)/);
+  assert.match(source, /"sync-text-styles": \(\) => syncTextStylesCommand\(false\)/);
+  assert.match(source, /return runTextStyleSync\(tokens, dryRun\)/);
+});
+
+test("the dry-run command reports 13 creates and writes nothing", async () => {
+  const { message, log } = await captureCommand(true);
+
+  assert.equal(message, DRY_RUN_TOAST);
+  assert.match(log, /Camellia · Sync Text Styles — DRY RUN, nothing changed/);
+  assert.match(log, /Would create \(13\)/);
+  assert.match(log, /Camellia\/Display\/LG/);
+  assert.match(log, /Camellia\/Code\/SM/);
+  assert.doesNotMatch(log, /^Created \(/m);
+  assert.equal(fake.styles.length, 0);
+  assert.equal(fake.counts.stylesCreated, 0);
+  assert.equal(fake.counts.propertyWrites, 0);
+  assert.equal(fake.counts.boundWrites, 0);
+  assert.equal(fake.counts.sharedPluginDataWrites, 0);
+  assert.equal(fake.counts.fontLoads, 0);
+  assert.equal(fake.counts.fontLists, 1);
+});
+
+test("the apply command creates the 13 styles", async () => {
+  const { message, log } = await captureCommand(false);
+
+  assert.equal(message, APPLY_TOAST);
+  assert.match(log, /Camellia · Sync Text Styles$/m);
+  assert.doesNotMatch(log, /DRY RUN/);
+  assert.match(log, /Created \(13\)/);
+  assert.equal(fake.styles.length, 13);
+  assert.equal(fake.counts.stylesCreated, 13);
+  assert.equal(fake.counts.fontLoads, 4);
+  assert.equal(find("Camellia/Display/LG").fontName.style, "SemiBold");
+  assert.equal(find("Camellia/Label/MD").fontName.style, "Medium");
+  assert.equal(find("Camellia/Body/MD").fontName.style, "Regular");
+  assert.equal(find("Camellia/Code/SM").fontName.family, "Geist Mono");
+});
+
+test("running the apply command again reports a no-op and writes nothing", async () => {
+  await runTextStyleSync(tokens, false);
+  const writes = styleWrites();
+
+  const { message, log } = await captureCommand(false);
+
+  assert.equal(
+    message,
+    "Camellia · Text Styles · Created 0 · Updated 0 · Unchanged 13 · Not in JSON 0 · Errors 0",
+  );
+  assert.match(log, /Unchanged: 13/);
+  assert.doesNotMatch(log, /^(Created|Updated) \(/m);
+  assert.equal(fake.styles.length, 13);
+  assert.deepEqual(styleWrites(), writes);
+});
+
+test("the dry-run command reports an update and leaves the style unchanged", async () => {
+  await runTextStyleSync(tokens, false);
+  const body = find("Camellia/Body/MD");
+  body.fontSize = 99;
+  const writes = styleWrites();
+
+  const { message, log } = await captureCommand(true);
+
+  assert.equal(
+    message,
+    "Camellia · Text Styles (dry run) · Would create 0 · Would update 1 · Unchanged 12 · Not in JSON 0 · Errors 0",
+  );
+  assert.match(log, /Would update \(1\)/);
+  assert.match(log, /Camellia\/Body\/MD \[font size\]/);
+  assert.match(log, /DRY RUN, nothing changed/);
+  assert.equal(body.fontSize, 99);
+  assert.deepEqual(styleWrites(), writes);
+  assert.equal(fake.counts.fontLoads, writes.fontLoads);
+});
+
+test("the dry-run command reports a missing font and writes nothing", async () => {
+  fake = createFakeFigma({
+    fonts: [
+      ["Geist", "Regular"],
+      ["Geist Mono", "Regular"],
+    ],
+  });
+  seedFontVariables(fake);
+  globalThis.figma = fake.api;
+
+  const { message, log } = await captureCommand(true);
+
+  assert.match(
+    message,
+    /^Camellia · Text Styles \(dry run\) · Would create 5 · Would update 0 · Unchanged 0 · Not in JSON 0 · Errors 8$/,
+  );
+  assert.match(log, /DRY RUN, nothing changed/);
+  assert.match(log, /family "Geist"/);
+  assert.match(log, /style "SemiBold"/);
+  assert.match(log, /style "Medium"/);
+  assert.match(log, /No other font was substituted/);
+  assert.equal(fake.styles.length, 0);
+  assert.equal(fake.counts.stylesCreated, 0);
+  assert.equal(fake.counts.fontLoads, 0);
+  assert.equal(fake.counts.propertyWrites, 0);
 });

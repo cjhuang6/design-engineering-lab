@@ -14,8 +14,8 @@ What each check proves and can't prove, the automated guardrails, and how implem
 |---|---|---|
 | `npm run tokens:build` | `PASS — all 11 checks passed`, exit code 0 | That the CSS looks right in a browser, or that the token values are good design |
 | `git diff --exit-code src/styles/tokens.css` (after the build) | Exit code 0: the committed CSS matches the JSON | Anything beyond freshness |
-| `npm test` | `pass 137`, `fail 0` | Real Figma behavior. The sync tests run against a hand-written fake of the Figma API. The text-style sync tests use that fake. They do not prove Figma behavior |
-| `npm run figma:build` | Type check, tests, then `dist/code.js` (about 130 KB). Stops before bundling on any failure | That the bundle works in Figma |
+| `npm test` | `pass 144`, `fail 0` | Real Figma behavior. The sync tests run against a hand-written fake of the Figma API. The text-style sync tests, including the menu command's dry run and apply, use that fake. They do not prove Figma behavior |
+| `npm run figma:build` | Type check, tests, then `dist/code.js` (about 153 KB). Stops before bundling on any failure | That the bundle works in Figma |
 | `npm run lint` | Exit code 0 | Anything about `.ts` or `.mjs` files: ESLint only covers `.js` and `.jsx` |
 | `npm run build` | Vite build succeeds | That the demo app renders correctly |
 | `node scripts/docs/check-feature-map.mjs` | `PASS`, exit code 0 | That the feature descriptions are accurate. It checks names, links, paths and structure only |

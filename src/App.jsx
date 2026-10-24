@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HexColorPickerDemo } from './components/hex-color-picker/HexColorPicker.jsx'
 import tokensCss from './styles/tokens.css?raw'
 import { catalogFromCss, frostProperties, previewKind } from './parseTokenCss.js'
 
@@ -235,6 +236,7 @@ function App() {
         </div>
       </header>
       <main className="page">
+        <HexColorPickerDemo />
         {sections.map((section) => {
           const note = sectionNote(section.id)
           const showGroups = section.subgroups.length > 1

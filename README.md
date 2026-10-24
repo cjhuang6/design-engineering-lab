@@ -68,8 +68,10 @@ The menu commands today are:
 - Sync Primitives
 - Sync Semantic — dry run
 - Sync Semantic
+- Sync Text Styles — dry run
+- Sync Text Styles
 
-`Sync Semantic — dry run` writes nothing. `Sync Semantic` creates or updates the `Semantic` collection. Tests for the plugin run against a fake Figma API. They do not prove behavior inside Figma. The steps for the Mac desktop check are in [the Semantic checklist](.cursor/skills/verify-camellia/features/figma-semantic-sync.md).
+`Sync Semantic — dry run` writes nothing. `Sync Semantic` creates or updates the `Semantic` collection. `Sync Text Styles — dry run` writes nothing. It reports what it would create, what it would update, and what it would leave unchanged. `Sync Text Styles` creates or updates the 13 text styles. Tests for the plugin run against a fake Figma API. They do not prove behavior inside Figma. The steps for the Mac desktop check of text styles are in [the Text Style checklist](.cursor/skills/verify-camellia/features/figma-text-styles-sync.md). The semantic steps are in [the Semantic checklist](.cursor/skills/verify-camellia/features/figma-semantic-sync.md).
 
 ## Status
 

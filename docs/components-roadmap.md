@@ -31,6 +31,16 @@ These deferred token-pipeline items do not block that start. **Approved (deferre
 
 What is merged and desktop-verified is [Current status](roadmap.md#current-status). An agent does not open a component pull request from this document alone.
 
+## First component
+
+**Approved (CJ, 2026-10-23):** the first component is a proximity hex color picker, direction B. The interaction brief is [proximity hex color picker](components/color-picker-brief.md).
+
+The picker uses Camellia's color tokens only.
+
+The [entry criteria](#entry-criteria) above are unchanged. Building waits until Phase 2D and Phase 2E are merged and desktop-verified. **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
+
+The toggle stays on the [later list](#proposals), credited to daz.
+
 ## Working method (Approved)
 
 One component per pull request. The pull request contains the four parts below, in this order. Code does not start a component that has no interaction brief in the same change.
@@ -89,11 +99,26 @@ Two or more alternatives, and the reason each was rejected. "We did not try anyt
 What a designer learning to ship in code should take from this component.
 ```
 
+## How we collaborate on a component
+
+**Proposal.** CJ agreed to this shape in principle on 2026-10-22. The details are still to settle. This section does not change the [working method](#working-method-approved) above.
+
+1. CJ brings examples of the interaction.
+2. Cami writes an interaction brief with two or three directions.
+3. Cloud agents build rough prototypes of those directions, side by side, in the demo app. Side by side means the versions are in the demo at the same time, so CJ can compare them.
+4. CJ tries those prototypes in a browser and chooses one.
+5. The winner is refined into one pull request. The component uses Camellia tokens only. The pull request includes the short design-rationale note.
+6. Figma comes after that coded pull request.
+
+The approved working method includes a Figma prototype in the component pull request. This proposal puts Figma after the coded component. Which order wins is one of the details still to settle. Until CJ settles it, the approved working method stands.
+
 ## Proposals
 
 **Proposal:** at least one shipped component includes an interaction that was explored with an AI prototyping tool before the code was finished. The rationale note says what the tool suggested and what was kept. Which tool, and which component, is **Unknown**. The interaction brief is still written before implementation code. The AI prototype does not replace the brief or the tokens.
 
-**Proposal — candidate components. CJ picks. This list is not an approved order, and it is not a decision about which component is first.**
+**Approved (CJ, 2026-10-23): the first component is the proximity hex color picker**, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md).
+
+**Proposal — later candidates.** This list is not an approved order. It is what might come after the color picker.
 
 | Candidate | Interaction idea |
 |---|---|
@@ -102,11 +127,12 @@ What a designer learning to ship in code should take from this component.
 | Single-choice segments | Pointer and arrow keys move one selection. Focus is visible when it differs from the selected segment |
 | Theme switch | Flips `data-theme` so semantic colors change. The control does not introduce a second palette |
 | Inline status | A field moves among neutral, error, and success using feedback and semantic colors that already exist |
+| Toggle | Hover states on a switch. Dropped as the first component for now. A later idea, credited to [daz](https://daz.typenote.co/toggle-hover-states) |
 
 ## Open questions
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Which component is first?** The candidates above are a proposal. CJ chooses | Unknown | Starting Phase 3 |
-| 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist | **Approved (deferred, 2026-10-22).** Decide it with the first component. The location is still open then. It does not block starting Phase 3 | A component-token layer, until that first component |
+| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. Building still waits on the [entry criteria](#entry-criteria) |
+| 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist. The color picker brief lists candidate component tokens for hover, press, grow-in, and idle. They are not created yet. That list does not decide where those tokens live | **Approved (deferred, 2026-10-22).** Decide it with the first component. The location is still open then. It does not block starting Phase 3 | A component-token layer, until that first component |
 | 3 | **Figma component sync scope.** Whether each component is also a Figma component, whether the plugin syncs it, and whether Code Connect is in scope. The earlier pipeline note said Code Connect gets evaluated when components exist. That evaluation has not happened | Unknown | Figma component parity. It does not block the React demo |

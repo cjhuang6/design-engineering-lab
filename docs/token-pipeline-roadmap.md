@@ -111,7 +111,7 @@ Every primitive token that becomes a Figma variable (110 of them) has `"$extensi
   - No fake STRING variables.
   - Stop after validation.
 - **Approved (2026-10-13):** tracking is applied as a percentage letter spacing in the styles, because em ratios can't be pixel variables.
-- **Approved (2026-10-22):** this is the next pipeline phase. The four decisions in the [Phase 2D task brief](#phase-2d-task-brief) are decided, including binding family and weight. The Text Style planner is merged ([#21](https://github.com/cjhuang6/design-engineering-lab/pull/21), `995ce87`). The Text Style sync against the fake Figma is merged ([#23](https://github.com/cjhuang6/design-engineering-lab/pull/23), `cd48c0b`). The menu commands and the desktop checklist follow that sync. The project-wide next agreed task is stated in [docs/roadmap.md](roadmap.md).
+- **Approved (2026-10-22):** this is the next pipeline phase. The four decisions in the [Phase 2D task brief](#phase-2d-task-brief) are decided, including binding family and weight. The Text Style planner is merged ([#21](https://github.com/cjhuang6/design-engineering-lab/pull/21), `995ce87`). The Text Style sync against the fake Figma is merged ([#23](https://github.com/cjhuang6/design-engineering-lab/pull/23), `cd48c0b`). The menu commands and the desktop checklist are in draft [PR #24](https://github.com/cjhuang6/design-engineering-lab/pull/24). The project-wide next agreed task is stated in [docs/roadmap.md](roadmap.md).
 - **Details:** the [Phase 2D task brief](#phase-2d-task-brief).
 
 ### Phase 2E: Effect Styles
@@ -190,7 +190,7 @@ This brief holds the approved facts for Phase 2C. It is not the project-wide nex
 
 ## Phase 2D task brief
 
-This brief records the approved facts for Phase 2D Text Styles. **Approved (2026-10-22):** the four decisions under [Decisions for CJ](#decisions-for-cj) are decided. The Text Style planner is merged ([#21](https://github.com/cjhuang6/design-engineering-lab/pull/21), `995ce87`). The Text Style sync against the fake Figma is merged ([#23](https://github.com/cjhuang6/design-engineering-lab/pull/23), `cd48c0b`). The menu commands and the desktop checklist are item 3 of the [planned pull-request split](#planned-pull-request-split). The project-wide next agreed task is stated in [docs/roadmap.md](roadmap.md). Phase 2E does not start from this brief. Phase 2E starts after 2D is merged and desktop-verified.
+This brief records the approved facts for Phase 2D Text Styles. **Approved (2026-10-22):** the four decisions under [Decisions for CJ](#decisions-for-cj) are decided. The Text Style planner is merged ([#21](https://github.com/cjhuang6/design-engineering-lab/pull/21), `995ce87`). The Text Style sync against the fake Figma is merged ([#23](https://github.com/cjhuang6/design-engineering-lab/pull/23), `cd48c0b`). The menu commands and the desktop checklist are item 3 of the [planned pull-request split](#planned-pull-request-split), in draft [PR #24](https://github.com/cjhuang6/design-engineering-lab/pull/24). The project-wide next agreed task is stated in [docs/roadmap.md](roadmap.md). Phase 2E does not start from this brief. Phase 2E starts after 2D is merged and desktop-verified.
 
 Words used here, the first time they matter:
 
@@ -299,7 +299,7 @@ A value that differs (size, line height, letter spacing, or the bound `fontFamil
 
 1. **Planner.** A pure function from the JSON to the 13 planned styles. No Figma writes. Unit tests in Node. Code: `figma-plugin/src/plan-text-styles.ts`. **Approved (CJ, 2026-10-22):** this pull request is the one that adds the 13 `type-` ids to the JSON. That is the approved token change. It is not this decision-record pull request. Merged: [PR #21](https://github.com/cjhuang6/design-engineering-lab/pull/21) (`995ce87`).
 2. **Sync against the fake Figma.** Merged: [PR #23](https://github.com/cjhuang6/design-engineering-lab/pull/23) (`cd48c0b`). Create, update in place, dry run writes nothing, a second run changes nothing, a missing font is an error, a style that exists only in Figma is listed and kept, and a JSON rename keeps the Figma style id when the `type-` id matches. The tests use the in-memory fake. They do not prove Figma behavior.
-3. **Menu command and desktop checklist.** This pull request. The menu entries and the feature-map checklist. CJ runs that checklist on a duplicate of his Camellia file. **Approved (CJ, 2026-10-22)** menu strings, a public contract: `Sync Text Styles — dry run` (`sync-text-styles-dry-run`) and `Sync Text Styles` (`sync-text-styles`), placed after the semantic commands. The checklist is [Figma Text Style sync](../.cursor/skills/verify-camellia/features/figma-text-styles-sync.md).
+3. **Menu command and desktop checklist.** In review as a draft: [PR #24](https://github.com/cjhuang6/design-engineering-lab/pull/24). The menu entries and the feature-map checklist. CJ runs that checklist on a duplicate of his Camellia file. **Approved (CJ, 2026-10-22)** menu strings, a public contract: `Sync Text Styles — dry run` (`sync-text-styles-dry-run`) and `Sync Text Styles` (`sync-text-styles`), placed after the semantic commands. The checklist is [Figma Text Style sync](../.cursor/skills/verify-camellia/features/figma-text-styles-sync.md).
 
 ### Verification plan
 

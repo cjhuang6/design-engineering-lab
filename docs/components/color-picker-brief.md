@@ -1,111 +1,146 @@
 # Interaction brief: proximity hex color picker
 
-**Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. This brief is the interaction brief, written before any component code.
+**Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. No component code in this repo yet. Building waits until Phase 2D and Phase 2E are merged and desktop-verified ([entry criteria](../components-roadmap.md#entry-criteria)).
 
-Building still waits until Phase 2D and Phase 2E are merged and desktop-verified. Those [entry criteria](../components-roadmap.md#entry-criteria) are unchanged. Whether a throwaway exploration prototype happens earlier is **Unknown**.
+**Decided (CJ, 2026-10-23).** The interaction below comes from a throwaway prototype: a standalone HTML file outside this repo. That file is not part of the repository.
+
+Hover numbers are still tunable. They are listed under [Candidate component tokens](#candidate-component-tokens) and are not tokens yet. Where those tokens live is [question 2](../components-roadmap.md#open-questions).
 
 ## Concept
 
-A honeycomb of color hexagons that reacts to how close the cursor is, not only to which cell the cursor is over. Cells near the pointer grow a little and darken a little, and a closer cell changes more. The person should feel the palette lean toward the cursor, then pick one cell and see that color's token name and its value. Every cell is a Camellia color token.
+A flat-top honeycomb of 37 pointy-top color hexagons. Cells near the cursor grow and darken a little, more so when they are closer. Picking a cell shows that token's name and hex. Every cell is a Camellia color token.
 
-The idea comes from Gabriel (@gabriell_lab): use proximity, not just hover. [His note](https://x.com/gabriell_lab/status/2060336070059864461).
-
-## Palette
-
-**Observed** on `main` at `995ce87`, counted from [`tokens/camellia.tokens.json`](../../tokens/camellia.tokens.json) on 2026-10-23. The four ramps are 42 tokens (11 + 11 + 10 + 10). White and black bring the honeycomb to **44** cells.
-
-| Token path | Steps | Count |
-|---|---|---|
-| `color.primitive.ice` | 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950 | 11 |
-| `color.primitive.blue` | 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950 | 11 |
-| `color.primitive.green` | 50, 100, 200, 300, 400, 500, 600, 700, 800, 900 | 10 |
-| `color.primitive.pink` | 50, 100, 200, 300, 400, 500, 600, 700, 800, 900 | 10 |
-| `color.base.white`, `color.base.black` | white, then black | 2 |
-
-Green and pink stop at 900. The file has no `color.primitive.green.950` and no `color.primitive.pink.950`.
-
-Left out of this picker: the alpha primitives (`color.primitive.alpha`), theme colors, frost, and expression fields. The four feedback colors (`feedback.success`, `feedback.warning`, `feedback.error`, `feedback.info`) are solid tokens too, and they are also left out. This palette is the four ramps plus white and black.
-
-When a cell is selected, the picker shows that token's name (the path, such as `color.primitive.blue.600`) and the hex stored on the token. The fill of the cell is that token. The slight darken near the cursor is a temporary effect on top of the fill. It does not add a new swatch.
-
-## Layout
-
-One row per ramp, in the order in the table above: ice, then blue, then green, then pink. White and black come at the end, after the pink row.
-
-The layout is a true honeycomb. Alternate rows are offset by half a cell, and the rows overlap vertically. The next row shifts sideways by half a cell, and it sits high enough that the points of one row nest into the gaps of the row above. That shared zigzag edge is the vertical overlap.
-
-**Proposal:** draw each cell as a hexagon, either with a CSS `clip-path` polygon or with an inline SVG shape.
-
-`clip-path` cuts an element down to a shape. A polygon clip can turn a rectangle into a hexagon. The cut applies to the whole element. An outline, a border, or a `box-shadow` painted on that same element is cut off too, including the usual CSS focus outline. The focus ring and the selected ring need their own shape: a separate element that is not clipped, or a stroke on the SVG hexagon. An SVG stroke is drawn along the hexagon path, so it can follow the cell without being clipped away.
+From Gabriel (@gabriell_lab): use proximity, not just hover. [His note](https://x.com/gabriell_lab/status/2060336070059864461).
 
 ## Directions
 
-Three directions were considered. **Approved (CJ, 2026-10-23):** B.
+**Approved (CJ, 2026-10-23):** B.
 
-**A — rejected.** A full-spectrum grid of generated colors. Rejected because those colors are not tokens. This picker shows only colors that already exist in the token file.
+- **A — rejected.** A full-spectrum grid of generated colors. Those colors are not tokens.
+- **B — chosen.** A honeycomb of Camellia color tokens. Picking a cell shows its token name and value. The decided layout uses 37 of the 44 solid color tokens.
+- **C — rejected for now.** B plus a label lens of token names near the cursor. Busier: a second effect to tune. Possible later.
 
-**B — chosen.** A honeycomb of the solid color tokens in the palette above. Picking a cell shows its token name and its value.
+## Palette
 
-**C — rejected for now.** B, plus a label lens that shows token names for the cells near the cursor. Rejected for now because it is busier: a second effect to tune, on top of the proximity scale and darken. It can come back later.
+**Observed** in [`tokens/camellia.tokens.json`](../../tokens/camellia.tokens.json) on `main` at `995ce87` (2026-10-23). The file has **44** solid color tokens: ice 11 (`50`–`950`), blue 11 (`50`–`950`), green 10 (`50`–`900`), pink 10 (`50`–`900`), plus `color.base.white` and `color.base.black`. Green and pink have no `950`.
+
+**Decided (CJ, 2026-10-23):** the picker uses **37** of those 44. Tradeoff: it does not show every color token.
+
+Dropped (7):
+
+- `color.primitive.ice.50`
+- `color.primitive.blue.50`
+- `color.primitive.green.50`
+- `color.primitive.pink.50`
+- `color.primitive.ice.950`
+- `color.primitive.blue.950`
+- `color.base.black`
+
+Also left out of the picker: alpha primitives, theme colors, frost, expression fields, and the feedback colors (`feedback.success`, `feedback.warning`, `feedback.error`, `feedback.info`).
+
+`color.base.white` is the center cell. The cell fill is always the token. The hover darken is a brightness filter on top of that fill, not a new swatch.
+
+## Layout
+
+**Decided (CJ, 2026-10-23).** One big hexagon. Pointy-top cells. The big shape is flat-top. Row lengths, top to bottom: 4, 5, 6, 7, 6, 5, 4 (37). Rows alternate by half a cell and overlap vertically, so the points nest.
+
+Four hue wedges. Steps `100` through `900` run from the inner ring outward: lightest beside white, darkest on the outer edge. The inner ring has 6 cells, and 6 does not divide into 4 wedges, so the wedges are uneven.
+
+| Wedge | Place | Cells per ring, inner → outer | Steps on those rings |
+|---|---|---|---|
+| ice | top | 2, 3, 4 | 100, 200 / 300, 400, 500 / 600, 700, 800, 900 |
+| blue | right | 1, 3, 5 | 100 / 200, 300, 400 / 500, 600, 700, 800, 900 |
+| green | bottom | 2, 3, 4 | 100, 200 / 300, 400, 500 / 600, 700, 800, 900 |
+| pink | left | 1, 3, 5 | 100 / 200, 300, 400 / 500, 600, 700, 800, 900 |
+
+Center plus three rings: 1 + 6 + 12 + 18 = 37. Each wedge has 9 cells, one per step from `100` to `900`.
+
+**Proposal:** draw each cell with a CSS `clip-path` polygon or an inline SVG. `clip-path` also clips outlines and `box-shadow`s. Rest has no border. Selection is an inner mark, not an outline. The focus ring still needs a separate element or an SVG stroke.
 
 ## States
 
-Disabled is out of scope. This version has no unavailable state.
+Disabled is out of scope.
 
-- **Rest.** The cell shows its token color at its normal size.
-- **Near (proximity).** The pointer is inside the effect radius. The cell scales up and darkens a little. A closer cell changes more. This state is pointer-only.
-- **Hovered.** The pointer is on this cell. It is the strongest step of the same near effect, because the distance is smallest. A click here selects this cell.
-- **Focused.** Keyboard focus is on this cell. A focus ring is visible. Focus does not scale or darken the neighbors. The proximity effect stays pointer-only.
-- **Selected.** This cell is the chosen color. A ring stays on it, and the token name and value are shown. The ring remains after the pointer leaves. Focus and selection can be on different cells: arrow keys move focus, and Enter or Space is what selects. When those two cells differ, both rings are visible, and they need to look different from each other.
+- **Rest.** Token fill at scale 1. No border and no outline, pale cells included.
+- **Near / hover.** Pointer only. See Pointer. Radius 80px, scale up to 1.15, darken 0.12, smoothstep falloff. Still tunable.
+- **Press.** Scale 0.94 on pointerdown, or on Enter/Space keydown. `--duration-fast` and `--ease-standard`.
+- **Focus.** A focus ring, separate from the selection mark, using `--color-focus`.
+- **Selected.** No outline ring. An inner hexagon mark, 35% of the cell, grows from the center over 200ms. Ease: overshoot `cubic-bezier(0.34, 1.56, 0.64, 1)`. Mark color is white or `color.primitive.ice.900`, whichever has the higher WCAG contrast with the cell. The token name and hex are shown.
+- **Idle (selected).** The mark breathes: scale 1 → 1.12 → 1 over 2.4s. Each half uses sine ease-in-out `cubic-bezier(0.37, 0, 0.63, 1)`. Starts about 600ms after the grow-in finishes. About 11s after the last interaction it finishes the current breath and stops at rest. Hovering the picker starts it again. The auto-stop is how this meets WCAG 2.2.2 Pause, Stop, Hide.
+
+CJ compared the breath with cubic ease-in-out `cubic-bezier(0.65, 0, 0.35, 1)` and rejected it. It felt out of breath.
 
 ## Keyboard
 
-The honeycomb is one Tab stop. Tab moves into the picker, and the next Tab leaves it. Inside the picker, arrow keys move focus to a neighboring hexagon. Enter or Space selects the focused cell. The focus ring is visible.
+**Decided (CJ, 2026-10-23):** A. Arrow keys move and select.
 
-That single Tab stop is a roving tabindex. Only the cell that holds focus is in the page's tab order (`tabindex="0"`). The other cells are taken out of that order (`tabindex="-1"`) until an arrow key moves focus onto one of them. Then that cell becomes the one Tab stop. A screen reader user does not have to Tab through all 44 cells to get past the picker.
+The picker is one Tab stop (roving tabindex): only the focused cell has `tabindex="0"`. The others are `tabindex="-1"`. Arrow keys move to a neighboring hexagon and select it, the same as a native radio. Up and Down keep the column. Enter or Space selects and plays the press dip.
 
-Left and Right move along the row. Up and Down move to the neighboring row. The rows are offset by half a cell, so Up and Down land on a hexagon that shares an edge. Which of the two upper neighbors Up prefers is a **Proposal** detail for the prototype.
-
-The proximity effect does not run from the keyboard. Arrow keys move focus and do not scale or darken the surrounding cells.
+The focus ring stays separate from the selection mark and uses `--color-focus`. Proximity does not run from the keyboard.
 
 ## Pointer
 
-On each pointer move, measure the distance from the cursor to the center of each cell. Inside a radius of about 80px, the cell scales up, to about 1.15 (15% larger), and darkens slightly. The effect is strongest at the cursor and falls off smoothly to 0 at the edge of the radius. Past the radius, the cell stays at rest.
+On each animation frame while the pointer is tracking (`requestAnimationFrame`), measure the distance from the cursor to each cell center. Inside 80px, smoothstep falls off from full effect at the cursor to 0 at the radius. Full effect is scale 1.15 and darken 0.12. Past the radius, the cell stays at rest. On leave, cells settle with `--duration-fast` and `--ease-standard`.
 
-A click selects the cell under the pointer. Selection is the same outcome as Enter or Space on the focused cell.
+Click selects. Pointerdown plays the press dip.
 
-**Proposal:** 80px and 15% are tuning values. They are not tokens yet. Once they feel right, they become component tokens. Where component tokens live is still open ([components roadmap, question 2](../components-roadmap.md#open-questions), which is also token pipeline [open question 7](../token-pipeline-roadmap.md#open-questions)).
+Touch: a tap selects. No hover scaling. A finger also fires pointer events, so the radius effect ignores touch.
 
-Touch does not get the radius effect. A finger also fires pointer events, so the distance math has to ignore touch. Otherwise the honeycomb would scale under a finger. A tap selects. The same rule is under Accessibility.
+Known prototype rough edge: the brightness-filter darken turns white gray.
 
 ## Motion
 
-While the pointer is tracking, cells follow it directly. The scale and the darken match the pointer position on that move. There is no extra delay, and no new duration, on the way in.
+| Moment | What moves | Timing |
+|---|---|---|
+| Tracking | Scale and darken follow the pointer | One frame via `requestAnimationFrame`. No added duration |
+| Leave | Back to rest | `--duration-fast`, `--ease-standard` |
+| Press | Scale to 0.94 and back | `--duration-fast`, `--ease-standard` |
+| Select | Inner mark grows from the center | 200ms, overshoot ease above |
+| Idle | Mark breathes, then stops | 2.4s per breath, sine ease each half. Delay about 600ms. Stop about 11s after the last interaction |
 
-When the pointer leaves, the cells settle back to rest with `--duration-fast` and `--ease-standard`. Those are the CSS custom properties generated from the tokens `duration/fast` and `ease/standard`. The brief names those tokens. It does not add a millisecond value or a cubic-bezier. No new motion values.
+`--duration-fast` is 100ms and `--ease-standard` is the generated `ease/standard` curve. Both already exist.
 
-What `prefers-reduced-motion` does is specified under Accessibility: no scaling, only a highlight on the cell under the cursor.
+**Observed:** `--duration-normal` is 200ms (`duration/normal`). The 200ms grow-in may map to that token. The mapping is not decided. Until it is, 200ms stays on the candidate list.
+
+`prefers-reduced-motion`: the selection mark stays static. No press dip. No idle breath.
 
 ## Accessibility
 
-The picker is a radiogroup: a group of options where one choice is selected. Each cell is a radio inside that group. The visual is a hexagon. The role is what a screen reader uses.
+A `radiogroup` of `radio` cells. One choice is selected. Each cell's accessible name is the ramp and step in words, such as "blue 600" or "white".
 
-Each cell has an accessible name in words, such as "blue 600", "ice 50", "white", or "black". That spoken name is the ramp and the step. The token path and the hex are what the picker shows after a selection. They can both be there. The short name is what gets announced.
+The focus ring (`--color-focus`) and the inner mark are separate cues, so focus and selection do not rely on the cell color alone. The mark picks white or `color.primitive.ice.900` by WCAG contrast with that cell.
 
-The focus ring and the selected ring are visible shapes, so focus and selection have a cue besides the cell's own color. The rings, and the type that shows the token name and value, use semantic colors already in the system. The cell fill is the token being chosen, including the lightest and darkest steps, so the ring has to stay visible on those fills. The separate element or SVG stroke in Layout is what makes that ring possible.
+Arrow keys move and select. Touch selects on tap and does not scale neighbors. Reduced motion is under Motion. The idle breath stops on its own (WCAG 2.2.2).
 
-`prefers-reduced-motion` means no scaling. The cells stay at their rest size. The only proximity response is a highlight on the cell under the cursor.
+Target size is **Unknown**. Use a size token that already exists when the component is built.
 
-Touch has no proximity effect. A tap selects.
+## Candidate component tokens
 
-Target size is **Unknown**. Each cell needs to be a comfortable pointer and tap target, and the size should come from a size token that already exists. This brief does not invent a pixel size.
+Not created. Question 2 still decides where component tokens live. Hover values are still tunable.
+
+| Candidate | Value | Used for |
+|---|---|---|
+| Grow-in duration | 200ms | Selection mark. May map to `duration/normal` |
+| Idle duration | 2400ms | One breath |
+| Idle delay | 600ms | After grow-in, before the first breath |
+| Auto-stop | 11000ms | Idle ends after the last interaction |
+| Ease overshoot | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Grow-in |
+| Ease in-out sine | `cubic-bezier(0.37, 0, 0.63, 1)` | Each half of a breath |
+| Press scale | 0.94 | Press dip |
+| Hover max scale | 1.15 | Proximity |
+| Hover darken | 0.12 | Proximity. Brightness filter; white goes gray |
+| Hover radius | 80px | Proximity |
+| Mark size | 35% | Inner hexagon, relative to the cell |
+| Idle scale | 1.12 | Peak of the breath |
 
 ## Out of scope
 
-- A custom hex input, where someone types any hex code.
+- A custom hex input.
 - An opacity slider.
-- The gradient square, the flat field of saturation and lightness in a typical color picker.
-- A Figma component, for now. How far Figma component sync goes is still **Unknown** in the Components & interactions section of the [project roadmap](../roadmap.md).
+- The gradient square.
+- A Figma component, for now. Figma component sync is still **Unknown** on the [project roadmap](../roadmap.md).
 - A disabled state.
-- Direction C's label lens, in this version. It can come back later.
-- Generated colors, including a darkened hex stored as if it were a token.
+- Direction C's label lens, in this version.
+- Generated colors, or a darkened hex stored as a token.
+- The seven dropped tokens, in this layout.
+- Adding the throwaway HTML prototype to this repo.

@@ -2,7 +2,7 @@
 
 **Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. The rest of Phase 3 still waits until Phase 2D and Phase 2E are merged and desktop-verified ([entry criteria](../components-roadmap.md#entry-criteria)).
 
-**In progress (CJ, 2026-10-24).** CJ approved building the picker now, in parallel with Phase 2D. The component is in the demo. Values that are not tokens yet are component-local placeholders. The decisions below are unchanged.
+**In progress (CJ, 2026-10-24).** CJ approved building the picker now, in parallel with Phase 2D. The component is in the demo. Values that are not tokens yet are component-local placeholders. The decisions from 2026-10-23 are unchanged. A later decision about the surface behind the cells is recorded under [Palette](#palette) and is not applied yet.
 
 **Decided (CJ, 2026-10-23).** The interaction below comes from a throwaway prototype: a standalone HTML file outside this repo. That file is not part of the repository.
 
@@ -42,6 +42,19 @@ Also left out of the picker: alpha primitives, theme colors, frost, expression f
 
 `color.base.white` is the center cell. The cell fill is always the token. The hover darken is a brightness filter on top of that fill, not a new swatch.
 
+**Decided (CJ, 2026-10-25).** Tint the surface behind the honeycomb so the white center reads as a cell, not a hole. Resting cells still have no border and no outline. The tint has to be an existing semantic surface or background token. Do not invent a token and do not hard-code a color. The proximity darken that turns white gray stays as it is.
+
+**Observed (2026-10-25).** None of the current semantic surfaces does both jobs, so the picker is unchanged. The card still uses `--color-surface-primary` (white in light, ice 950 in dark). Difference below is CIE76 ΔE in the light theme. About 2 is just noticeable. A clear edge is higher than that. Ice 100 is `#f1f5fc`.
+
+| Token | Light | ΔE vs white | ΔE vs ice 100 | Dark |
+|---|---|---|---|---|
+| `--color-surface-secondary` | ice 50 `#fafcff` | 2.0 | 3.3 | ice 900 |
+| `--color-surface-subtle` | ice 100 `#f1f5fc` | 5.2 | 0 | ice 950, the same as `surface-primary` |
+| `--color-surface-selected` | blue 50 `#f0f8ff` | 5.3 | 1.6 | blue 950 |
+| `--color-functional-surface` | green 50 `#ecfdf6` | 7.3 | 8.7 | 12% green, not a neutral |
+
+`--color-surface-secondary` is the only neutral that keeps ice 100 distinct, and the white edge is not clear. `--color-surface-subtle` gives white a clear edge and erases ice 100. `--color-surface-selected` is a selection color and nearly erases ice 100. `--color-functional-surface` is a green status surface. There is no sunken surface token. Applying the tint needs a neutral surface between ice 50 and ice 100, which is a token change and waits for CJ.
+
 ## Layout
 
 **Decided (CJ, 2026-10-23).** One big hexagon. Pointy-top cells. The big shape is flat-top. Row lengths, top to bottom: 4, 5, 6, 7, 6, 5, 4 (37). Rows alternate by half a cell and overlap vertically, so the points nest.
@@ -63,7 +76,7 @@ Center plus three rings: 1 + 6 + 12 + 18 = 37. Each wedge has 9 cells, one per s
 
 Disabled is out of scope.
 
-- **Rest.** Token fill at scale 1. No border and no outline, pale cells included.
+- **Rest.** Token fill at scale 1. No border and no outline, pale cells included. The surface behind the cells is still `--color-surface-primary`. The 2026-10-25 tint is not applied; see [Palette](#palette).
 - **Near / hover.** Pointer only. See Pointer. Radius 80px, scale up to 1.15, darken 0.12, smoothstep falloff. Still tunable.
 - **Press.** Scale 0.94 on pointerdown, or on Enter/Space keydown. `--duration-fast` and `--ease-standard`.
 - **Focus.** A focus ring, separate from the selection mark, using `--color-focus`.

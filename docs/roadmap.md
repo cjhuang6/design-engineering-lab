@@ -47,6 +47,7 @@ How components are designed around behavior, then prototyped and shipped. Detail
 - **Approved:** one component per pull request, from an interaction brief written before code.
 - **Proposal:** at least one AI-assisted interaction, and a candidate list CJ has not picked. See that roadmap.
 - **Approved (CJ, 2026-10-23):** the first component is a proximity hex color picker ([brief](components/color-picker-brief.md)). **In progress:** the demo component is in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25). It uses placeholder values for motion and hover until component tokens have a home. **Unknown:** how far Figma component sync goes.
+- **Approved (CJ, 2026-10-25):** the deployed demo becomes a public showcase of components once a second component exists. Until then it stays one page. Detail: [Showcase site](components-roadmap.md#showcase-site-planned).
 - **Approved (deferred, 2026-10-22):** where component tokens live is decided with the first component. The location is still open. The picker does not add tokens while that is open.
 
 ## Where things live

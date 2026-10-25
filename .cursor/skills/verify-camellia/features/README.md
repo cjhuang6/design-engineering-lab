@@ -45,6 +45,6 @@ Keep implementation details out of the feature files. Source locations appear on
 - [Figma Inventory](./figma-inventory.md) covers the read-only inventory command. Code: `figma-plugin/code.ts`, `figma-plugin/manifest.json`.
 - [Figma Primitives sync](./figma-primitives-sync.md) covers the dry run, the sync, idempotency, migration onto permanent ids, a JSON rename, and binding survival. Code: `figma-plugin/src/dtcg.ts`, `figma-plugin/src/plan-primitives.ts`, `figma-plugin/src/sync-primitives.ts`.
 - [Figma Semantic sync](./figma-semantic-sync.md) covers the dry run, the sync, both modes, idempotency, a Figma-side rename, migration onto permanent ids, a JSON rename, and binding survival. Code: `figma-plugin/code.ts`, `figma-plugin/manifest.json`, `figma-plugin/src/plan-semantic.ts`, `figma-plugin/src/sync-semantic.ts`.
-- [Demo app](./demo-app.md) covers the Vite + React token reference page. Code: `src/App.jsx`, `src/parseTokenCss.js`, `src/styles/global.css`.
+- [Demo app](./demo-app.md) covers the Vite + React token reference page. Code: `src/App.jsx`, `src/parseTokenCss.js`, `src/styles/fonts.css`, `src/styles/global.css`.
 
 Update the affected feature file in the same change that alters a feature's behavior or entry point, and update the revision line above.

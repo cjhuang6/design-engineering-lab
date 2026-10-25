@@ -194,7 +194,7 @@ function FrostPreview({ tokens }) {
 
 function sectionNote(id) {
   if (id === 'typography') {
-    return 'Geist and Geist Mono are the families named in the tokens. This page does not load those font files, so the browser uses the next family in each stack.'
+    return 'Samples use Geist and Geist Mono, the families named in the tokens. This page loads those font files.'
   }
   if (id === 'frost') {
     return 'Each material is shown on the Ice expression field so the blur is visible. The field itself does not change with the theme.'

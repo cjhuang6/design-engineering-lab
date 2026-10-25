@@ -1,6 +1,6 @@
 # Demo app
 
-A developer runs a Vite + React page that lists the Camellia tokens from the generated CSS. Colors, spacing, radius, typography, and the other token groups render with those custom properties. A theme button sets `[data-theme="dark"]` on the document. The page is not part of the token pipeline roadmap.
+A developer runs a Vite + React page that lists the Camellia tokens from the generated CSS. Colors, spacing, radius, typography, and the other token groups render with those custom properties. Typography renders in Geist and Geist Mono, which the page loads. A theme button sets `[data-theme="dark"]` on the document. The page is not part of the token pipeline roadmap.
 
 ## Sub-features
 
@@ -27,4 +27,4 @@ Preconditions:
 - A successful build proves the app compiles, not that it renders correctly. There are no browser tests.
 - `dist/` is generated and ignored by Git.
 - The page reads names from `src/styles/tokens.css`. It does not edit that file.
-- The font tokens name Geist and Geist Mono. The demo does not load those font files.
+- The page loads Geist and Geist Mono, so the typography samples use those families even when they are not installed on the machine.

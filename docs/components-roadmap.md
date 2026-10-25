@@ -1,6 +1,6 @@
 # Components & interactions
 
-Phase 3 of the project roadmap: components, with the weight on how they behave. Project-wide **current status** and the **next agreed task** live in [docs/roadmap.md](roadmap.md). This file does not restate them. The color picker is in progress. The rest of the phase has not started.
+Phase 3 of the project roadmap: components, with the weight on how they behave. Project-wide **current status** and the **next agreed task** live in [docs/roadmap.md](roadmap.md). This file does not restate them. The color picker is in progress in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25). The rest of the phase has not started.
 
 Every entry is labelled:
 
@@ -37,7 +37,7 @@ What is merged and desktop-verified is [Current status](roadmap.md#current-statu
 
 The picker uses Camellia's color tokens only.
 
-**In progress (CJ, 2026-10-24).** CJ approved building this picker now, in parallel with Phase 2D. The React component lives in the demo at `src/components/hex-color-picker/`. Phase 2D is still the next agreed task. The [entry criteria](#entry-criteria) still apply to the rest of Phase 3. **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
+**In progress (CJ, 2026-10-24).** CJ approved building this picker now, in parallel with Phase 2D. The React component is in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25), at `src/components/hex-color-picker/`. Phase 2D is still the next agreed task. The [entry criteria](#entry-criteria) still apply to the rest of Phase 3. **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
 
 Values that are not tokens yet are placeholders on the component, in one block commented `PLACEHOLDER - candidate token, see color-picker-brief.md`. They are not in the token JSON. Where component tokens live is still [question 2](#open-questions).
 
@@ -152,6 +152,6 @@ The approved working method includes a Figma prototype in the component pull req
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. **In progress (CJ, 2026-10-24):** the picker is being built in parallel with Phase 2D. The rest of Phase 3 still waits on the [entry criteria](#entry-criteria) |
+| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. **In progress:** draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25), in parallel with Phase 2D. The rest of Phase 3 still waits on the [entry criteria](#entry-criteria) |
 | 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist. The color picker brief lists candidate component tokens for hover, press, grow-in, and idle. They are not created yet. The picker ships them as component-local placeholders until this is decided. That list does not decide where those tokens live | **Approved (deferred, 2026-10-22).** Decide it with the first component. The location is still open then. It does not block starting Phase 3 | A component-token layer, until that first component |
 | 3 | **Figma component sync scope.** Whether each component is also a Figma component, whether the plugin syncs it, and whether Code Connect is in scope. The earlier pipeline note said Code Connect gets evaluated when components exist. That evaluation has not happened | Unknown | Figma component parity. It does not block the React demo |

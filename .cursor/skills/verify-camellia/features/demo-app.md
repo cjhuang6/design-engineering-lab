@@ -21,7 +21,7 @@ Preconditions:
 - Dependencies are installed.
 
 - **Production build.** Run `npm run build`. Vite reports the built files. Exit code `0`.
-- **Dev server.** Run `npm run dev`. Vite prints a local URL. Opening it shows the heading "Camellia tokens", a "Color picker" section with the honeycomb, grouped token samples, and a button labeled "Use dark theme" or "Use light theme". Activating the button switches the theme text between "Showing light theme." and "Showing dark theme." The picker starts on Blue 600. Arrow keys move to a neighboring cell and select it. Stop the server with Ctrl+C.
+- **Dev server.** Run `npm run dev`. Vite prints a local URL. Opening it shows the heading "Camellia Design System", a short line that one token file drives CSS and Figma, a "Color picker" section with the honeycomb, and a button labeled "Use dark theme" or "Use light theme". The token catalog is a closed "Token reference" disclosure under the picker. Activating the button switches the theme text between "Showing light theme." and "Showing dark theme." The picker starts on Blue 600. Arrow keys move to a neighboring cell and select it. Enter or Space on "Token reference" opens the catalog. Stop the server with Ctrl+C.
 
 ## Gotchas
 

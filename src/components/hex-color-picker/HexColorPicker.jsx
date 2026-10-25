@@ -531,9 +531,7 @@ export function HexColorPickerDemo() {
     <section className="section" aria-labelledby="color-picker-title">
       <h2 id="color-picker-title">Color picker</h2>
       <p className="note">
-        Cells near the pointer grow and darken. Arrow keys move across the honeycomb and select as
-        they go. The inner mark breathes, then rests until you hover again. Numbers that are not
-        tokens yet are placeholders on this component.
+        Cells near the pointer grow and darken. Choose a color with a click or the arrow keys.
       </p>
       <div className="hex-picker-demo">
         <HexColorPicker value={value} onChange={setValue} />

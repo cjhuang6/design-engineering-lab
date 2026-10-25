@@ -132,6 +132,22 @@ What a designer learning to ship in code should take from this component.
 
 The approved working method includes a Figma prototype in the component pull request. This proposal puts Figma after the coded component. Which order wins is one of the details still to settle. Until CJ settles it, the approved working method stands.
 
+## Showcase site (Planned)
+
+**Approved (CJ, 2026-10-25).** Turn the demo app, deployed at [https://cjhuang6.github.io/design-engineering-lab/](https://cjhuang6.github.io/design-engineering-lab/), into a public showcase of the components CJ explores, in the spirit of component galleries such as [bencho.dev](https://bencho.dev). How a component is explored and chosen stays in [How we collaborate on a component](#how-we-collaborate-on-a-component). This decision does not change the [next agreed task](roadmap.md#current-status).
+
+**Start condition.** Begin once there is a second component. Until then the demo keeps its current single page.
+
+**Step 1, site shell.** Top navigation with Components, Tokens, and Pipeline, each its own page. The current token reference moves to Tokens. The README's [pipeline explanation and diagram](../README.md#pipeline) move to Pipeline.
+
+**Open decision for step 1.** Page links via a small router library, or via a small homemade hash router. The library is a new dependency and needs CJ's approval. The hash router adds no dependency.
+
+**Step 2, component cards.** Each component is a live, interactive card. Expanding a card shows the design idea, the logic, notes, and learnings. Each component folder gets a small notes file, so adding a component means adding a folder. The hex color picker is the first card. Its brief, [proximity hex color picker](components/color-picker-brief.md), supplies most of its write-up.
+
+**Deferred.** Search and filter chips, for example by interaction type: hover, press, drag, select, type. Revisit only once there are many components.
+
+**Later.** A custom domain once there are a few cards.
+
 ## Proposals
 
 **Proposal:** at least one shipped component includes an interaction that was explored with an AI prototyping tool before the code was finished. The rationale note says what the tool suggested and what was kept. Which tool, and which component, is **Unknown**. The interaction brief is still written before implementation code. The AI prototype does not replace the brief or the tokens.

@@ -15,6 +15,18 @@ import './HexColorPicker.css'
 
 const CELLS = buildPalette()
 const NAV_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'])
+const HAIRLINE_WIDTH = 100
+const HAIRLINE_HEIGHT = (HAIRLINE_WIDTH * 2) / Math.sqrt(3)
+const HAIRLINE_POINTS = [
+  [HAIRLINE_WIDTH / 2, 0],
+  [HAIRLINE_WIDTH, HAIRLINE_HEIGHT * 0.25],
+  [HAIRLINE_WIDTH, HAIRLINE_HEIGHT * 0.75],
+  [HAIRLINE_WIDTH / 2, HAIRLINE_HEIGHT],
+  [0, HAIRLINE_HEIGHT * 0.75],
+  [0, HAIRLINE_HEIGHT * 0.25],
+]
+  .map(([x, y]) => `${x.toFixed(3)},${y.toFixed(3)}`)
+  .join(' ')
 
 function readNumber(element, name) {
   const raw = getComputedStyle(element).getPropertyValue(name).trim()
@@ -488,6 +500,15 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
             >
               <span className="hex-picker-body">
                 <span className="hex-picker-fill" style={{ background: `var(${cell.cssVar})` }} />
+                {cell.token === 'color.base.white' ? (
+                  <svg
+                    className="hex-picker-hairline"
+                    viewBox={`0 0 ${HAIRLINE_WIDTH} ${HAIRLINE_HEIGHT.toFixed(3)}`}
+                    aria-hidden="true"
+                  >
+                    <polygon points={HAIRLINE_POINTS} />
+                  </svg>
+                ) : null}
                 <span
                   className="hex-picker-motion"
                   data-selected-motion={cell.token === knownSelected ? '' : undefined}

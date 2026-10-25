@@ -198,6 +198,7 @@ test("placeholder motion values match the brief and are not tokens", async () =>
     "--hex-picker-radius": "80px",
     "--hex-picker-mark-size": "35%",
     "--hex-picker-scale-idle": "1.12",
+    "--hex-picker-white-hairline": "1px",
   };
   for (const [name, value] of Object.entries(expected)) {
     assert.match(css, new RegExp(`${name}:\\s*${value.replace(/[().]/g, "\\$&")};`));

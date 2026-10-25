@@ -22,6 +22,7 @@ const PLACEHOLDER_NAMES = [
   "--hex-picker-radius",
   "--hex-picker-mark-size",
   "--hex-picker-scale-idle",
+  "--hex-picker-white-hairline",
 ];
 
 function placeholderBody(source) {

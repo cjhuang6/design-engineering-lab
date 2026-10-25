@@ -55,6 +55,7 @@ Values that are not tokens yet are placeholders on the component, in one block c
 | `--hex-picker-radius` | 80px | Proximity |
 | `--hex-picker-mark-size` | 35% | Inner hexagon |
 | `--hex-picker-scale-idle` | 1.12 | Peak of the breath |
+| `--hex-picker-white-hairline` | 1px | Light-theme edge of the white center cell. Color is `--color-border-subtle` |
 
 Cell width uses `--size-control-md` (40px). The gap between cells uses `--space-1` (4px). The brief left target size unknown and said to use a size token that already exists. The tracking margin around the honeycomb uses `--space-6` (24px).
 

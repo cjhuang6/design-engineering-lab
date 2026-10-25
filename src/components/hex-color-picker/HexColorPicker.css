@@ -115,6 +115,10 @@ button.hex-picker-cell:focus-visible {
   inset: calc((100% - var(--hex-picker-mark-size)) / 2);
 }
 
+.hex-picker-cell[aria-checked='true'] .hex-picker-motion {
+  will-change: transform;
+}
+
 .hex-picker-mark {
   scale: 0;
   opacity: 0;
@@ -147,6 +151,10 @@ button.hex-picker-cell:focus-visible {
 
 .hex-picker-cell:focus-visible .hex-picker-focus {
   opacity: 1;
+}
+
+.hex-picker-grid[data-layer] .hex-picker-cell {
+  will-change: transform;
 }
 
 .hex-picker-grid[data-settling] .hex-picker-cell {

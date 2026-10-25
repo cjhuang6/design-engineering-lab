@@ -42,6 +42,17 @@ function reducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
+function scaleFromTransform(transform) {
+  if (!transform || transform === 'none') return 1
+  const open = transform.indexOf('(')
+  if (open < 0) return 1
+  const parts = transform.slice(open + 1, -1).split(',')
+  const a = Number.parseFloat(parts[0])
+  const b = Number.parseFloat(parts[1])
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 1
+  return Math.hypot(a, b)
+}
+
 function knownToken(token) {
   return CELLS.some((cell) => cell.token === token) ? token : null
 }
@@ -75,6 +86,7 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
   const pressedRef = useRef(null)
   const pokeRef = useRef(() => {})
   const animationRef = useRef(null)
+  const layerTimerRef = useRef(0)
   const hexRef = useRef(null)
   const [metrics, setMetrics] = useState(null)
   const [pressedToken, setPressedToken] = useState(null)
@@ -199,7 +211,11 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
     pokeRef.current()
     if (event.pointerType === 'touch' || reducedMotion()) return
     const grid = gridRef.current
-    if (!trackingRef.current && grid) grid.removeAttribute('data-settling')
+    window.clearTimeout(layerTimerRef.current)
+    if (!trackingRef.current && grid) {
+      grid.removeAttribute('data-settling')
+      grid.setAttribute('data-layer', '')
+    }
     trackingRef.current = true
     pointerRef.current = { x: event.clientX, y: event.clientY }
     recache()
@@ -209,8 +225,19 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
   function onPointerLeave(event) {
     if (event.pointerType === 'touch') return
     trackingRef.current = false
-    if (reducedMotion()) gridRef.current?.removeAttribute('data-settling')
-    else gridRef.current?.setAttribute('data-settling', '')
+    const grid = gridRef.current
+    if (reducedMotion()) {
+      window.clearTimeout(layerTimerRef.current)
+      grid?.removeAttribute('data-settling')
+      grid?.removeAttribute('data-layer')
+    } else if (grid) {
+      grid.setAttribute('data-settling', '')
+      const duration = rootRef.current ? readDuration(rootRef.current, '--duration-fast') : 0
+      window.clearTimeout(layerTimerRef.current)
+      layerTimerRef.current = window.setTimeout(() => {
+        if (!trackingRef.current) grid.removeAttribute('data-layer')
+      }, duration + 50)
+    }
     scheduleFrame()
   }
 
@@ -328,16 +355,48 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
     let timer = 0
     let animation = null
     let phase = 'off'
+    let wave = 0
 
-    function stop() {
+    function stop(mode = 'cancel') {
       window.clearTimeout(timer)
       timer = 0
-      if (animation) {
-        const current = animation
-        animation = null
-        animationRef.current = null
-        current.cancel()
-      }
+      wave += 1
+      const current = animation
+      if (!current) return Promise.resolve()
+      const target = current.effect?.target
+      const motion = target instanceof Element ? target : null
+      const active = current.playState === 'running' || current.playState === 'paused'
+      const from = motion ? getComputedStyle(motion).transform : 'none'
+      const ease = mode === 'ease' && motion && active && Math.abs(scaleFromTransform(from) - 1) > 0.001
+      if (ease) motion.style.transform = from
+      else if (motion) motion.style.transform = ''
+      animation = null
+      animationRef.current = null
+      current.cancel()
+      if (!ease) return Promise.resolve()
+      const easing = getComputedStyle(root).getPropertyValue('--ease-standard').trim()
+      const duration = readDuration(root, '--duration-normal')
+      const next = motion.animate(
+        [{ transform: from }, { transform: 'scale(1)' }],
+        {
+          duration: duration > 0 ? duration : 200,
+          easing: easing || 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards',
+        },
+      )
+      animation = next
+      animationRef.current = next
+      if (pressedRef.current) next.pause()
+      return next.finished.then(
+        () => {
+          if (animation !== next) return
+          motion.style.transform = ''
+          animation = null
+          animationRef.current = null
+          next.cancel()
+        },
+        () => {},
+      )
     }
 
     function loopsFor() {
@@ -358,6 +417,7 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
       const peak = readNumber(root, '--hex-picker-scale-idle')
       const easing = getComputedStyle(root).getPropertyValue('--hex-picker-ease-sine').trim()
       if (!motion || !(duration > 0) || !(peak > 0) || !easing) return
+      motion.style.transform = ''
       const next = motion.animate(
         [
           { transform: 'scale(1)', easing, offset: 0 },
@@ -382,13 +442,17 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
     }
 
     function schedule(delay) {
-      stop()
+      const handoff = stop('ease')
+      const ticket = wave
       if (media.matches) {
         phase = 'off'
         return
       }
       phase = 'waiting'
-      timer = window.setTimeout(start, delay)
+      handoff.then(() => {
+        if (ticket !== wave || phase !== 'waiting' || media.matches) return
+        timer = window.setTimeout(start, delay)
+      })
     }
 
     function poke() {
@@ -406,8 +470,10 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
     pokeRef.current = poke
     schedule(readDuration(root, '--hex-picker-duration-grow') + readDuration(root, '--hex-picker-delay-idle'))
     function onMedia() {
-      if (media.matches) stop()
-      else schedule(readDuration(root, '--hex-picker-delay-idle'))
+      if (media.matches) {
+        phase = 'off'
+        void stop('ease')
+      } else schedule(readDuration(root, '--hex-picker-delay-idle'))
     }
     media.addEventListener('change', onMedia)
     return () => {
@@ -432,7 +498,9 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
     function onMotionChange(event) {
       if (!event.matches) return
       trackingRef.current = false
+      window.clearTimeout(layerTimerRef.current)
       gridRef.current?.removeAttribute('data-settling')
+      gridRef.current?.removeAttribute('data-layer')
       for (const node of gridRef.current?.querySelectorAll('.hex-picker-cell') ?? []) {
         applyEffect(node, 0, 1, 0, selectedRef.current)
       }
@@ -452,6 +520,7 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
       window.removeEventListener('resize', recacheRect)
       window.removeEventListener('scroll', recacheRect, true)
       media.removeEventListener('change', onMotionChange)
+      window.clearTimeout(layerTimerRef.current)
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current)
     }
   }, [])

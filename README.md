@@ -1,6 +1,6 @@
 # Camellia
 
-Camellia is CJ Huang's personal design-engineering lab. It is a design system with one token file, in the Design Tokens Community Group (DTCG) format, as the single source of truth for both CSS and Figma. CJ is a product designer learning frontend. This repository is where that system is designed and built: the decisions, the checks, and the artifacts.
+Camellia is CJ Huang's personal design-engineering lab. It is a design system with one token file, in the Design Tokens Community Group (DTCG) format, as the single source of truth for both CSS and Figma.
 
 ## Pipeline
 

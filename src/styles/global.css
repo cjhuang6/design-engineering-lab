@@ -16,6 +16,7 @@ body {
 h1,
 h2,
 h3,
+h4,
 p,
 dl,
 dd {
@@ -33,6 +34,11 @@ h2 {
 }
 
 h3 {
+  font: var(--heading-sm);
+  letter-spacing: var(--heading-sm-letter-spacing);
+}
+
+h4 {
   font: var(--label-md);
   letter-spacing: var(--label-md-letter-spacing);
   color: var(--color-text-secondary);
@@ -90,10 +96,31 @@ button:focus-visible {
 
 .page-header-inner {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--layout-content-gap-sm);
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
   padding-block: var(--space-4);
+}
+
+.page-intro,
+.page-theme {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.page-intro {
+  align-items: flex-start;
+}
+
+.page-theme {
+  align-items: flex-end;
+}
+
+.page-intro {
+  flex: 1 1 auto;
+  min-width: min(100%, var(--size-content-sm));
 }
 
 .page {
@@ -126,6 +153,28 @@ button:focus-visible {
 
 .section {
   gap: var(--layout-content-gap-md);
+}
+
+.token-reference-summary {
+  width: fit-content;
+  cursor: pointer;
+  padding-block: var(--space-2);
+}
+
+.token-reference-summary h2 {
+  display: inline;
+}
+
+.token-reference-summary:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--space-1);
+}
+
+.token-reference-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-section-gap-md);
+  padding-top: var(--space-4);
 }
 
 .subgroup,

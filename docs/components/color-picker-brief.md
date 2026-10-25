@@ -1,6 +1,8 @@
 # Interaction brief: proximity hex color picker
 
-**Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. No component code in this repo yet. Building waits until Phase 2D and Phase 2E are merged and desktop-verified ([entry criteria](../components-roadmap.md#entry-criteria)).
+**Approved (CJ, 2026-10-23).** Direction B is the first Phase 3 component. The rest of Phase 3 still waits until Phase 2D and Phase 2E are merged and desktop-verified ([entry criteria](../components-roadmap.md#entry-criteria)).
+
+**In progress (CJ, 2026-10-24).** CJ approved building the picker now, in parallel with Phase 2D. The component is in the demo. Values that are not tokens yet are component-local placeholders. The decisions from 2026-10-23 are unchanged. The white-cell edge is recorded under [Palette](#palette).
 
 **Decided (CJ, 2026-10-23).** The interaction below comes from a throwaway prototype: a standalone HTML file outside this repo. That file is not part of the repository.
 
@@ -40,6 +42,19 @@ Also left out of the picker: alpha primitives, theme colors, frost, expression f
 
 `color.base.white` is the center cell. The cell fill is always the token. The hover darken is a brightness filter on top of that fill, not a new swatch.
 
+**Decided (CJ, 2026-10-25).** No resting border on any cell, except a light-theme-only hairline on the white center cell, so it does not read as a hole on the white card. The card stays `--color-surface-primary`. Dark theme has no hairline. No other cell has a border. The hairline is 1px, drawn on the cell so it scales with the cell on hover and press. The idle breath still scales only the inner mark. The width is the placeholder `--hex-picker-white-hairline`. The color is `--color-border-subtle`, the faintest semantic border in the light theme (ice 200). The proximity darken that turns white gray stays as it is.
+
+The first idea was to tint the card. **Observed (2026-10-25):** none of the current semantic surfaces gives white a clear edge and keeps the pale 100 cells distinct. Difference below is CIE76 ΔE in the light theme. About 2 is just noticeable. A clear edge is higher than that. Ice 100 is `#f1f5fc`.
+
+| Token | Light | ΔE vs white | ΔE vs ice 100 | Dark |
+|---|---|---|---|---|
+| `--color-surface-secondary` | ice 50 `#fafcff` | 2.0 | 3.3 | ice 900 |
+| `--color-surface-subtle` | ice 100 `#f1f5fc` | 5.2 | 0 | ice 950, the same as `surface-primary` |
+| `--color-surface-selected` | blue 50 `#f0f8ff` | 5.3 | 1.6 | blue 950 |
+| `--color-functional-surface` | green 50 `#ecfdf6` | 7.3 | 8.7 | 12% green, not a neutral |
+
+`--color-surface-secondary` is the only neutral that keeps ice 100 distinct, and the white edge is not clear. `--color-surface-subtle` gives white a clear edge and erases ice 100. `--color-surface-selected` is a selection color and nearly erases ice 100. `--color-functional-surface` is a green status surface. There is no sunken surface token. The hairline above is the decision that shipped instead of a tint.
+
 ## Layout
 
 **Decided (CJ, 2026-10-23).** One big hexagon. Pointy-top cells. The big shape is flat-top. Row lengths, top to bottom: 4, 5, 6, 7, 6, 5, 4 (37). Rows alternate by half a cell and overlap vertically, so the points nest.
@@ -61,7 +76,7 @@ Center plus three rings: 1 + 6 + 12 + 18 = 37. Each wedge has 9 cells, one per s
 
 Disabled is out of scope.
 
-- **Rest.** Token fill at scale 1. No border and no outline, pale cells included.
+- **Rest.** Token fill at scale 1. No border and no outline, except the white center cell in the light theme: a 1px hairline in `--color-border-subtle`. Dark theme has no hairline. See [Palette](#palette).
 - **Near / hover.** Pointer only. See Pointer. Radius 80px, scale up to 1.15, darken 0.12, smoothstep falloff. Still tunable.
 - **Press.** Scale 0.94 on pointerdown, or on Enter/Space keydown. `--duration-fast` and `--ease-standard`.
 - **Focus.** A focus ring, separate from the selection mark, using `--color-focus`.
@@ -132,6 +147,7 @@ Not created. Question 2 still decides where component tokens live. Hover values 
 | Hover radius | 80px | Proximity |
 | Mark size | 35% | Inner hexagon, relative to the cell |
 | Idle scale | 1.12 | Peak of the breath |
+| White hairline | 1px | Light-theme edge of the white center cell. Color is `color.border.subtle` |
 
 ## Out of scope
 

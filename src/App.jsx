@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HexColorPickerDemo } from './components/hex-color-picker/HexColorPicker.jsx'
 import tokensCss from './styles/tokens.css?raw'
 import { catalogFromCss, frostProperties, previewKind } from './parseTokenCss.js'
 
@@ -218,44 +219,60 @@ function App() {
     <>
       <header className="page-header">
         <div className="page-header-inner">
-          <h1>Camellia tokens</h1>
-          <p className="lede">
-            {tokenNames.length} custom properties read from the generated stylesheet. Swatches use
-            the active theme. Where light and dark differ, both source values are listed. The theme
-            change fades color unless the system asks for reduced motion.
-          </p>
-          <p className="meta">Showing {theme} theme.</p>
-          <button
-            type="button"
-            aria-pressed={theme === 'dark'}
-            onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? 'Use light theme' : 'Use dark theme'}
-          </button>
+          <div className="page-intro">
+            <h1>Camellia Design System</h1>
+            <p className="lede">
+              One token file drives CSS and Figma. This demo shows the tokens in use.
+            </p>
+          </div>
+          <div className="page-theme">
+            <p className="meta">Showing {theme} theme.</p>
+            <button
+              type="button"
+              aria-pressed={theme === 'dark'}
+              onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? 'Use light theme' : 'Use dark theme'}
+            </button>
+          </div>
         </div>
       </header>
       <main className="page">
-        {sections.map((section) => {
-          const note = sectionNote(section.id)
-          const showGroups = section.subgroups.length > 1
-          return (
-            <section key={section.id} className="section" aria-labelledby={`${section.id}-title`}>
-              <h2 id={`${section.id}-title`}>{section.title}</h2>
-              {note ? <p className="note">{note}</p> : null}
-              {section.subgroups.map((group) => (
-                <div key={group.id} className="subgroup">
-                  {showGroups ? <h3>{group.title}</h3> : null}
-                  {section.id === 'frost' ? <FrostPreview tokens={group.tokens} /> : null}
-                  <dl className="token-list">
-                    {group.tokens.map((token) => (
-                      <TokenRow key={token.name} token={token} tokens={group.tokens} computed={computed} />
+        <HexColorPickerDemo />
+        <section className="section" aria-labelledby="token-reference-title">
+          <details className="token-reference">
+            <summary className="token-reference-summary">
+              <h2 id="token-reference-title">Token reference</h2>
+            </summary>
+            <div className="token-reference-body">
+              <p className="note">
+                {tokenNames.length} custom properties from the generated stylesheet. Swatches use
+                the active theme. Where light and dark differ, both source values are listed.
+              </p>
+              {sections.map((section) => {
+                const note = sectionNote(section.id)
+                const showGroups = section.subgroups.length > 1
+                return (
+                  <section key={section.id} className="section" aria-labelledby={`${section.id}-title`}>
+                    <h3 id={`${section.id}-title`}>{section.title}</h3>
+                    {note ? <p className="note">{note}</p> : null}
+                    {section.subgroups.map((group) => (
+                      <div key={group.id} className="subgroup">
+                        {showGroups ? <h4>{group.title}</h4> : null}
+                        {section.id === 'frost' ? <FrostPreview tokens={group.tokens} /> : null}
+                        <dl className="token-list">
+                          {group.tokens.map((token) => (
+                            <TokenRow key={token.name} token={token} tokens={group.tokens} computed={computed} />
+                          ))}
+                        </dl>
+                      </div>
                     ))}
-                  </dl>
-                </div>
-              ))}
-            </section>
-          )
-        })}
+                  </section>
+                )
+              })}
+            </div>
+          </details>
+        </section>
       </main>
     </>
   )

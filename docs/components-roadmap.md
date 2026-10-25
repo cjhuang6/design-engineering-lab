@@ -1,6 +1,6 @@
 # Components & interactions
 
-Phase 3 of the project roadmap: components, with the weight on how they behave. Project-wide **current status** and the **next agreed task** live in [docs/roadmap.md](roadmap.md). This file does not restate them. The phase has not started.
+Phase 3 of the project roadmap: components, with the weight on how they behave. Project-wide **current status** and the **next agreed task** live in [docs/roadmap.md](roadmap.md). This file does not restate them. The color picker is in progress in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25). The rest of the phase has not started.
 
 Every entry is labelled:
 
@@ -37,7 +37,27 @@ What is merged and desktop-verified is [Current status](roadmap.md#current-statu
 
 The picker uses Camellia's color tokens only.
 
-The [entry criteria](#entry-criteria) above are unchanged. Building waits until Phase 2D and Phase 2E are merged and desktop-verified. **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
+**In progress (CJ, 2026-10-24).** CJ approved building this picker now, in parallel with Phase 2D. The React component is in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25), at `src/components/hex-color-picker/`. Phase 2D is still the next agreed task. The [entry criteria](#entry-criteria) still apply to the rest of Phase 3. **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
+
+Values that are not tokens yet are placeholders on the component, in one block commented `PLACEHOLDER - candidate token, see color-picker-brief.md`. They are not in the token JSON. Where component tokens live is still [question 2](#open-questions).
+
+| Placeholder | Value | Used for |
+|---|---|---|
+| `--hex-picker-duration-grow` | 200ms | Selection mark grow-in. May later map to `duration/normal` |
+| `--hex-picker-duration-idle` | 2400ms | One breath |
+| `--hex-picker-delay-idle` | 600ms | After grow-in, before the first breath |
+| `--hex-picker-duration-autostop` | 11000ms | Idle ends after the last interaction |
+| `--hex-picker-ease-overshoot` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Grow-in |
+| `--hex-picker-ease-sine` | `cubic-bezier(0.37, 0, 0.63, 1)` | Each half of a breath |
+| `--hex-picker-scale-press` | 0.94 | Press dip |
+| `--hex-picker-scale-hover` | 1.15 | Proximity |
+| `--hex-picker-darken` | 0.12 | Proximity |
+| `--hex-picker-radius` | 80px | Proximity |
+| `--hex-picker-mark-size` | 35% | Inner hexagon |
+| `--hex-picker-scale-idle` | 1.12 | Peak of the breath |
+| `--hex-picker-white-hairline` | 1px | Light-theme edge of the white center cell. Color is `--color-border-subtle` |
+
+Cell width uses `--size-control-md` (40px). The gap between cells uses `--space-1` (4px). The brief left target size unknown and said to use a size token that already exists. The tracking margin around the honeycomb uses `--space-6` (24px).
 
 The toggle stays on the [later list](#proposals), credited to daz.
 
@@ -49,7 +69,7 @@ One component per pull request. The pull request contains the four parts below, 
 
 **(b) Prototype in Figma and in code.** The Figma prototype and the code prototype are how the interaction is tried. Neither is a second source of truth for color, type, space, radius, or motion. Those come from the token file.
 
-**(c) Ship in the React demo, Camellia tokens only.** The component lands in the demo app and reads the generated custom properties. No hardcoded colors or one-off lengths. The demo guardrail already rejects those in `src/`.
+**(c) Ship in the React demo, Camellia tokens only.** The component lands in the demo app and reads the generated custom properties. No hardcoded colors or one-off lengths. The demo guardrail already rejects those in `src/`. The color picker's candidate values are the one exception: a labeled placeholder block on the component, until question 2 decides where component tokens live. The guardrail allows that block and still rejects hardcoded colors and one-off lengths everywhere else in `src/`.
 
 **(d) A short design-rationale note.** Why the component behaves this way, and which alternatives were rejected. The note is also case-study material: a reader should be able to learn the interaction decision from it without opening the code.
 
@@ -133,6 +153,6 @@ The approved working method includes a Figma prototype in the component pull req
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. Building still waits on the [entry criteria](#entry-criteria) |
-| 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist. The color picker brief lists candidate component tokens for hover, press, grow-in, and idle. They are not created yet. That list does not decide where those tokens live | **Approved (deferred, 2026-10-22).** Decide it with the first component. The location is still open then. It does not block starting Phase 3 | A component-token layer, until that first component |
+| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. **In progress:** draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25), in parallel with Phase 2D. The rest of Phase 3 still waits on the [entry criteria](#entry-criteria) |
+| 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false and excludes component tokens until the foundation is frozen. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). Putting component tokens in that file changes the canonical schema and needs CJ's approval. Until then, a component uses primitive and semantic tokens that already exist. The color picker brief lists candidate component tokens for hover, press, grow-in, and idle. They are not created yet. The picker ships them as component-local placeholders until this is decided. That list does not decide where those tokens live | **Approved (deferred, 2026-10-22).** Decide it with the first component. The location is still open then. It does not block starting Phase 3 | A component-token layer, until that first component |
 | 3 | **Figma component sync scope.** Whether each component is also a Figma component, whether the plugin syncs it, and whether Code Connect is in scope. The earlier pipeline note said Code Connect gets evaluated when components exist. That evaluation has not happened | Unknown | Figma component parity. It does not block the React demo |

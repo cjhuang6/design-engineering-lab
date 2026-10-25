@@ -70,8 +70,10 @@ The manifest menu is:
 - Sync Primitives
 - Sync Semantic — dry run
 - Sync Semantic
+- Sync Text Styles — dry run
+- Sync Text Styles
 
-Plugin tests run against an in-memory stand-in. A passing test is not a run inside Figma.
+`Sync Text Styles — dry run` writes nothing. `Sync Text Styles` creates or updates the 13 text styles. Plugin tests run against an in-memory stand-in. A passing test is not a run inside Figma.
 
 ## Repository
 

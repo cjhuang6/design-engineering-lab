@@ -5,8 +5,8 @@ A developer type-checks the Camellia Figma Sync plugin, runs its tests, and bund
 ## Sub-features
 
 - `plugin-typecheck` type-checks the plugin against the Figma typings.
-- `plugin-tests` runs 137 tests: the primitive, semantic, and text style plans built from the real JSON, and the primitive, semantic, and text style syncs against a fake Figma.
-- `plugin-bundle` writes `figma-plugin/dist/code.js` with the token JSON included. The primitives and semantic planners both read that JSON when a sync command runs.
+- `plugin-tests` runs 144 tests: the primitive, semantic, and text style plans built from the real JSON, the primitive, semantic, and text style syncs against a fake Figma, and the Text Style menu command's dry run and apply.
+- `plugin-bundle` writes `figma-plugin/dist/code.js` with the token JSON included. The primitives, semantic, and text style commands read that JSON when a sync command runs.
 - `plugin-gate` skips bundling when the type check or a test fails.
 
 ## How to get to it (user POV)
@@ -21,8 +21,8 @@ Preconditions:
 
 - Dependencies are installed.
 
-- **Full build.** Run `npm run figma:build`. The output includes `# tests 137`, `# pass 137` and `# fail 0`, then `figma-plugin/dist/code.js` at about 130 KB. Exit code `0`.
-- **Tests only.** Run `npm test`. `# pass 137`, `# fail 0`. Exit code `0`.
+- **Full build.** Run `npm run figma:build`. The output includes `# tests 144`, `# pass 144` and `# fail 0`, then `figma-plugin/dist/code.js` at about 153 KB. Exit code `0`.
+- **Tests only.** Run `npm test`. `# pass 144`, `# fail 0`. Exit code `0`.
 - **Gate holds.** Only when proving the gate: temporarily break one expected value in a test, run `npm run figma:build`, and confirm it fails without printing the `code.js` line. Revert the test and rebuild.
 
 ## Gotchas

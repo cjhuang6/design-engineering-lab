@@ -4,6 +4,7 @@ import { planPrimitives } from "./src/plan-primitives.ts";
 import { planSemantic } from "./src/plan-semantic.ts";
 import { syncPrimitives } from "./src/sync-primitives.ts";
 import { syncSemantic } from "./src/sync-semantic.ts";
+import { runTextStyleSync } from "./src/text-style-command.ts";
 import type { SyncReport } from "./src/sync-primitives.ts";
 import type { SemanticSyncReport } from "./src/sync-semantic.ts";
 
@@ -52,6 +53,10 @@ async function syncSemanticCommand(dryRun: boolean): Promise<string> {
   return toast(plan.collectionName, report);
 }
 
+async function syncTextStylesCommand(dryRun: boolean): Promise<string> {
+  return runTextStyleSync(tokens, dryRun);
+}
+
 function toast(collectionName: string, report: SyncReport | SemanticSyncReport): string {
   const would = report.dryRun ? "Would create" : "Created";
   const summary =
@@ -87,6 +92,8 @@ const commands: Record<string, () => Promise<string>> = {
   "sync-primitives": () => syncPrimitivesCommand(false),
   "sync-semantic-dry-run": () => syncSemanticCommand(true),
   "sync-semantic": () => syncSemanticCommand(false),
+  "sync-text-styles-dry-run": () => syncTextStylesCommand(true),
+  "sync-text-styles": () => syncTextStylesCommand(false),
 };
 
 const command = commands[figma.command] ?? inventory;

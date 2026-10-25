@@ -26,7 +26,7 @@ Preconditions:
 ## Gotchas
 
 - A successful build proves the app compiles, not that it renders correctly. There are no browser tests. The picker model tests do not move the pointer or run the idle timers.
-- `prefers-reduced-motion: reduce` leaves the picker still: no proximity, no press dip, and no breath. The selected mark appears in its final state.
+- `prefers-reduced-motion: reduce` leaves the picker still: no proximity, no press dip, and no breath. If a breath is in progress when reduced motion turns on, the mark eases back to rest over 200ms and then stays still. Otherwise the selected mark is already in its final state.
 - `dist/` is generated and ignored by Git.
 - The page reads names from `src/styles/tokens.css`. It does not edit that file.
 - The page loads Geist and Geist Mono, so the typography samples use those families even when they are not installed on the machine.

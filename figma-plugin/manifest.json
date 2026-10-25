@@ -15,6 +15,9 @@
     { "name": "Sync Primitives", "command": "sync-primitives" },
     { "separator": true },
     { "name": "Sync Semantic — dry run", "command": "sync-semantic-dry-run" },
-    { "name": "Sync Semantic", "command": "sync-semantic" }
+    { "name": "Sync Semantic", "command": "sync-semantic" },
+    { "separator": true },
+    { "name": "Sync Text Styles — dry run", "command": "sync-text-styles-dry-run" },
+    { "name": "Sync Text Styles", "command": "sync-text-styles" }
   ]
 }

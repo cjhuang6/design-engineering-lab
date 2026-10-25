@@ -57,7 +57,7 @@ npm run dev
 
 Vite prints the local URL. The page is a token reference: it reads the generated custom properties and paints each one (color, type, space, radius, shadow, and the other groups). A button sets `data-theme="dark"` so semantic colors follow the dark overrides. The page starts from the system's light or dark preference.
 
-The font tokens name Geist and Geist Mono. The demo does not load those font files, so the browser uses the next family in each stack.
+The font tokens name Geist and Geist Mono. The demo self-hosts those font files, so the page uses them even when the families are not installed.
 
 ## Figma plugin
 

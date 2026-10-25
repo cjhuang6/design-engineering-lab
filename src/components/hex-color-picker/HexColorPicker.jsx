@@ -10,6 +10,7 @@ import {
   pickMarkColor,
   placeCells,
   proximityFalloff,
+  proximityPaint,
 } from './model.js'
 import './HexColorPicker.css'
 
@@ -58,14 +59,23 @@ function knownToken(token) {
 }
 
 function applyEffect(node, effect, maxScale, darken, selected) {
-  node.style.transform = effect ? `scale(${(1 + (maxScale - 1) * effect).toFixed(4)})` : ''
+  const paint = proximityPaint(effect, maxScale, darken)
+  node.style.transform = paint.transform
   const fill = node.querySelector('.hex-picker-fill')
-  if (fill) fill.style.filter = effect && darken ? `brightness(${(1 - darken * effect).toFixed(4)})` : ''
+  if (fill) fill.style.filter = paint.filter
   const boost = node.dataset.token === selected ? 200 : 0
   node.style.zIndex = String(1 + Math.round(effect * 100) + boost)
 }
 
-export function HexColorPicker({ value, defaultValue = null, onChange, label = 'Camellia color' }) {
+export function HexColorPicker({
+  value,
+  defaultValue = null,
+  onChange,
+  label = 'Camellia color',
+  radius,
+  scaleHover,
+  darken,
+}) {
   const isControlled = value !== undefined
   const [uncontrolled, setUncontrolled] = useState(defaultValue)
   const selectedToken = isControlled ? value : uncontrolled
@@ -74,6 +84,7 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
   const rootRef = useRef(null)
   const gridRef = useRef(null)
   const effectsRef = useRef(new Map())
+  const lookRef = useRef('')
   const trackingRef = useRef(false)
   const pointerRef = useRef({ x: 0, y: 0 })
   const rectRef = useRef(null)
@@ -149,39 +160,47 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
     if (animation?.playState === 'paused') animation.play()
   }
 
+  function paintProximity() {
+    const root = rootRef.current
+    const cells = placedRef.current
+    const rect = rectRef.current
+    if (!root || !cells || !rect) return
+    if (reducedMotion()) {
+      trackingRef.current = false
+      for (const cell of cells) {
+        effectsRef.current.set(cell.token, 0)
+        const node = nodeFor(cell.token)
+        if (node) applyEffect(node, 0, 1, 0, selectedRef.current)
+      }
+      lookRef.current = ''
+      return
+    }
+    const radius = readNumber(root, '--hex-picker-radius')
+    const maxScale = readNumber(root, '--hex-picker-scale-hover')
+    const darken = readNumber(root, '--hex-picker-darken')
+    const lookKey = `${maxScale}:${darken}`
+    const localX = pointerRef.current.x - rect.left
+    const localY = pointerRef.current.y - rect.top
+    for (const cell of cells) {
+      let effect = 0
+      if (trackingRef.current) {
+        effect = proximityFalloff(Math.hypot(localX - cell.cx, localY - cell.cy), radius)
+      }
+      const previous = effectsRef.current.get(cell.token) ?? 0
+      const sameEffect = effect === previous || (effect && Math.abs(effect - previous) < 0.001)
+      if (sameEffect && lookRef.current === lookKey) continue
+      effectsRef.current.set(cell.token, effect)
+      const node = nodeFor(cell.token)
+      if (node) applyEffect(node, effect, maxScale, darken, selectedRef.current)
+    }
+    lookRef.current = lookKey
+  }
+
   function scheduleFrame() {
     if (rafRef.current) return
     rafRef.current = window.requestAnimationFrame(() => {
       rafRef.current = 0
-      const root = rootRef.current
-      const cells = placedRef.current
-      const rect = rectRef.current
-      if (!root || !cells || !rect) return
-      if (reducedMotion()) {
-        trackingRef.current = false
-        for (const cell of cells) {
-          effectsRef.current.set(cell.token, 0)
-          const node = nodeFor(cell.token)
-          if (node) applyEffect(node, 0, 1, 0, selectedRef.current)
-        }
-        return
-      }
-      const radius = readNumber(root, '--hex-picker-radius')
-      const maxScale = readNumber(root, '--hex-picker-scale-hover')
-      const darken = readNumber(root, '--hex-picker-darken')
-      const localX = pointerRef.current.x - rect.left
-      const localY = pointerRef.current.y - rect.top
-      for (const cell of cells) {
-        let effect = 0
-        if (trackingRef.current) {
-          effect = proximityFalloff(Math.hypot(localX - cell.cx, localY - cell.cy), radius)
-        }
-        const previous = effectsRef.current.get(cell.token) ?? 0
-        if (effect === previous || (effect && Math.abs(effect - previous) < 0.001)) continue
-        effectsRef.current.set(cell.token, effect)
-        const node = nodeFor(cell.token)
-        if (node) applyEffect(node, effect, maxScale, darken, selectedRef.current)
-      }
+      paintProximity()
     })
   }
 
@@ -342,8 +361,16 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
       const effect = reduced ? 0 : (effectsRef.current.get(cell.token) ?? 0)
       applyEffect(node, effect, maxScale, darken, knownSelected)
     }
-    if (hexRef.current && hexRef.current.textContent !== nextHex) hexRef.current.textContent = nextHex
+    if (hexRef.current) {
+      if (hexRef.current.textContent !== nextHex) hexRef.current.textContent = nextHex
+      if (hexRef.current.title !== nextHex) hexRef.current.title = nextHex
+    }
   }, [knownSelected, placed, metrics, focusToken])
+
+  useLayoutEffect(() => {
+    paintProximity()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reads the custom properties written for these controls
+  }, [radius, scaleHover, darken])
 
   useEffect(() => {
     const root = rootRef.current
@@ -526,11 +553,16 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
   }, [])
 
   const selectedCell = knownSelected ? placedByToken.get(knownSelected) : null
+  const tuningStyle = {}
+  if (radius != null) tuningStyle['--hex-picker-radius'] = `${radius}px`
+  if (scaleHover != null) tuningStyle['--hex-picker-scale-hover'] = String(scaleHover)
+  if (darken != null) tuningStyle['--hex-picker-darken'] = String(darken)
 
   return (
     <div
       className="hex-color-picker"
       ref={rootRef}
+      style={tuningStyle}
       onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
@@ -606,8 +638,14 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
           aria-hidden="true"
         />
         <div className="hex-picker-meta">
-          <p className="hex-picker-name">{selectedCell ? selectedCell.label : 'No color selected'}</p>
-          {selectedCell ? <code className="hex-picker-token">{selectedCell.token}</code> : null}
+          <p className="hex-picker-name" title={selectedCell ? selectedCell.label : 'No color selected'}>
+            {selectedCell ? selectedCell.label : 'No color selected'}
+          </p>
+          {selectedCell ? (
+            <code className="hex-picker-token" title={selectedCell.token}>
+              {selectedCell.token}
+            </code>
+          ) : null}
           <code className="hex-picker-hex" ref={hexRef} />
         </div>
       </div>
@@ -615,16 +653,107 @@ export function HexColorPicker({ value, defaultValue = null, onChange, label = '
   )
 }
 
+const RADIUS_DEFAULT = 80
+const SCALE_DEFAULT = 1.15
+const DARKEN_DEFAULT = 0
+const PICKER_DESCRIPTION =
+  "A honeycomb of Camellia's solid color tokens. Cells near the pointer grow as it passes, and the selected color breathes gently until you move on. Use the controls to tune how far the effect reaches, how much cells grow, and whether they darken."
+
+function controlFill(value, min, max) {
+  if (!(max > min)) return '0%'
+  const amount = (Number(value) - min) / (max - min)
+  return `${Math.min(1, Math.max(0, amount)) * 100}%`
+}
+
+function ControlSlider({ label, min, max, step, value, display, onChange }) {
+  const id = useId()
+  return (
+    <div className="hex-picker-slider">
+      <span className="hex-picker-slider-fill" style={{ width: controlFill(value, min, max) }} aria-hidden="true" />
+      <label className="hex-picker-slider-label" htmlFor={id}>
+        {label}
+      </label>
+      <span className="hex-picker-slider-value" aria-hidden="true">
+        {display}
+      </span>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        aria-valuetext={display}
+        onChange={(event) => onChange(event.target.valueAsNumber)}
+      />
+    </div>
+  )
+}
+
 export function HexColorPickerDemo() {
   const [value, setValue] = useState('color.primitive.blue.600')
+  const [radius, setRadius] = useState(RADIUS_DEFAULT)
+  const [scaleHover, setScaleHover] = useState(SCALE_DEFAULT)
+  const [darken, setDarken] = useState(DARKEN_DEFAULT)
+
+  function resetControls() {
+    setRadius(RADIUS_DEFAULT)
+    setScaleHover(SCALE_DEFAULT)
+    setDarken(DARKEN_DEFAULT)
+  }
+
   return (
     <section className="section" aria-labelledby="color-picker-title">
       <h2 id="color-picker-title">Color picker</h2>
-      <p className="note">
-        Cells near the pointer grow and darken. Choose a color with a click or the arrow keys.
-      </p>
-      <div className="hex-picker-demo">
-        <HexColorPicker value={value} onChange={setValue} />
+      <div className="hex-picker-detail">
+        <div className="hex-picker-stage">
+          <HexColorPicker
+            value={value}
+            onChange={setValue}
+            radius={radius}
+            scaleHover={scaleHover}
+            darken={darken}
+          />
+        </div>
+        <div className="hex-picker-panel">
+          <div className="hex-picker-panel-copy">
+            <h3>Hex color picker</h3>
+            <p className="note">{PICKER_DESCRIPTION}</p>
+          </div>
+          <div className="hex-picker-controls">
+            <h4>Controls</h4>
+            <ControlSlider
+              label="Radius"
+              min={40}
+              max={160}
+              step={1}
+              value={radius}
+              display={`${Math.round(radius)}px`}
+              onChange={setRadius}
+            />
+            <ControlSlider
+              label="Scale"
+              min={1}
+              max={1.4}
+              step={0.01}
+              value={scaleHover}
+              display={`${scaleHover.toFixed(2)}×`}
+              onChange={setScaleHover}
+            />
+            <ControlSlider
+              label="Darken"
+              min={0}
+              max={0.3}
+              step={0.01}
+              value={darken}
+              display={darken.toFixed(2)}
+              onChange={setDarken}
+            />
+          </div>
+          <button type="button" onClick={resetControls}>
+            Reset
+          </button>
+        </div>
       </div>
     </section>
   )

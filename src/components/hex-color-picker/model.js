@@ -163,6 +163,14 @@ export function proximityFalloff(distance, radius) {
   return smoothstep(1 - distance / radius);
 }
 
+export function proximityPaint(effect, maxScale, darken) {
+  if (!effect) return { transform: "", filter: "" };
+  return {
+    transform: `scale(${(1 + (maxScale - 1) * effect).toFixed(4)})`,
+    filter: darken ? `brightness(${(1 - darken * effect).toFixed(4)})` : "",
+  };
+}
+
 export function parseColor(input) {
   const value = String(input).trim();
   const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(value);

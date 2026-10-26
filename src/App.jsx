@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { HexColorPickerDemo } from './components/hex-color-picker/HexColorPicker.jsx'
+import { useEffect, useState } from 'react'
+import { Showcase } from './showcase/Showcase.jsx'
 import tokensCss from './styles/tokens.css?raw'
 import { catalogFromCss, frostProperties, previewKind } from './parseTokenCss.js'
 
@@ -203,11 +203,26 @@ function sectionNote(id) {
   return null
 }
 
+function readView() {
+  if (window.location.hash === '#tokens') return 'tokens'
+  if (window.location.hash === '#pipeline') return 'pipeline'
+  return 'blocks'
+}
+
 function App() {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   )
   const [computed, setComputed] = useState(() => readComputed(tokenNames))
+  const [view, setView] = useState(readView)
+
+  useEffect(() => {
+    function onHash() {
+      setView(readView())
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
   function applyTheme(next) {
     document.documentElement.dataset.theme = next
@@ -217,29 +232,65 @@ function App() {
 
   return (
     <>
-      <header className="page-header">
-        <div className="page-header-inner">
-          <div className="page-intro">
-            <h1>Camellia Design System</h1>
-            <p className="lede">
-              One token file drives CSS and Figma. This demo shows the tokens in use.
-            </p>
-          </div>
-          <div className="page-theme">
-            <p className="meta">Showing {theme} theme.</p>
-            <button
-              type="button"
-              aria-pressed={theme === 'dark'}
-              onClick={() => applyTheme(theme === 'dark' ? 'light' : 'dark')}
-            >
-              {theme === 'dark' ? 'Use light theme' : 'Use dark theme'}
-            </button>
-          </div>
+      <header className="showcase-bar">
+        <div className="showcase-bar-inner">
+          <nav aria-label="Primary">
+            <ul className="showcase-nav">
+              <li>
+                <a href="#blocks" aria-current={view === 'blocks' ? 'page' : undefined}>
+                  Blocks
+                </a>
+              </li>
+              <li>
+                <a href="#tokens" aria-current={view === 'tokens' ? 'page' : undefined}>
+                  Tokens
+                </a>
+              </li>
+              <li>
+                <a href="#pipeline" aria-current={view === 'pipeline' ? 'page' : undefined}>
+                  Pipeline
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </header>
-      <main className="page">
-        <HexColorPickerDemo />
-        <section className="section" aria-labelledby="token-reference-title">
+      {view === 'blocks' ? <Showcase /> : null}
+      {view === 'tokens' ? <TokenPage theme={theme} computed={computed} onTheme={applyTheme} /> : null}
+      {view === 'pipeline' ? <PipelinePage /> : null}
+    </>
+  )
+}
+
+function PipelinePage() {
+  return (
+    <main className="page">
+      <h1>Pipeline</h1>
+      <p className="note">A write-up of the token pipeline will live on this page.</p>
+    </main>
+  )
+}
+
+function TokenPage({ theme, computed, onTheme }) {
+  return (
+    <main className="page">
+      <div className="page-header-inner">
+        <div className="page-intro">
+          <h1>Camellia Design System</h1>
+          <p className="lede">One token file drives CSS and Figma. This demo shows the tokens in use.</p>
+        </div>
+        <div className="page-theme">
+          <p className="meta">Showing {theme} theme.</p>
+          <button
+            type="button"
+            aria-pressed={theme === 'dark'}
+            onClick={() => onTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? 'Use light theme' : 'Use dark theme'}
+          </button>
+        </div>
+      </div>
+      <section className="section" aria-labelledby="token-reference-title">
           <details className="token-reference">
             <summary className="token-reference-summary">
               <h2 id="token-reference-title">Token reference</h2>
@@ -273,8 +324,7 @@ function App() {
             </div>
           </details>
         </section>
-      </main>
-    </>
+    </main>
   )
 }
 

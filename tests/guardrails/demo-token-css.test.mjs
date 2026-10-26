@@ -8,7 +8,9 @@ import { catalogFromCss, parseTokenCss } from "../../src/parseTokenCss.js";
 const TOKEN_CSS = "src/styles/tokens.css";
 const DEMO_ROOT = "src";
 const PICKER_CSS = "src/components/hex-color-picker/HexColorPicker.css";
+const SHOWCASE_CSS = "src/showcase/showcase.css";
 const PLACEHOLDER_MARKER = "PLACEHOLDER - candidate token, see color-picker-brief.md";
+const SHOWCASE_MARKER = "PLACEHOLDER - showcase shell, no token fits";
 const PLACEHOLDER_NAMES = [
   "--hex-picker-duration-grow",
   "--hex-picker-duration-idle",
@@ -24,9 +26,17 @@ const PLACEHOLDER_NAMES = [
   "--hex-picker-scale-idle",
   "--hex-picker-white-hairline",
 ];
+const SHOWCASE_NAMES = [
+  "--showcase-masonry-row",
+  "--showcase-hit",
+  "--showcase-card-move",
+  "--showcase-panel-duration",
+  "--showcase-panel-scale-from",
+  "--showcase-close-rate",
+];
 
-function placeholderBody(source) {
-  const markerAt = source.indexOf(PLACEHOLDER_MARKER);
+function placeholderBody(source, marker = PLACEHOLDER_MARKER) {
+  const markerAt = source.indexOf(marker);
   if (markerAt < 0) return null;
   const open = source.lastIndexOf("{", markerAt);
   const close = source.indexOf("}", markerAt);
@@ -34,19 +44,19 @@ function placeholderBody(source) {
   return source.slice(open + 1, close);
 }
 
-function withoutPlaceholderBody(source) {
-  const body = placeholderBody(source);
+function withoutPlaceholderBody(source, marker = PLACEHOLDER_MARKER) {
+  const body = placeholderBody(source, marker);
   if (body == null) return source;
-  const markerAt = source.indexOf(PLACEHOLDER_MARKER);
+  const markerAt = source.indexOf(marker);
   const open = source.lastIndexOf("{", markerAt);
   const close = source.indexOf("}", markerAt);
   return `${source.slice(0, open + 1)}${source.slice(close)}`;
 }
 
-function placeholderNames(source) {
-  const body = placeholderBody(source);
+function placeholderNames(source, marker = PLACEHOLDER_MARKER) {
+  const body = placeholderBody(source, marker);
   if (body == null) return [];
-  return [...body.matchAll(/(--hex-picker-[\w-]+)\s*:/g)].map((match) => match[1]);
+  return [...body.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]);
 }
 
 const FORBIDDEN = [
@@ -77,7 +87,10 @@ test("demo source uses only custom properties defined in tokens.css", async () =
   const css = await readFile(TOKEN_CSS, "utf8");
   const defined = new Set(parseTokenCss(css).light.map((token) => token.name));
   assert.ok(defined.size > 0);
-  const placeholders = new Set(placeholderNames(await readFile(PICKER_CSS, "utf8")));
+  const placeholders = new Set([
+    ...placeholderNames(await readFile(PICKER_CSS, "utf8")),
+    ...placeholderNames(await readFile(SHOWCASE_CSS, "utf8"), SHOWCASE_MARKER),
+  ]);
   const files = await sourceFiles(DEMO_ROOT);
   assert.equal(files.some((path) => path.includes("ProfileCard")), false);
   assert.equal(existsSync("src/components/ProfileCard"), false);
@@ -98,6 +111,7 @@ test("demo source does not hardcode colors or absolute lengths", async () => {
   for (const path of files) {
     let source = await readFile(path, "utf8");
     if (path === PICKER_CSS) source = withoutPlaceholderBody(source);
+    if (path === SHOWCASE_CSS) source = withoutPlaceholderBody(source, SHOWCASE_MARKER);
     source = stripComments(source);
     for (const [name, pattern] of FORBIDDEN) {
       if (pattern.test(source)) problems.push(`${path} contains a ${name}`);
@@ -109,12 +123,29 @@ test("demo source does not hardcode colors or absolute lengths", async () => {
 test("hex picker placeholders are the only custom properties outside the token file", async () => {
   const files = await sourceFiles(DEMO_ROOT);
   const picker = await readFile(PICKER_CSS, "utf8");
+  const showcase = await readFile(SHOWCASE_CSS, "utf8");
   assert.equal(picker.split(PLACEHOLDER_MARKER).length - 1, 1);
+  assert.equal(showcase.split(SHOWCASE_MARKER).length - 1, 1);
+  assert.equal(picker.includes(SHOWCASE_MARKER), false);
+  assert.equal(showcase.includes(PLACEHOLDER_MARKER), false);
   for (const path of files) {
-    if (path === PICKER_CSS) continue;
+    if (path === PICKER_CSS || path === SHOWCASE_CSS) continue;
     const source = await readFile(path, "utf8");
     assert.equal(source.includes(PLACEHOLDER_MARKER), false, path);
+    assert.equal(source.includes(SHOWCASE_MARKER), false, path);
   }
+  const showcaseBody = placeholderBody(showcase, SHOWCASE_MARKER);
+  assert.ok(showcaseBody);
+  const showcaseDeclarations = showcaseBody
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("/*") && !line.startsWith("*"));
+  assert.deepEqual(
+    showcaseDeclarations.map((line) => line.slice(0, line.indexOf(":"))),
+    SHOWCASE_NAMES,
+  );
+  for (const line of showcaseDeclarations) assert.match(line, /^--showcase-[\w-]+:\s*[^;]+;$/);
+  assert.equal(showcaseBody.includes("#"), false);
   const body = placeholderBody(picker);
   assert.ok(body);
   const declarations = body

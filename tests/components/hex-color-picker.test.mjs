@@ -219,6 +219,7 @@ test("darken 0 paints growth without a brightness filter", () => {
 test("the card width follows the grid and the readout keeps its full text", async () => {
   const css = await readFile("src/components/hex-color-picker/HexColorPicker.css", "utf8");
   const source = await readFile("src/components/hex-color-picker/HexColorPicker.jsx", "utf8");
+  const shell = await readFile("src/showcase/blocks.jsx", "utf8");
   assert.match(css, /\.hex-picker-label,\s*\.hex-picker-readout\s*\{[^}]*width:\s*0;[^}]*min-width:\s*100%;/);
   assert.match(css, /text-overflow:\s*ellipsis;/);
   assert.match(css, /white-space:\s*nowrap;/);
@@ -233,12 +234,12 @@ test("the card width follows the grid and the readout keeps its full text", asyn
   assert.match(source, /max=\{1\.4\}/);
   assert.match(source, /max=\{0\.3\}/);
   assert.match(source, /step=\{0\.01\}/);
-  assert.match(source, /radius=\{radius\}/);
-  assert.match(source, /scaleHover=\{scaleHover\}/);
-  assert.match(source, /darken=\{darken\}/);
-  assert.match(source, /setRadius\(RADIUS_DEFAULT\)/);
-  assert.match(source, /setScaleHover\(SCALE_DEFAULT\)/);
-  assert.match(source, /setDarken\(DARKEN_DEFAULT\)/);
+  assert.match(shell, /radius=\{radius\}/);
+  assert.match(shell, /scaleHover=\{scaleHover\}/);
+  assert.match(shell, /darken=\{darken\}/);
+  assert.match(shell, /setRadius\(RADIUS_DEFAULT\)/);
+  assert.match(shell, /setScaleHover\(SCALE_DEFAULT\)/);
+  assert.match(shell, /setDarken\(DARKEN_DEFAULT\)/);
   assert.match(
     source,
     /A honeycomb of Camellia's solid color tokens\. Cells near the pointer grow as it passes, and the selected color breathes gently until you move on\. Use the controls to tune how far the effect reaches, how much cells grow, and whether they darken\./,

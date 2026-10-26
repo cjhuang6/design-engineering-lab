@@ -30,5 +30,5 @@ jobs:
         run: node scripts/docs/check-feature-map.mjs
       - name: Guardrail regression tests
         run: node --test tests/guardrails/*.test.mjs
-      - name: Test the hex color picker
+      - name: Test the demo components
         run: node --test tests/components/*.test.mjs

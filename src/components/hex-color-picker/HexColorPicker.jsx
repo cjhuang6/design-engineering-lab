@@ -653,10 +653,10 @@ export function HexColorPicker({
   )
 }
 
-const RADIUS_DEFAULT = 80
-const SCALE_DEFAULT = 1.15
-const DARKEN_DEFAULT = 0
-const PICKER_DESCRIPTION =
+export const RADIUS_DEFAULT = 80
+export const SCALE_DEFAULT = 1.15
+export const DARKEN_DEFAULT = 0
+export const PICKER_DESCRIPTION =
   "A honeycomb of Camellia's solid color tokens. Cells near the pointer grow as it passes, and the selected color breathes gently until you move on. Use the controls to tune how far the effect reaches, how much cells grow, and whether they darken."
 
 function controlFill(value, min, max) {
@@ -690,71 +690,42 @@ function ControlSlider({ label, min, max, step, value, display, onChange }) {
   )
 }
 
-export function HexColorPickerDemo() {
-  const [value, setValue] = useState('color.primitive.blue.600')
-  const [radius, setRadius] = useState(RADIUS_DEFAULT)
-  const [scaleHover, setScaleHover] = useState(SCALE_DEFAULT)
-  const [darken, setDarken] = useState(DARKEN_DEFAULT)
-
-  function resetControls() {
-    setRadius(RADIUS_DEFAULT)
-    setScaleHover(SCALE_DEFAULT)
-    setDarken(DARKEN_DEFAULT)
-  }
-
+export function HexPickerControls({ radius, scaleHover, darken, onRadius, onScale, onDarken, onReset }) {
   return (
-    <section className="section" aria-labelledby="color-picker-title">
-      <h2 id="color-picker-title">Color picker</h2>
-      <div className="hex-picker-detail">
-        <div className="hex-picker-stage">
-          <HexColorPicker
-            value={value}
-            onChange={setValue}
-            radius={radius}
-            scaleHover={scaleHover}
-            darken={darken}
-          />
-        </div>
-        <div className="hex-picker-panel">
-          <div className="hex-picker-panel-copy">
-            <h3>Hex color picker</h3>
-            <p className="note">{PICKER_DESCRIPTION}</p>
-          </div>
-          <div className="hex-picker-controls">
-            <h4>Controls</h4>
-            <ControlSlider
-              label="Radius"
-              min={40}
-              max={160}
-              step={1}
-              value={radius}
-              display={`${Math.round(radius)}px`}
-              onChange={setRadius}
-            />
-            <ControlSlider
-              label="Scale"
-              min={1}
-              max={1.4}
-              step={0.01}
-              value={scaleHover}
-              display={`${scaleHover.toFixed(2)}×`}
-              onChange={setScaleHover}
-            />
-            <ControlSlider
-              label="Darken"
-              min={0}
-              max={0.3}
-              step={0.01}
-              value={darken}
-              display={darken.toFixed(2)}
-              onChange={setDarken}
-            />
-          </div>
-          <button type="button" onClick={resetControls}>
-            Reset
-          </button>
-        </div>
+    <>
+      <div className="hex-picker-controls">
+        <h4>Controls</h4>
+        <ControlSlider
+          label="Radius"
+          min={40}
+          max={160}
+          step={1}
+          value={radius}
+          display={`${Math.round(radius)}px`}
+          onChange={onRadius}
+        />
+        <ControlSlider
+          label="Scale"
+          min={1}
+          max={1.4}
+          step={0.01}
+          value={scaleHover}
+          display={`${scaleHover.toFixed(2)}×`}
+          onChange={onScale}
+        />
+        <ControlSlider
+          label="Darken"
+          min={0}
+          max={0.3}
+          step={0.01}
+          value={darken}
+          display={darken.toFixed(2)}
+          onChange={onDarken}
+        />
       </div>
-    </section>
+      <button type="button" className="hex-picker-reset" onClick={onReset}>
+        Reset
+      </button>
+    </>
   )
 }

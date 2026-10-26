@@ -1,0 +1,297 @@
+:root {
+  /* PLACEHOLDER - showcase shell, no token fits */
+  --showcase-masonry-row: 1px;
+  --showcase-hit: 44px;
+  --showcase-card-move: 250ms;
+  --showcase-panel-duration: 150ms;
+  --showcase-panel-scale-from: 0.97;
+  --showcase-close-rate: 0.8;
+}
+
+.showcase-bar {
+  position: sticky;
+  top: var(--space-0);
+  z-index: var(--z-sticky);
+  background: var(--color-background-canvas);
+}
+
+.showcase-bar-inner,
+.showcase-main {
+  width: 100%;
+  max-width: var(--size-content-lg);
+  margin-inline: auto;
+  padding-inline: var(--layout-page-gutter-mobile);
+}
+
+.showcase-bar-inner {
+  padding-block: var(--space-6);
+}
+
+.showcase-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  list-style: none;
+}
+
+.showcase-nav a {
+  color: var(--color-text-primary);
+  font: var(--body-md);
+  letter-spacing: var(--body-md-letter-spacing);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.showcase-nav a:hover {
+  color: var(--color-action-primary);
+}
+
+.showcase-nav a:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--space-1);
+}
+
+.showcase-nav a[aria-current='page'] {
+  font-weight: var(--font-weight-medium);
+}
+
+.showcase-main {
+  padding-block: var(--layout-section-gap-md);
+}
+
+.showcase-sr,
+.showcase-card .hex-picker-label {
+  position: absolute;
+  width: var(--border-width-1);
+  height: var(--border-width-1);
+  margin: calc(var(--space-1) * -1);
+  padding: var(--space-0);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: var(--border-width-0);
+}
+
+.showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: var(--showcase-masonry-row);
+  column-gap: var(--space-6);
+  row-gap: var(--space-0);
+  align-items: start;
+}
+
+.showcase-slot {
+  position: relative;
+  min-width: var(--space-0);
+  grid-row-end: span 1;
+}
+
+.showcase-card {
+  position: relative;
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+  padding-top: var(--space-6);
+  padding-inline: var(--space-6);
+  padding-bottom: calc(var(--space-5) + var(--showcase-hit) + var(--space-3));
+  opacity: var(--opacity-full);
+  filter: none;
+  transition: none;
+}
+
+.showcase-slot > .showcase-card {
+  width: 100%;
+}
+
+.showcase-card[data-open] {
+  position: absolute;
+  z-index: var(--z-dropdown);
+  margin: var(--space-0);
+  overflow: hidden;
+  background-color: var(--color-surface-subtle);
+}
+
+.showcase-card-viewport {
+  display: grid;
+  place-items: center;
+  min-width: var(--space-0);
+}
+
+.showcase-card[data-open] .showcase-card-viewport {
+  height: 100%;
+}
+
+.showcase-card-fit {
+  width: max-content;
+  max-width: 100%;
+  transform-origin: center;
+}
+
+.showcase-card .hex-color-picker {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  padding: var(--space-0);
+  background-color: transparent;
+  border-style: none;
+  border-width: var(--border-width-0);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-none);
+}
+
+.showcase-actions {
+  position: absolute;
+  left: var(--space-6);
+  right: var(--space-6);
+  bottom: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: var(--space-0);
+  min-height: var(--showcase-hit);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+/* An author display value beats the user agent's [hidden] rule. */
+.showcase-actions[hidden] {
+  display: none;
+}
+
+.showcase-card:hover .showcase-actions,
+.showcase-card:focus-within .showcase-actions {
+  opacity: var(--opacity-full);
+  pointer-events: auto;
+}
+
+.showcase-name {
+  min-width: var(--space-0);
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+button.showcase-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--showcase-hit);
+  height: var(--showcase-hit);
+  min-height: var(--showcase-hit);
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border-width: var(--border-width-0);
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--color-icon-secondary);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+button.showcase-icon:hover,
+button.showcase-icon:active,
+button.showcase-icon:focus-visible {
+  background: none;
+  color: var(--color-icon-primary);
+}
+
+button.showcase-icon:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: calc(var(--border-width-2) * -1);
+}
+
+.showcase-icon svg {
+  display: block;
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+}
+
+.showcase-layer {
+  position: fixed;
+  inset: var(--space-0);
+  z-index: var(--z-modal);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.showcase-scrim {
+  position: absolute;
+  inset: var(--space-0);
+  background: color-mix(in srgb, var(--color-base-black) calc(var(--opacity-muted) * 100%), transparent);
+}
+
+.showcase-stage {
+  position: relative;
+  z-index: var(--z-raised);
+  min-height: 100%;
+}
+
+.showcase-panel {
+  position: absolute;
+  z-index: var(--z-raised);
+  overflow: hidden;
+  background-color: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+  transform-origin: center;
+}
+
+.showcase-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  height: 100%;
+  min-height: var(--space-0);
+  overflow: auto;
+  padding: var(--space-6);
+}
+
+.showcase-panel-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: var(--space-0);
+}
+
+.showcase-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.showcase-panel h2 {
+  min-width: var(--space-0);
+  border-radius: var(--radius-sm);
+}
+
+.showcase-panel h2:focus {
+  outline: none;
+}
+
+.showcase-panel h2:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--space-1);
+}
+
+@media (hover: none) {
+  .showcase-actions {
+    opacity: var(--opacity-full);
+    pointer-events: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-actions,
+  button.showcase-icon {
+    transition: none;
+  }
+}

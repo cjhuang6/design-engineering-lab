@@ -55,7 +55,7 @@ npm ci
 npm run dev
 ```
 
-Vite prints the local URL. The page is a token reference: it reads the generated custom properties and paints each one (color, type, space, radius, shadow, and the other groups). A button sets `data-theme="dark"` so semantic colors follow the dark overrides. The page starts from the system's light or dark preference.
+Vite prints the local URL. The page opens on Blocks, a masonry of components. The hex color picker is the first block. Hover or focus a card to see its name and the button that opens its details. Tokens lists the generated custom properties (color, type, space, radius, shadow, and the other groups), and a button there sets `data-theme="dark"` so semantic colors follow the dark overrides. Pipeline is a short placeholder page. Text links at the top switch among the three. The page starts from the system's light or dark preference.
 
 The font tokens name Geist and Geist Mono. The demo self-hosts those font files, so the page uses them even when the families are not installed.
 

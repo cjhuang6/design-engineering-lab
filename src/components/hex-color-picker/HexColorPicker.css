@@ -8,7 +8,7 @@
   --hex-picker-ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
   --hex-picker-scale-press: 0.94;
   --hex-picker-scale-hover: 1.15;
-  --hex-picker-darken: 0.12;
+  --hex-picker-darken: 0;
   --hex-picker-radius: 80px;
   --hex-picker-mark-size: 35%;
   --hex-picker-scale-idle: 1.12;
@@ -23,6 +23,11 @@
   width: fit-content;
   max-width: 100%;
   padding: var(--space-6);
+  padding-inline: clamp(
+    var(--space-2),
+    calc(100cqi - var(--size-content-sm) + var(--space-6)),
+    var(--space-6)
+  );
   background: var(--color-surface-primary);
   border: var(--border-subtle);
   border-radius: var(--radius-xl);
@@ -30,7 +35,16 @@
   touch-action: manipulation;
 }
 
+.hex-picker-label,
+.hex-picker-readout {
+  width: 0;
+  min-width: 100%;
+}
+
 .hex-picker-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font: var(--label-md);
   letter-spacing: var(--label-md-letter-spacing);
   color: var(--color-text-secondary);
@@ -169,6 +183,7 @@ button.hex-picker-cell:focus-visible {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  overflow: hidden;
   padding: var(--space-4);
   border: var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -179,6 +194,15 @@ button.hex-picker-cell:focus-visible {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
+}
+
+.hex-picker-name,
+.hex-picker-token,
+.hex-picker-hex {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hex-picker-name {
@@ -196,9 +220,128 @@ button.hex-picker-cell:focus-visible {
   color: var(--color-text-tertiary);
 }
 
-.hex-picker-demo {
+.hex-picker-detail {
+  container-type: inline-size;
   display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--layout-content-gap-md);
+  width: 100%;
+  min-width: 0;
+}
+
+.hex-picker-stage {
+  display: flex;
+  flex: 3 1 0;
+  align-items: center;
   justify-content: center;
+  min-width: min(100%, calc(var(--size-content-sm) * 0.55));
+  padding-block: var(--space-8);
+  padding-inline: clamp(
+    var(--space-1),
+    calc(100cqi - var(--size-content-sm) + var(--space-8)),
+    var(--space-8)
+  );
+  border-radius: var(--radius-xl);
+  background: var(--color-primitive-ice-800);
+}
+
+.hex-picker-panel {
+  display: flex;
+  flex: 2 1 0;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: min(100%, calc(var(--size-content-sm) * 0.36));
+  padding: var(--space-6);
+  border: var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.hex-picker-panel-copy,
+.hex-picker-controls {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hex-picker-panel-copy {
+  gap: var(--space-2);
+}
+
+.hex-picker-controls {
+  gap: var(--space-3);
+}
+
+.hex-picker-panel > button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.hex-picker-slider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: var(--size-control-sm);
+  overflow: hidden;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-subtle);
+}
+
+.hex-picker-slider-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--color-surface-primary);
+}
+
+.hex-picker-slider-label,
+.hex-picker-slider-value {
+  position: relative;
+  z-index: var(--z-raised);
+  pointer-events: none;
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+}
+
+.hex-picker-slider-label {
+  color: var(--color-text-secondary);
+}
+
+.hex-picker-slider-value {
+  color: var(--color-text-primary);
+}
+
+.hex-picker-slider input {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-raised);
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+}
+
+.hex-picker-slider input:focus {
+  outline: none;
+}
+
+.hex-picker-slider:has(:focus-visible) {
+  outline: var(--border-focus);
+  outline-offset: var(--space-1);
+}
+
+[data-theme='dark'] .hex-picker-slider {
+  background: var(--color-primitive-ice-900);
+}
+
+[data-theme='dark'] .hex-picker-slider-fill {
+  background: var(--color-primitive-ice-700);
 }
 
 @media (prefers-reduced-motion: reduce) {

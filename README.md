@@ -37,7 +37,7 @@ The Figma plugin bundles the same JSON. A dry run reports what would change and 
 
 The first component is a proximity hex color picker: a honeycomb of Camellia color tokens. The interaction was tried in a throwaway HTML prototype outside this repo, then written down before implementation. The record is the [interaction brief](docs/components/color-picker-brief.md).
 
-- **Proximity.** Cells near the pointer grow and darken together, stronger when they are closer. In the brief that is scale 1.15 and a 0.12 darken inside 80px, still marked as tunable.
+- **Proximity.** Cells near the pointer grow together, stronger when they are closer. The demo starts at scale 1.15 inside 80px, with darken off. Radius, scale, and darken are tuned from the controls beside the picker.
 - **Press.** Pointer down, or Enter or Space, dips the cell to scale 0.94.
 - **Selection.** An inner hexagon grows from the center on an overshoot curve. The mark is white or ice 900, whichever has more contrast with the cell.
 - **Idle.** The mark breathes on a sine ease-in-out, then finishes the current breath and stops about 11 seconds after the last interaction. That auto-stop is how the motion meets WCAG 2.2.2 Pause, Stop, Hide.

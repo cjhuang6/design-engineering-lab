@@ -13,6 +13,7 @@ import {
   pickMarkColor,
   placeCells,
   proximityFalloff,
+  proximityPaint,
   relativeLuminance,
 } from "../../src/components/hex-color-picker/model.js";
 
@@ -183,7 +184,7 @@ test("proximity falloff is a smoothstep that is full at the pointer and gone at 
   }
 });
 
-test("placeholder motion values match the brief and are not tokens", async () => {
+test("placeholder values are the component defaults and are not tokens", async () => {
   const css = await readFile("src/components/hex-color-picker/HexColorPicker.css", "utf8");
   const expected = {
     "--hex-picker-duration-grow": "200ms",
@@ -194,7 +195,7 @@ test("placeholder motion values match the brief and are not tokens", async () =>
     "--hex-picker-ease-sine": "cubic-bezier(0.37, 0, 0.63, 1)",
     "--hex-picker-scale-press": "0.94",
     "--hex-picker-scale-hover": "1.15",
-    "--hex-picker-darken": "0.12",
+    "--hex-picker-darken": "0",
     "--hex-picker-radius": "80px",
     "--hex-picker-mark-size": "35%",
     "--hex-picker-scale-idle": "1.12",
@@ -205,6 +206,44 @@ test("placeholder motion values match the brief and are not tokens", async () =>
   }
   const tokens = await readFile("src/styles/tokens.css", "utf8");
   assert.equal(tokens.includes("--hex-picker-"), false);
+});
+
+test("darken 0 paints growth without a brightness filter", () => {
+  assert.deepEqual(proximityPaint(1, 1.15, 0), { transform: "scale(1.1500)", filter: "" });
+  assert.deepEqual(proximityPaint(0, 1.15, 0.3), { transform: "", filter: "" });
+  assert.equal(proximityPaint(1, 1.15, 0.12).filter, "brightness(0.8800)");
+  assert.equal(proximityPaint(0.5, 1.4, 0.3).transform, "scale(1.2000)");
+  assert.equal(proximityPaint(0.5, 1.4, 0.3).filter, "brightness(0.8500)");
+});
+
+test("the card width follows the grid and the readout keeps its full text", async () => {
+  const css = await readFile("src/components/hex-color-picker/HexColorPicker.css", "utf8");
+  const source = await readFile("src/components/hex-color-picker/HexColorPicker.jsx", "utf8");
+  assert.match(css, /\.hex-picker-label,\s*\.hex-picker-readout\s*\{[^}]*width:\s*0;[^}]*min-width:\s*100%;/);
+  assert.match(css, /text-overflow:\s*ellipsis;/);
+  assert.match(css, /white-space:\s*nowrap;/);
+  assert.match(source, /title=\{selectedCell \? selectedCell\.label : 'No color selected'\}/);
+  assert.match(source, /title=\{selectedCell\.token\}/);
+  assert.match(source, /hexRef\.current\.title = nextHex/);
+  assert.match(source, /const RADIUS_DEFAULT = 80/);
+  assert.match(source, /const SCALE_DEFAULT = 1\.15/);
+  assert.match(source, /const DARKEN_DEFAULT = 0/);
+  assert.match(source, /min=\{40\}/);
+  assert.match(source, /max=\{160\}/);
+  assert.match(source, /max=\{1\.4\}/);
+  assert.match(source, /max=\{0\.3\}/);
+  assert.match(source, /step=\{0\.01\}/);
+  assert.match(source, /radius=\{radius\}/);
+  assert.match(source, /scaleHover=\{scaleHover\}/);
+  assert.match(source, /darken=\{darken\}/);
+  assert.match(source, /setRadius\(RADIUS_DEFAULT\)/);
+  assert.match(source, /setScaleHover\(SCALE_DEFAULT\)/);
+  assert.match(source, /setDarken\(DARKEN_DEFAULT\)/);
+  assert.match(
+    source,
+    /A honeycomb of Camellia's solid color tokens\. Cells near the pointer grow as it passes, and the selected color breathes gently until you move on\. Use the controls to tune how far the effect reaches, how much cells grow, and whether they darken\./,
+  );
+  assert.equal(source.includes("grow and darken"), false);
 });
 
 test("the inner mark picks whichever of white or ice 900 has more contrast", async () => {

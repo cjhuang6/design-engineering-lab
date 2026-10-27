@@ -137,6 +137,7 @@ export function HexColorPicker({
     memoryRef.current = { colX: null, colId: null }
     setFocusToken(token)
     focusRef.current = token
+    nodeFor(token)?.focus({ preventScroll: true })
     if (token === selectedRef.current) return
     if (!isControlled) {
       selectedRef.current = token
@@ -180,8 +181,14 @@ export function HexColorPicker({
     const maxScale = readNumber(root, '--hex-picker-scale-hover')
     const darken = readNumber(root, '--hex-picker-darken')
     const lookKey = `${maxScale}:${darken}`
-    const localX = pointerRef.current.x - rect.left
-    const localY = pointerRef.current.y - rect.top
+    let localX = 0
+    let localY = 0
+    if (trackingRef.current) {
+      const local = layoutPoint(pointerRef.current.x, pointerRef.current.y)
+      if (!local) return
+      localX = local.x
+      localY = local.y
+    }
     for (const cell of cells) {
       let effect = 0
       if (trackingRef.current) {
@@ -210,13 +217,27 @@ export function HexColorPicker({
     if (grid) rectRef.current = grid.getBoundingClientRect()
   }
 
+  function layoutPoint(clientX, clientY) {
+    const rect = rectRef.current
+    const size = metricsRef.current
+    if (!rect || !size || !(size.gridWidth > 0) || !(size.gridHeight > 0)) return null
+    const scaleX = rect.width / size.gridWidth
+    const scaleY = rect.height / size.gridHeight
+    if (!(scaleX > 0) || !(scaleY > 0)) return null
+    return {
+      x: (clientX - rect.left) / scaleX,
+      y: (clientY - rect.top) / scaleY,
+    }
+  }
+
   function hitTest(event) {
     const current = placedRef.current
     const size = metricsRef.current
     if (!current || !size) return null
     recache()
-    const rect = rectRef.current
-    return cellAtPoint(current, event.clientX - rect.left, event.clientY - rect.top, size.height)
+    const local = layoutPoint(event.clientX, event.clientY)
+    if (!local) return null
+    return cellAtPoint(current, local.x, local.y, size.height)
   }
 
   function ignoredTarget(event) {

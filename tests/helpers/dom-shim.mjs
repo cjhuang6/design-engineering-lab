@@ -53,6 +53,7 @@ function boxFor(element) {
   if (cls.includes('showcase-card')) return { x: 120, y: 160, w: 340, h: 460 }
   if (cls.includes('showcase-slot') || cls.includes('showcase-grid')) return { x: 80, y: 120, w: 1100, h: 460 }
   if (cls.includes('showcase-panel')) return { x: 720, y: 160, w: 320, h: 460 }
+  if (cls.includes('hex-picker-cell')) return { x: 0, y: 0, w: 40, h: 46 }
   return { x: 0, y: 0, w: 120, h: 40 }
 }
 

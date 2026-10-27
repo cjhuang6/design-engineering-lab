@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useHexBlock } from './blocks.jsx'
+import { useHexBlock, useSlotCodeBlock } from './blocks.jsx'
 import {
   closeMotion,
   expandedFrame,
@@ -234,7 +234,8 @@ function Slot({ block, reserved, onBeforeMeasure, onOpen }) {
 
 export function Showcase({ blocks: blocksProp }) {
   const hex = useHexBlock()
-  const blocks = blocksProp ?? [hex]
+  const slotCode = useSlotCodeBlock()
+  const blocks = blocksProp ?? [hex, slotCode]
   const [session, setSession] = useState(null)
   const pendingClose = useRef(false)
   const returnFocusId = useRef(null)
@@ -557,7 +558,7 @@ export function Showcase({ blocks: blocksProp }) {
       if (target && typeof target.closest === 'function') {
         const list = target.closest('[data-showcase-scroll]')
         if (list && list.scrollHeight > list.clientHeight + 1) return
-        if (target.closest('.hex-picker-slider')) return
+        if (target.closest('.hex-picker-slider, .showcase-slider')) return
       }
       event.preventDefault()
     }

@@ -286,10 +286,10 @@ test("shell motion reads tokens, and the card surface is not a placeholder", asy
   );
 });
 
-test("the shipped catalog is the hex color picker and nothing else", () => {
+test("the shipped catalog lists the hex color picker, then the security code", () => {
   assert.deepEqual(
     SHOWCASE_BLOCKS.map((block) => block.name),
-    ["Hex color picker"],
+    ["Hex color picker", "Security code"],
   );
 });
 

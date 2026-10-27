@@ -7,7 +7,10 @@ import {
   RADIUS_DEFAULT,
   SCALE_DEFAULT,
 } from '../components/hex-color-picker/HexColorPicker.jsx'
+import { COUNTDOWN_DEFAULT } from '../components/slot-code/model.js'
+import { SLOT_CODE_DESCRIPTION, SlotCode } from '../components/slot-code/SlotCode.jsx'
 import { showcaseBlock } from './catalog.js'
+import { SlotCodeControls } from './slot-controls.jsx'
 
 const INITIAL_COLOR = 'color.primitive.blue.600'
 
@@ -45,6 +48,33 @@ export function useHexBlock() {
         onRadius={setRadius}
         onScale={setScaleHover}
         onDarken={setDarken}
+        onReset={reset}
+      />
+    ),
+  }
+}
+
+export function useSlotCodeBlock() {
+  const entry = showcaseBlock('slot-code')
+  const [fillStyle, setFillStyle] = useState('retro')
+  const [countdown, setCountdown] = useState(COUNTDOWN_DEFAULT)
+
+  function reset() {
+    setFillStyle('retro')
+    setCountdown(COUNTDOWN_DEFAULT)
+  }
+
+  return {
+    id: entry.id,
+    name: entry.name,
+    description: SLOT_CODE_DESCRIPTION,
+    content: <SlotCode fillStyle={fillStyle} countdownSeconds={countdown} />,
+    controls: (
+      <SlotCodeControls
+        fillStyle={fillStyle}
+        countdown={countdown}
+        onFillStyle={setFillStyle}
+        onCountdown={setCountdown}
         onReset={reset}
       />
     ),

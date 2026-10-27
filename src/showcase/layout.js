@@ -59,20 +59,30 @@ export function columnCount(available, gap, minWidth, maxColumns = MAX_COLUMNS) 
   return Math.max(1, Math.min(maxColumns, columns))
 }
 
-export function feedColumnPlan(available, gap, naturalWidth, maxColumns = MAX_COLUMNS, minScale = MIN_FEED_SCALE) {
-  if (!(available > 0) || !(naturalWidth > 0)) return { columns: 1, scale: 1 }
-  const limit = Math.max(1, maxColumns)
+function feedFit(available, gap, naturalWidth, columns, padding) {
+  const track = (available - gap * (columns - 1)) / columns
+  const inner = track - padding * 2
+  if (!(inner > 0)) return { scale: 0, padding }
+  return { scale: Math.min(1, inner / naturalWidth), padding }
+}
+
+export function feedColumnPlan(available, gap, naturalWidth, options = {}) {
+  const roomy = options.padding ?? 0
+  const tight = options.tightPadding ?? roomy
+  if (!(available > 0) || !(naturalWidth > 0)) return { columns: 1, scale: 1, padding: roomy }
+  const limit = Math.max(1, options.maxColumns ?? MAX_COLUMNS)
+  const minScale = options.minScale ?? MIN_FEED_SCALE
   for (let columns = limit; columns >= 1; columns -= 1) {
-    const track = (available - gap * (columns - 1)) / columns
-    const scale = Math.min(1, track / naturalWidth)
-    if (columns === 1 || scale >= minScale - 1e-9) return { columns, scale }
+    let fit = feedFit(available, gap, naturalWidth, columns, roomy)
+    if (fit.scale < 1 && tight < roomy) fit = feedFit(available, gap, naturalWidth, columns, tight)
+    if (columns === 1 || fit.scale >= minScale - 1e-9) return { columns, scale: fit.scale, padding: fit.padding }
   }
-  return { columns: 1, scale: 1 }
+  return { columns: 1, scale: 1, padding: roomy }
 }
 
 export function feedColumnCount(viewportWidth, breakpoint, available, gap, naturalWidth, maxColumns = MAX_COLUMNS) {
   if (isMobileWidth(viewportWidth, breakpoint)) return 1
-  return feedColumnPlan(available, gap, naturalWidth, maxColumns).columns
+  return feedColumnPlan(available, gap, naturalWidth, { maxColumns }).columns
 }
 
 export function masonrySpan(height, gap, row = 1) {

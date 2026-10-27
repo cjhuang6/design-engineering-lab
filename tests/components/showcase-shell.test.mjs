@@ -148,16 +148,33 @@ test("columns and masonry spans follow the available width", () => {
   assert.equal(feedColumnCount(640, 640, 608, 24, 128), 3);
   assert.equal(MIN_FEED_SCALE, 0.75);
   const content = 304;
-  assert.deepEqual(feedColumnPlan(712, 24, content), { columns: 2, scale: 1 });
-  const tablet = feedColumnPlan(788, 24, content);
-  assert.equal(tablet.columns, 3);
-  assert.ok(Math.abs(tablet.scale - (788 - 48) / 3 / content) < 1e-9);
-  assert.ok(tablet.scale >= MIN_FEED_SCALE);
-  assert.deepEqual(feedColumnPlan(992, 24, content), { columns: 3, scale: 1 });
-  assert.deepEqual(feedColumnPlan(1148, 24, content), { columns: 3, scale: 1 });
-  assert.deepEqual(feedColumnPlan(1168, 24, content), { columns: 3, scale: 1 });
-  assert.deepEqual(feedColumnPlan(400, 24, content), { columns: 1, scale: 1 });
-  assert.deepEqual(feedColumnPlan(0, 24, content), { columns: 1, scale: 1 });
+  const gap = 24;
+  const roomy = 24;
+  const tight = 16;
+  const paddingBox = (available, columns, padding) => (available - gap * (columns - 1)) / columns - padding * 2;
+  const fitted = [
+    { available: 712, columns: 2, padding: tight, scale: 1 },
+    { available: 788, columns: 2, padding: roomy, scale: 1 },
+    { available: 992, columns: 3, padding: tight, scale: paddingBox(992, 3, tight) / content },
+    { available: 1148, columns: 3, padding: roomy, scale: 1 },
+    { available: 1168, columns: 3, padding: roomy, scale: 1 },
+  ];
+  for (const item of fitted) {
+    const plan = feedColumnPlan(item.available, gap, content, { padding: roomy, tightPadding: tight });
+    assert.deepEqual(
+      { columns: plan.columns, padding: plan.padding, scale: Math.round(plan.scale * 1e9) / 1e9 },
+      { columns: item.columns, padding: item.padding, scale: Math.round(item.scale * 1e9) / 1e9 },
+    );
+    const inner = paddingBox(item.available, plan.columns, plan.padding);
+    const visual = content * plan.scale;
+    assert.ok(visual <= inner + 1e-6);
+    assert.ok(plan.padding > 0 && visual < (item.available - gap * (plan.columns - 1)) / plan.columns);
+    assert.ok(plan.scale >= MIN_FEED_SCALE - 1e-9);
+  }
+  assert.ok(paddingBox(788, 3, tight) / content < MIN_FEED_SCALE);
+  assert.ok(content <= 358 - tight * 2);
+  assert.deepEqual(feedColumnPlan(400, 24, content), { columns: 1, scale: 1, padding: 0 });
+  assert.deepEqual(feedColumnPlan(0, 24, content), { columns: 1, scale: 1, padding: 0 });
   assert.equal(isMobileWidth(639, 640), true);
   assert.equal(isMobileWidth(640, 640), false);
   assert.equal(masonrySpan(460, 24, 1), 484);
@@ -369,6 +386,62 @@ test("Escape, the scrim, and Close dismiss the dialog and return focus", async (
     assert.equal(document.activeElement, trigger());
   } finally {
     await view.unmount();
+  }
+});
+
+test("every feed card's content stays inside the card padding", async () => {
+  const previous = rememberViewport();
+  globalThis.__showcaseFitWidth = 304;
+  const css = await readFile(join(ROOT, "src/showcase/showcase.css"), "utf8");
+  assert.match(css, /\.showcase-card\[data-feed-pad='tight'\] \{\s*padding-inline: var\(--space-4\);/);
+  assert.match(
+    css,
+    /\.showcase-card\[data-feed-pad='tight'\] \.showcase-actions \{[^}]*left: var\(--space-4\);[^}]*right: var\(--space-4\);/,
+  );
+  const blocks = [sampleBlock(), { ...sampleBlock(), id: "other", name: "Other block" }];
+  const expected = {
+    390: { columns: 1, padding: 16, scaled: false },
+    744: { columns: 2, padding: 16, scaled: false },
+    820: { columns: 2, padding: 24, scaled: false },
+    1024: { columns: 3, padding: 16, scaled: true },
+    1180: { columns: 3, padding: 24, scaled: false },
+    1280: { columns: 3, padding: 24, scaled: false },
+    1440: { columns: 3, padding: 24, scaled: false },
+  };
+  try {
+    for (const [width, want] of Object.entries(expected)) {
+      window.innerWidth = Number(width);
+      const view = await mount(blocks);
+      try {
+        const grid = document.querySelector(".showcase-grid");
+        const columns = Number(grid.style.gridTemplateColumns.match(/repeat\((\d+)/)[1]);
+        assert.equal(columns, want.columns, width);
+        const mobile = Number(width) < 640;
+        const gap = mobile ? 16 : 24;
+        const available = grid.clientWidth;
+        const cards = [...grid.querySelectorAll(".showcase-card")];
+        assert.equal(cards.length, 2, width);
+        for (const card of cards) {
+          const fit = card.querySelector(".showcase-card-fit");
+          const parsed = Number.parseFloat(fit.getAttribute("data-feed-scale"));
+          const scale = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+          const padding = mobile ? 16 : card.getAttribute("data-feed-pad") === "tight" ? 16 : 24;
+          const track = (available - gap * (columns - 1)) / columns;
+          const inner = track - padding * 2;
+          const visual = fit.offsetWidth * scale;
+          assert.equal(padding, want.padding, width);
+          assert.equal(scale < 1, want.scaled, width);
+          assert.ok(visual <= inner + 1e-6, `${width} visual ${visual} inner ${inner}`);
+          assert.ok(visual < track, width);
+          if (mobile) assert.equal(card.hasAttribute("data-feed-pad"), false);
+          if (want.scaled) assert.ok(scale >= MIN_FEED_SCALE - 1e-9, width);
+        }
+      } finally {
+        await view.unmount();
+      }
+    }
+  } finally {
+    restoreViewport(previous);
   }
 });
 

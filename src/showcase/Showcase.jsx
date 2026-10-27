@@ -331,23 +331,26 @@ export function Showcase({ blocks: blocksProp }) {
       const viewport = slot.querySelector('.showcase-card-viewport')
       if (fit && card && viewport) {
         const natural = settleNatural(id, readNatural(fit))
-        const padding = paddingOf(getComputedStyle(card))
-        measured.push({ fit, viewport, natural, padding })
+        measured.push({ card, fit, viewport, natural })
       }
     }
     let widest = 0
     for (const size of naturals.current.values()) widest = Math.max(widest, size.w)
     const gap = mobile ? tokens.space4 : tokens.space6
     const available = grid.clientWidth
-    const plan = mobile ? { columns: 1, scale: 1 } : feedColumnPlan(available, gap, widest)
+    const plan = mobile
+      ? { columns: 1, scale: 1, padding: tokens.space4 }
+      : feedColumnPlan(available, gap, widest, { padding: tokens.space6, tightPadding: tokens.space4 })
     const track = plan.columns > 0 ? (available - gap * (plan.columns - 1)) / plan.columns : available
     // Reading these back can normalize 0 to 0px, so a string compare never settles.
     grid.style.gridTemplateColumns = `repeat(${plan.columns}, minmax(0, 1fr))`
     for (const item of measured) {
-      const scale = item.natural.w > 0 ? Math.min(1, track / item.natural.w) : 1
-      const inner = track - item.padding.left - item.padding.right
-      const park = !mobile && (scale < 1 - 1e-4 || item.natural.w > inner + 0.5)
-      if (park) parkFeedFit(item.viewport, item.fit, item.natural, scale)
+      const tight = !mobile && plan.padding < tokens.space6 - 0.5
+      if (tight) item.card.setAttribute('data-feed-pad', 'tight')
+      else item.card.removeAttribute('data-feed-pad')
+      const inner = track - (mobile ? tokens.space4 : plan.padding) * 2
+      const scale = !mobile && item.natural.w > 0 && inner > 0 ? Math.min(1, inner / item.natural.w) : 1
+      if (!mobile && scale < 1 - 1e-4) parkFeedFit(item.viewport, item.fit, item.natural, scale)
       else clearFeedFit(item.viewport, item.fit)
     }
     for (const slot of slots) {

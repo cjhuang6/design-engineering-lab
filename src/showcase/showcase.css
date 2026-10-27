@@ -129,6 +129,10 @@
   transition: none;
 }
 
+.showcase-card[data-feed-pad='tight'] {
+  padding-inline: var(--space-4);
+}
+
 .showcase-slot > .showcase-card {
   width: 100%;
 }
@@ -188,6 +192,11 @@
   border-width: var(--border-width-0);
   border-radius: var(--radius-none);
   box-shadow: var(--shadow-none);
+}
+
+.showcase-card[data-feed-pad='tight'] .showcase-actions {
+  left: var(--space-4);
+  right: var(--space-4);
 }
 
 .showcase-actions {

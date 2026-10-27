@@ -3,10 +3,12 @@ import { createPortal } from 'react-dom'
 import { useHexBlock } from './blocks.jsx'
 import {
   closeMotion,
-  columnCount,
   expandedFrame,
+  feedColumnCount,
   frameFromStyle,
+  isMobileWidth,
   masonrySpan,
+  mobileFrame,
   motionFromStyle,
   openPanelDelay,
   overlapWindow,
@@ -91,6 +93,43 @@ function applyPanel(panel, box) {
   panel.style.height = `${box.h}px`
 }
 
+function readSafeArea(probe) {
+  if (!probe) return { top: 0, right: 0, bottom: 0, left: 0 }
+  const style = getComputedStyle(probe)
+  return {
+    top: Number.parseFloat(style.paddingTop) || 0,
+    right: Number.parseFloat(style.paddingRight) || 0,
+    bottom: Number.parseFloat(style.paddingBottom) || 0,
+    left: Number.parseFloat(style.paddingLeft) || 0,
+  }
+}
+
+function markFeed(mobile) {
+  if (mobile) document.documentElement.setAttribute('data-showcase-feed', '')
+  else document.documentElement.removeAttribute('data-showcase-feed')
+}
+
+// iOS Safari rubber-bands a page that only sets overflow:hidden. Pin the body at the saved scroll offset.
+function lockPageScroll(lockRef) {
+  if (lockRef.current != null) return
+  const y = window.scrollY || window.pageYOffset || 0
+  const bar = Math.max(0, window.innerWidth - document.documentElement.clientWidth)
+  document.documentElement.classList.add('showcase-scroll-lock')
+  document.body.style.top = `-${y}px`
+  document.body.style.paddingRight = bar > 0 ? `${bar}px` : ''
+  lockRef.current = y
+}
+
+function unlockPageScroll(lockRef) {
+  if (lockRef.current == null) return
+  const y = lockRef.current
+  lockRef.current = null
+  document.documentElement.classList.remove('showcase-scroll-lock')
+  document.body.style.top = ''
+  document.body.style.paddingRight = ''
+  window.scrollTo(0, y)
+}
+
 function tabbables(root) {
   return [...root.querySelectorAll('a[href], button, input, select, textarea, [tabindex]')].filter((node) => {
     if (node.hasAttribute('disabled') || node.closest('[hidden]')) return false
@@ -147,7 +186,7 @@ function Card({ block, open, cardRef, fitRef, onOpen }) {
   )
 }
 
-function Slot({ block, reserved, onOpen }) {
+function Slot({ block, reserved, onBeforeMeasure, onOpen }) {
   const cardRef = useRef(null)
   const fitRef = useRef(null)
 
@@ -155,7 +194,7 @@ function Slot({ block, reserved, onOpen }) {
     const card = cardRef.current
     const fit = fitRef.current
     if (!card || !fit) return
-    document.documentElement.style.overflow = 'hidden'
+    onBeforeMeasure()
     const rect = card.getBoundingClientRect()
     const fitRect = fit.getBoundingClientRect()
     const padding = paddingOf(getComputedStyle(card))
@@ -201,15 +240,19 @@ export function Showcase({ blocks: blocksProp }) {
   const sessionRef = useRef(null)
   const placedRef = useRef(null)
   const relayoutRef = useRef(() => {})
+  const scrollLock = useRef(null)
+  const safeProbeRef = useRef(null)
   const titleId = useId()
   const descId = useId()
   const active = session ? blocks.find((block) => block.id === session.id) : null
 
   function openBlock(id, measurement) {
-    if (session) return
+    if (sessionRef.current) return
     minWidths.current.set(id, measurement.minWidth)
     pendingClose.current = false
-    setSession({ id, phase: 'opening', measurement })
+    const next = { id, phase: 'opening', measurement }
+    sessionRef.current = next
+    setSession(next)
   }
 
   function requestClose() {
@@ -243,11 +286,20 @@ export function Showcase({ blocks: blocksProp }) {
       }
       minWidth = Math.max(minWidth, minWidths.current.get(id) || 0)
     }
-    const columns = columnCount(grid.clientWidth, tokens.space6, minWidth)
+    const mobile = isMobileWidth(window.innerWidth, tokens.breakpointSm)
+    markFeed(mobile)
+    const columns = feedColumnCount(
+      window.innerWidth,
+      tokens.breakpointSm,
+      grid.clientWidth,
+      tokens.space6,
+      minWidth,
+    )
+    const gap = mobile ? tokens.space4 : tokens.space6
     // Reading these back can normalize 0 to 0px, so a string compare never settles.
     grid.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`
     for (const slot of slots) {
-      slot.style.gridRowEnd = `span ${masonrySpan(slot.offsetHeight, tokens.space6, row)}`
+      slot.style.gridRowEnd = `span ${masonrySpan(slot.offsetHeight, gap, row)}`
     }
   }
 
@@ -256,7 +308,12 @@ export function Showcase({ blocks: blocksProp }) {
     const stage = stageRef.current
     const tokens = frameFromStyle(rootStyle())
     const motion = motionFromStyle(rootStyle())
-    const frame = expandedFrame({ width: layer.clientWidth, height: layer.clientHeight }, tokens)
+    const viewport = { width: layer.clientWidth, height: layer.clientHeight }
+    const mobile = isMobileWidth(window.innerWidth, tokens.breakpointSm)
+    layer.setAttribute('data-mode', mobile ? 'mobile' : 'desktop')
+    const frame = mobile
+      ? mobileFrame(viewport, tokens, readSafeArea(safeProbeRef.current))
+      : expandedFrame(viewport, tokens)
     const origin = stage.getBoundingClientRect()
     const scrollTop = layer.scrollTop || 0
     const shift = (box) => stagePoint(box, origin, scrollTop)
@@ -268,8 +325,12 @@ export function Showcase({ blocks: blocksProp }) {
       w: card.w - padding.left - padding.right,
       h: card.h - padding.top - padding.bottom,
     })
-    const bottom = Math.max(card.y + card.h, panel.y + panel.h)
-    stage.style.minHeight = `${Math.max(layer.clientHeight, bottom + tokens.space8)}px`
+    if (mobile) {
+      stage.style.minHeight = ''
+    } else {
+      const bottom = Math.max(card.y + card.h, panel.y + panel.h)
+      stage.style.minHeight = `${Math.max(layer.clientHeight, bottom + tokens.space8)}px`
+    }
     return { card, panel, from, padding, scale, motion }
   }
 
@@ -318,27 +379,28 @@ export function Showcase({ blocks: blocksProp }) {
     const observer = new ResizeObserver(run)
     observer.observe(grid)
     window.addEventListener('resize', run)
+    const visual = window.visualViewport
+    if (visual) visual.addEventListener('resize', run)
     return () => {
       observer.disconnect()
       window.removeEventListener('resize', run)
+      if (visual) visual.removeEventListener('resize', run)
+      markFeed(false)
     }
   }, [])
 
   useLayoutEffect(() => {
     const header = document.querySelector('.showcase-bar')
     const page = document.querySelector('.showcase-page')
-    function unlock() {
-      document.documentElement.style.overflow = ''
-      if (header) header.inert = false
-      if (page) page.inert = false
-    }
     if (session) {
-      document.documentElement.style.overflow = 'hidden'
+      lockPageScroll(scrollLock)
       if (header) header.inert = true
       if (page) page.inert = true
-      return unlock
+      return undefined
     }
-    unlock()
+    if (header) header.inert = false
+    if (page) page.inert = false
+    unlockPageScroll(scrollLock)
     const id = returnFocusId.current
     if (!id) return undefined
     returnFocusId.current = null
@@ -469,6 +531,28 @@ export function Showcase({ blocks: blocksProp }) {
   }, [session])
 
   useEffect(() => {
+    return () => unlockPageScroll(scrollLock)
+  }, [])
+
+  useEffect(() => {
+    const layer = dialogRef.current
+    if (!session || !layer) return undefined
+    function onTouchMove(event) {
+      if (layer.getAttribute('data-mode') !== 'mobile') return
+      if (event.touches && event.touches.length > 1) return
+      const target = event.target
+      if (target && typeof target.closest === 'function') {
+        const list = target.closest('[data-showcase-scroll]')
+        if (list && list.scrollHeight > list.clientHeight + 1) return
+        if (target.closest('.hex-picker-slider')) return
+      }
+      event.preventDefault()
+    }
+    layer.addEventListener('touchmove', onTouchMove, { passive: false })
+    return () => layer.removeEventListener('touchmove', onTouchMove)
+  }, [session])
+
+  useEffect(() => {
     if (!session) return undefined
     function onKey(event) {
       const dialog = dialogRef.current
@@ -502,8 +586,11 @@ export function Showcase({ blocks: blocksProp }) {
     return () => document.removeEventListener('keydown', onKey)
   }, [session])
 
+  const mobileOpen = isMobileWidth(window.innerWidth, frameFromStyle(rootStyle()).breakpointSm)
+
   return (
     <main className="showcase-page">
+      <div className="showcase-safe-probe" ref={safeProbeRef} aria-hidden="true" />
       <div className="showcase-main">
         <h1 className="showcase-sr">Blocks</h1>
         <div className="showcase-grid" ref={gridRef}>
@@ -512,6 +599,10 @@ export function Showcase({ blocks: blocksProp }) {
               key={block.id}
               block={block}
               reserved={session?.id === block.id ? session.measurement.slotHeight : null}
+              onBeforeMeasure={() => {
+                if (sessionRef.current) return
+                lockPageScroll(scrollLock)
+              }}
               onOpen={(measurement) => openBlock(block.id, measurement)}
             />
           ))}
@@ -525,6 +616,7 @@ export function Showcase({ blocks: blocksProp }) {
               aria-modal="true"
               aria-labelledby={titleId}
               aria-describedby={descId}
+              data-mode={mobileOpen ? 'mobile' : 'desktop'}
               ref={dialogRef}
             >
               <div className="showcase-scrim" ref={scrimRef} onClick={requestClose} />

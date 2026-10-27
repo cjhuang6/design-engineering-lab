@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readFile } from "node:fs/promises";
 import * as esbuild from "esbuild";
-import { createElement } from "react";
+import { createElement, useState } from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 
@@ -16,12 +16,16 @@ import {
   closeMotion,
   columnCount,
   expandedFrame,
+  feedColumnCount,
+  isMobileWidth,
   masonrySpan,
+  mobileFrame,
   motionFromStyle,
   openPanelDelay,
   overlapWindow,
   uniformScale,
 } from "../../src/showcase/layout.js";
+import { draggedSliderValue } from "../../src/components/hex-color-picker/model.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const WIDE = {
@@ -34,18 +38,21 @@ const WIDE = {
 };
 
 let Showcase;
+let HexPickerControls;
 
 test.before(async () => {
   const dir = await mkdtemp(join(tmpdir(), "showcase-shell-"));
-  const outfile = join(dir, "Showcase.mjs");
   await esbuild.build({
     absWorkingDir: ROOT,
-    entryPoints: ["src/showcase/Showcase.jsx"],
+    entryPoints: {
+      Showcase: "src/showcase/Showcase.jsx",
+      picker: "src/components/hex-color-picker/HexColorPicker.jsx",
+    },
     bundle: true,
     format: "esm",
     platform: "neutral",
     jsx: "automatic",
-    outfile,
+    outdir: dir,
     plugins: [
       {
         name: "shim-imports",
@@ -63,7 +70,8 @@ test.before(async () => {
       },
     ],
   });
-  ({ Showcase } = await import(pathToFileURL(outfile).href));
+  ({ Showcase } = await import(pathToFileURL(join(dir, "Showcase.js")).href));
+  ({ HexPickerControls } = await import(pathToFileURL(join(dir, "picker.js")).href));
 });
 
 function sampleBlock() {
@@ -89,7 +97,30 @@ async function mount(blocks = [sampleBlock()]) {
       await act(async () => root.unmount());
       host.remove();
       document.documentElement.style.overflow = "";
+      document.documentElement.classList.remove("showcase-scroll-lock");
+      document.documentElement.removeAttribute("data-showcase-feed");
+      document.body.style.top = "";
+      document.body.style.paddingRight = "";
     },
+  };
+}
+
+function restoreViewport(previous) {
+  window.innerWidth = previous.innerWidth;
+  window.innerHeight = previous.innerHeight;
+  window.scrollY = previous.scrollY;
+  window.pageYOffset = previous.scrollY;
+  globalThis.__showcaseScrollbar = previous.scrollbar;
+  globalThis.__showcaseFitWidth = previous.fitWidth;
+}
+
+function rememberViewport() {
+  return {
+    innerWidth: window.innerWidth,
+    innerHeight: window.innerHeight,
+    scrollY: window.scrollY,
+    scrollbar: globalThis.__showcaseScrollbar,
+    fitWidth: globalThis.__showcaseFitWidth,
   };
 }
 
@@ -111,6 +142,10 @@ test("columns and masonry spans follow the available width", () => {
   assert.equal(columnCount(400, 24, 280), 1);
   assert.equal(columnCount(0, 24, 280), 1);
   assert.equal(columnCount(2000, 24, 100, 3), 3);
+  assert.equal(feedColumnCount(620, 640, 588, 24, 128), 1);
+  assert.equal(feedColumnCount(640, 640, 608, 24, 128), 3);
+  assert.equal(isMobileWidth(639, 640), true);
+  assert.equal(isMobileWidth(640, 640), false);
   assert.equal(masonrySpan(460, 24, 1), 484);
   assert.equal(masonrySpan(10, 24, 8), 4);
   assert.equal(masonrySpan(0, 0, 0), 1);
@@ -131,6 +166,18 @@ test("every component opens to the same viewport frame", () => {
   assert.equal(narrow.panel.x, narrow.card.x);
   assert.equal(narrow.card.w, 368);
   assert.ok(narrow.card.h < wide.card.h);
+
+  const band = expandedFrame({ width: 800, height: 800 }, WIDE);
+  assert.equal(band.axis, "y");
+  assert.equal(band.card.w, 480);
+  const phone = mobileFrame({ width: 390, height: 844 }, WIDE);
+  assert.equal(phone.card.w, 358);
+  assert.equal(phone.card.h, 366);
+  assert.equal(phone.panel.y - (phone.card.y + phone.card.h), WIDE.space4);
+  assert.equal(phone.panel.y + phone.panel.h, 844 - WIDE.space4);
+  const inset = mobileFrame({ width: 390, height: 844 }, WIDE, { top: 47, right: 0, bottom: 34, left: 0 });
+  assert.equal(inset.card.y, 63);
+  assert.equal(inset.panel.y + inset.panel.h, 844 - (34 + WIDE.space4));
 });
 
 test("the component scales by one factor and is not stretched", () => {
@@ -295,4 +342,369 @@ test("Escape, the scrim, and Close dismiss the dialog and return focus", async (
   } finally {
     await view.unmount();
   }
+});
+
+test("below the breakpoint the feed is one column", async () => {
+  const previous = rememberViewport();
+  globalThis.__showcaseFitWidth = 80;
+  window.innerWidth = 620;
+  const blocks = [sampleBlock(), { ...sampleBlock(), id: "other", name: "Other block" }];
+  const view = await mount(blocks);
+  try {
+    const grid = document.querySelector(".showcase-grid");
+    assert.equal(document.documentElement.hasAttribute("data-showcase-feed"), true);
+    assert.equal(grid.style.gridTemplateColumns, "repeat(1, minmax(0, 1fr))");
+    assert.equal(document.querySelector(".showcase-panel"), null);
+    for (const slot of grid.querySelectorAll("[data-showcase-slot]")) {
+      assert.equal(slot.style.gridRowEnd, "span 476");
+    }
+
+    window.innerWidth = 900;
+    await act(async () => {
+      window.dispatchEvent(new window.Event("resize"));
+    });
+    assert.equal(document.documentElement.hasAttribute("data-showcase-feed"), false);
+    assert.equal(grid.style.gridTemplateColumns, "repeat(3, minmax(0, 1fr))");
+    assert.equal(grid.querySelector("[data-showcase-slot]").style.gridRowEnd, "span 484");
+  } finally {
+    await view.unmount();
+    restoreViewport(previous);
+  }
+});
+
+test("an open phone pins the card and only the controls list scrolls", async () => {
+  const previous = rememberViewport();
+  window.innerWidth = 390;
+  window.innerHeight = 844;
+  const view = await mount([
+    {
+      ...sampleBlock(),
+      controls: createElement(
+        "div",
+        { className: "hex-picker-controls" },
+        createElement("div", { className: "hex-picker-controls-head" }, createElement("h4", null, "Controls")),
+        createElement(
+          "div",
+          { "data-showcase-scroll": "" },
+          createElement("div", { className: "hex-picker-slider" }, "Offset"),
+          createElement("div", { style: { height: "800px" } }, "Tall controls"),
+        ),
+      ),
+    },
+  ]);
+  try {
+    assert.equal(document.querySelector(".showcase-panel"), null);
+    await openDetails();
+    const layer = document.querySelector(".showcase-layer");
+    const card = document.querySelector(".showcase-card[data-open]");
+    const panel = document.querySelector(".showcase-panel");
+    const list = layer.querySelector("[data-showcase-scroll]");
+    const frame = mobileFrame({ width: 390, height: 844 }, WIDE);
+    assert.equal(layer.getAttribute("data-mode"), "mobile");
+    assert.equal(card.style.width, `${frame.card.w}px`);
+    assert.equal(card.style.height, `${frame.card.h}px`);
+    assert.equal(card.style.top, `${frame.card.y}px`);
+    assert.equal(panel.style.top, `${frame.panel.y}px`);
+    assert.equal(panel.style.height, `${frame.panel.h}px`);
+    assert.equal(panel.style.width, card.style.width);
+    assert.equal(layer.scrollTop, 0);
+
+    const before = {
+      cardTop: card.getBoundingClientRect().top,
+      cardHeight: card.getBoundingClientRect().height,
+      panelTop: panel.getBoundingClientRect().top,
+      panelHeight: panel.getBoundingClientRect().height,
+    };
+    list.scrollTop = 240;
+    list.dispatchEvent(new window.Event("scroll", { bubbles: true }));
+    assert.equal(card.getBoundingClientRect().top, before.cardTop);
+    assert.equal(card.getBoundingClientRect().height, before.cardHeight);
+    assert.equal(panel.getBoundingClientRect().top, before.panelTop);
+    assert.equal(panel.getBoundingClientRect().height, before.panelHeight);
+    assert.equal(card.style.top, `${frame.card.y}px`);
+    assert.equal(panel.style.top, `${frame.panel.y}px`);
+    assert.equal(layer.scrollTop, 0);
+
+    const onStage = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
+    document.querySelector(".showcase-stage").dispatchEvent(onStage);
+    assert.equal(onStage.defaultPrevented, true);
+
+    const onList = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
+    list.dispatchEvent(onList);
+    assert.equal(onList.defaultPrevented, false);
+
+    const onSlider = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
+    layer.querySelector(".hex-picker-slider").dispatchEvent(onSlider);
+    assert.equal(onSlider.defaultPrevented, false);
+  } finally {
+    await view.unmount();
+    restoreViewport(previous);
+  }
+});
+
+test("scroll lock restores the page, and Escape, the scrim, and Close return focus", async () => {
+  const previous = rememberViewport();
+  window.innerWidth = 390;
+  window.innerHeight = 844;
+  window.scrollY = 180;
+  globalThis.__showcaseScrollbar = 12;
+  const view = await mount();
+  try {
+    await openDetails();
+    assert.equal(document.documentElement.classList.contains("showcase-scroll-lock"), true);
+    assert.equal(document.body.style.top, "-180px");
+    assert.equal(document.body.style.paddingRight, "12px");
+
+    await act(async () => {
+      document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    assert.equal(document.querySelector('[role="dialog"]'), null);
+    assert.equal(document.activeElement, trigger());
+    assert.equal(document.documentElement.classList.contains("showcase-scroll-lock"), false);
+    assert.equal(document.body.style.top, "");
+    assert.equal(document.body.style.paddingRight, "");
+    assert.equal(window.scrollY, 180);
+
+    await openDetails();
+    await act(async () => {
+      document.querySelector(".showcase-scrim").click();
+    });
+    assert.equal(document.activeElement, trigger());
+    assert.equal(window.scrollY, 180);
+    assert.equal(document.documentElement.classList.contains("showcase-scroll-lock"), false);
+
+    await openDetails();
+    await act(async () => {
+      document.querySelector('[aria-label="Close"]').click();
+    });
+    assert.equal(document.activeElement, trigger());
+    assert.equal(window.scrollY, 180);
+  } finally {
+    await view.unmount();
+    restoreViewport(previous);
+  }
+});
+
+test("a wide viewport still opens the side-by-side frame", async () => {
+  const previous = rememberViewport();
+  window.innerWidth = 1280;
+  window.innerHeight = 800;
+  const view = await mount();
+  try {
+    await openDetails();
+    const frame = expandedFrame({ width: 1280, height: 800 }, WIDE);
+    const card = document.querySelector(".showcase-card[data-open]");
+    const panel = document.querySelector(".showcase-panel");
+    assert.equal(document.querySelector(".showcase-layer").getAttribute("data-mode"), "desktop");
+    assert.equal(card.style.left, `${frame.card.x}px`);
+    assert.equal(card.style.top, `${frame.card.y}px`);
+    assert.equal(card.style.width, `${frame.card.w}px`);
+    assert.equal(card.style.height, `${frame.card.h}px`);
+    assert.equal(panel.style.left, `${frame.panel.x}px`);
+    assert.equal(panel.style.width, `${frame.panel.w}px`);
+    assert.equal(panel.style.height, `${frame.panel.h}px`);
+  } finally {
+    await view.unmount();
+    restoreViewport(previous);
+  }
+});
+
+test("the safe-area inset moves the pinned card and the panel still fills to the bottom", async () => {
+  const previous = rememberViewport();
+  window.innerWidth = 390;
+  window.innerHeight = 844;
+  const view = await mount([sampleBlock()]);
+  try {
+    await openDetails();
+    const probe = document.querySelector(".showcase-safe-probe");
+    probe.style.paddingTop = "47px";
+    probe.style.paddingBottom = "34px";
+    await act(async () => {
+      window.dispatchEvent(new window.Event("resize"));
+    });
+    const frame = mobileFrame({ width: 390, height: 844 }, WIDE, { top: 47, right: 0, bottom: 34, left: 0 });
+    const card = document.querySelector(".showcase-card[data-open]");
+    const panel = document.querySelector(".showcase-panel");
+    assert.equal(card.style.top, `${frame.card.y}px`);
+    assert.equal(card.style.height, `${frame.card.h}px`);
+    assert.equal(panel.style.top, `${frame.panel.y}px`);
+    assert.equal(panel.style.height, `${frame.panel.h}px`);
+    assert.equal(frame.panel.y + frame.panel.h, 844 - (34 + WIDE.space4));
+  } finally {
+    await view.unmount();
+    restoreViewport(previous);
+  }
+});
+
+function ControlsHarness() {
+  const [radius, setRadius] = useState(80);
+  const [scale, setScale] = useState(1.15);
+  const [darken, setDarken] = useState(0.12);
+  return createElement(HexPickerControls, {
+    radius,
+    scaleHover: scale,
+    darken,
+    onRadius: setRadius,
+    onScale: setScale,
+    onDarken: setDarken,
+    onReset() {
+      setRadius(80);
+      setScale(1.15);
+      setDarken(0);
+    },
+  });
+}
+
+test("Reset sits in the Controls row, restores values, and a touch drag moves a slider", async () => {
+  assert.equal(draggedSliderValue(80, 100, 200, 40, 160, 1), 140);
+  assert.equal(draggedSliderValue(1.15, 50, 100, 1, 1.4, 0.01), 1.35);
+  assert.equal(draggedSliderValue(80, 10000, 200, 40, 160, 1), 160);
+  assert.equal(draggedSliderValue(80, -10000, 200, 40, 160, 1), 40);
+
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const root = createRoot(host);
+  await act(async () => {
+    root.render(createElement(ControlsHarness));
+  });
+  try {
+    const head = document.querySelector(".hex-picker-controls-head");
+    const reset = head.querySelector("button");
+    assert.equal(head.querySelector("h4").textContent, "Controls");
+    assert.equal(reset.textContent, "Reset");
+    assert.equal(reset.getAttribute("aria-label"), "Reset controls");
+    assert.equal(reset.parentElement, head);
+    assert.equal(head.querySelector("h4").parentElement, head);
+    const radius = [...document.querySelectorAll(".hex-picker-slider input")].find(
+      (input) => input.getAttribute("aria-valuetext") === "80px",
+    );
+    assert.equal(radius.type || radius.getAttribute("type"), "range");
+    assert.equal(radius.tabIndex >= 0, true);
+    assert.equal(radius.min || radius.getAttribute("min"), "40");
+    assert.equal(radius.max || radius.getAttribute("max"), "160");
+    assert.equal(radius.step || radius.getAttribute("step"), "1");
+
+    const slider = radius.closest(".hex-picker-slider");
+    await act(async () => {
+      slider.dispatchEvent(
+        new window.Event("pointerdown", {
+          bubbles: true,
+          pointerType: "mouse",
+          clientX: 0,
+          clientY: 0,
+          pointerId: 3,
+        }),
+      );
+      slider.dispatchEvent(
+        new window.Event("pointermove", {
+          bubbles: true,
+          pointerType: "mouse",
+          clientX: 80,
+          clientY: 0,
+          pointerId: 3,
+        }),
+      );
+    });
+    assert.equal(radius.getAttribute("aria-valuetext"), "80px");
+
+    await act(async () => {
+      slider.dispatchEvent(
+        new window.Event("pointerdown", {
+          bubbles: true,
+          pointerType: "touch",
+          clientX: 0,
+          clientY: 0,
+          pointerId: 4,
+        }),
+      );
+      slider.dispatchEvent(
+        new window.Event("pointermove", {
+          bubbles: true,
+          pointerType: "touch",
+          clientX: 4,
+          clientY: 30,
+          pointerId: 4,
+        }),
+      );
+    });
+    assert.equal(radius.getAttribute("aria-valuetext"), "80px");
+
+    await act(async () => {
+      slider.dispatchEvent(
+        new window.Event("pointerdown", {
+          bubbles: true,
+          pointerType: "touch",
+          clientX: 0,
+          clientY: 0,
+          pointerId: 5,
+        }),
+      );
+      slider.dispatchEvent(
+        new window.Event("pointermove", {
+          bubbles: true,
+          pointerType: "touch",
+          clientX: 40,
+          clientY: 1,
+          pointerId: 5,
+        }),
+      );
+    });
+    assert.equal(draggedSliderValue(80, 40, slider.clientWidth, 40, 160, 1), 120);
+    assert.equal(radius.getAttribute("aria-valuetext"), "120px");
+
+    await act(async () => {
+      reset.click();
+    });
+    assert.equal(radius.getAttribute("aria-valuetext"), "80px");
+    const shown = [...document.querySelectorAll(".hex-picker-slider-value")].map((node) => node.textContent);
+    assert.deepEqual(shown, ["80px", "1.15×", "0.00"]);
+  } finally {
+    await act(async () => root.unmount());
+    host.remove();
+  }
+
+  const previous = rememberViewport();
+  window.innerWidth = 1280;
+  window.innerHeight = 800;
+  const view = await mount(null);
+  try {
+    const button = document.querySelector('[data-showcase-trigger="hex-color-picker"]');
+    await act(async () => {
+      button.click();
+    });
+    const head = document.querySelector(".showcase-panel .hex-picker-controls-head");
+    assert.equal(head.querySelector("h4").textContent, "Controls");
+    assert.equal(head.querySelector("button").getAttribute("aria-label"), "Reset controls");
+    assert.equal(document.querySelector(".showcase-panel .hex-picker-reset").textContent, "Reset");
+  } finally {
+    await view.unmount();
+    restoreViewport(previous);
+  }
+});
+
+test("mobile shell rules use the breakpoint token, dvh, and safe-area insets", async () => {
+  const css = await readFile(join(ROOT, "src/showcase/showcase.css"), "utf8");
+  const picker = await readFile(join(ROOT, "src/components/hex-color-picker/HexColorPicker.css"), "utf8");
+  const page = await readFile(join(ROOT, "index.html"), "utf8");
+  assert.match(page, /viewport-fit=cover/);
+  assert.match(css, /html\[data-showcase-feed\] \.showcase-card \{[^}]*padding-inline:\s*var\(--space-4\);/);
+  assert.match(css, /html\[data-showcase-feed\] \.showcase-grid \{[^}]*column-gap:\s*var\(--space-4\);/);
+  assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \{[^}]*overflow:\s*hidden;[^}]*100dvh;/);
+  assert.match(css, /env\(safe-area-inset-top\)/);
+  assert.match(css, /env\(safe-area-inset-bottom\)/);
+  assert.match(css, /html\.showcase-scroll-lock body \{[^}]*position:\s*fixed;/);
+  assert.match(css, /\[data-showcase-scroll\] \{[^}]*overflow-y:\s*auto;/);
+  assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \.hex-picker-slider \{[^}]*flex:\s*none;/);
+  assert.match(css, /@media \(hover: none\) \{[^}]*\.showcase-actions \{[^}]*opacity:\s*var\(--opacity-full\);/);
+  assert.match(
+    picker,
+    /button\.hex-picker-reset \{[^}]*border-radius:\s*var\(--radius-full\);[^}]*background:\s*transparent;/,
+  );
+  assert.match(
+    picker,
+    /button\.hex-picker-reset:hover,\s*button\.hex-picker-reset:focus-visible,\s*button\.hex-picker-reset:active \{[^}]*background:\s*var\(--color-surface-secondary\);/,
+  );
+  assert.match(picker, /touch-action:\s*pan-y;/);
+  assert.match(picker, /\.hex-picker-slider input \{[^}]*pointer-events:\s*none;/);
+  assert.match(picker, /button\.hex-picker-reset:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);
 });

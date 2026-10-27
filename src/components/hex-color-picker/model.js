@@ -163,6 +163,15 @@ export function proximityFalloff(distance, radius) {
   return smoothstep(1 - distance / radius);
 }
 
+export function draggedSliderValue(start, dx, width, min, max, step) {
+  if (!(width > 0) || !(max > min)) return start;
+  const raw = start + (dx / width) * (max - min);
+  if (!(step > 0)) return Math.min(max, Math.max(min, raw));
+  const snapped = min + Math.round((raw - min) / step) * step;
+  const tidy = Number(snapped.toFixed(6));
+  return Math.min(max, Math.max(min, tidy));
+}
+
 export function proximityPaint(effect, maxScale, darken) {
   if (!effect) return { transform: "", filter: "" };
   return {

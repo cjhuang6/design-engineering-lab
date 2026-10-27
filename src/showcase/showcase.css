@@ -215,6 +215,34 @@ button.showcase-icon:focus-visible {
   height: var(--size-icon-md);
 }
 
+.showcase-safe-probe {
+  position: fixed;
+  top: var(--space-0);
+  left: var(--space-0);
+  width: var(--space-0);
+  height: var(--space-0);
+  visibility: hidden;
+  pointer-events: none;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+/* overflow:hidden does not stop iOS Safari rubber-banding. The body is pinned at the saved scroll offset. */
+html.showcase-scroll-lock {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.showcase-scroll-lock body {
+  position: fixed;
+  left: var(--space-0);
+  right: var(--space-0);
+  width: 100%;
+  overscroll-behavior: none;
+}
+
 .showcase-layer {
   position: fixed;
   inset: var(--space-0);
@@ -280,6 +308,82 @@ button.showcase-icon:focus-visible {
 .showcase-panel h2:focus-visible {
   outline: var(--border-focus);
   outline-offset: var(--space-1);
+}
+
+html[data-showcase-feed] .showcase-bar {
+  padding-top: env(safe-area-inset-top);
+}
+
+html[data-showcase-feed] .showcase-bar-inner,
+html[data-showcase-feed] .showcase-main {
+  padding-inline: max(var(--layout-page-gutter-mobile), env(safe-area-inset-left))
+    max(var(--layout-page-gutter-mobile), env(safe-area-inset-right));
+}
+
+html[data-showcase-feed] .showcase-main {
+  padding-bottom: calc(var(--layout-section-gap-md) + env(safe-area-inset-bottom));
+}
+
+html[data-showcase-feed] .showcase-grid {
+  column-gap: var(--space-4);
+}
+
+html[data-showcase-feed] .showcase-card {
+  padding-inline: var(--space-4);
+}
+
+html[data-showcase-feed] .showcase-actions {
+  left: var(--space-4);
+  right: var(--space-4);
+}
+
+.showcase-layer[data-mode='mobile'] {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  bottom: auto;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.showcase-layer[data-mode='mobile'] .showcase-stage {
+  height: 100%;
+  min-height: var(--space-0);
+}
+
+.showcase-layer[data-mode='mobile'] .showcase-panel-body {
+  overflow: hidden;
+  gap: var(--space-4);
+  padding-top: var(--space-5);
+  padding-inline: var(--space-5);
+  padding-bottom: var(--space-0);
+}
+
+.showcase-layer[data-mode='mobile'] .showcase-panel-copy {
+  flex: none;
+}
+
+.showcase-layer[data-mode='mobile'] .hex-picker-controls {
+  flex: 1 1 auto;
+  min-height: var(--space-0);
+}
+
+.showcase-layer[data-mode='mobile'] .hex-picker-controls-head {
+  flex: none;
+}
+
+.showcase-layer[data-mode='mobile'] [data-showcase-scroll] {
+  flex: 1 1 auto;
+  min-height: var(--space-0);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding-bottom: var(--space-5);
+  -webkit-overflow-scrolling: touch;
+}
+
+.showcase-layer[data-mode='mobile'] .hex-picker-slider {
+  flex: none;
 }
 
 @media (hover: none) {

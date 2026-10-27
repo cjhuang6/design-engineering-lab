@@ -9,6 +9,7 @@ const VARS = {
   '--space-24': '96px',
   '--size-content-sm': '640px',
   '--size-content-md': '960px',
+  '--breakpoint-sm': '640px',
   '--duration-fast': '100ms',
   '--duration-normal': '200ms',
   '--ease-enter': 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -92,6 +93,11 @@ class DomEvent {
     this.button = init.button ?? 0
     this.buttons = init.buttons ?? 0
     this.detail = init.detail ?? 1
+    this.clientX = init.clientX ?? 0
+    this.clientY = init.clientY ?? 0
+    this.pointerId = init.pointerId ?? 1
+    this.pointerType = init.pointerType ?? ''
+    this.touches = init.touches ?? []
     this.view = globalThis.window ?? null
     this.isTrusted = false
     this._stopped = false
@@ -298,6 +304,29 @@ class Element extends Node {
     this.inert = false
   }
 
+  get dataset() {
+    if (this._dataset) return this._dataset
+    const element = this
+    const attrName = (prop) => `data-${String(prop).replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`
+    this._dataset = new Proxy(
+      {},
+      {
+        get(_target, prop) {
+          if (typeof prop !== 'string') return undefined
+          const value = element.getAttribute(attrName(prop))
+          return value == null ? undefined : value
+        },
+        set(_target, prop, value) {
+          if (typeof prop !== 'string') return false
+          if (value == null) element.removeAttribute(attrName(prop))
+          else element.setAttribute(attrName(prop), String(value))
+          return true
+        },
+      },
+    )
+    return this._dataset
+  }
+
   get className() {
     return this.getAttribute('class') ?? ''
   }
@@ -336,6 +365,23 @@ class Element extends Node {
   set tabIndex(value) {
     if (value == null) this.removeAttribute('tabindex')
     else this.setAttribute('tabindex', String(value))
+  }
+
+  get value() {
+    return this._value ?? ''
+  }
+
+  set value(next) {
+    this._value = next == null ? '' : String(next)
+  }
+
+  get valueAsNumber() {
+    const number = Number(this.value)
+    return Number.isFinite(number) ? number : Number.NaN
+  }
+
+  set valueAsNumber(next) {
+    this.value = String(next)
   }
 
   get hidden() {
@@ -407,18 +453,35 @@ class Element extends Node {
   }
 
   get clientWidth() {
-    if (this.className.includes('showcase-grid')) return 1100
-    if (this.className.includes('showcase-layer')) return 1280
+    if (this.ownerDocument && this === this.ownerDocument.documentElement) {
+      return Math.max(0, window.innerWidth - (globalThis.__showcaseScrollbar || 0))
+    }
+    if (this.className.includes('showcase-grid')) return Math.max(0, window.innerWidth - 32)
+    if (this.className.includes('showcase-layer')) return window.innerWidth
     return rectOf(this).width
   }
 
   get clientHeight() {
-    if (this.className.includes('showcase-layer')) return 800
+    if (this.className.includes('showcase-layer')) return window.innerHeight
     return rectOf(this).height
   }
 
+  get scrollHeight() {
+    let children = 0
+    for (const child of this.childNodes) {
+      if (child.nodeType === 1) children += child.offsetHeight
+    }
+    return Math.max(this.clientHeight, children)
+  }
+
+  setPointerCapture() {}
+
+  releasePointerCapture() {}
+
   get offsetWidth() {
-    if (this.className.includes('showcase-card-fit')) return 260
+    if (this.className.includes('showcase-card-fit')) {
+      return typeof globalThis.__showcaseFitWidth === 'number' ? globalThis.__showcaseFitWidth : 260
+    }
     return rectOf(this).width
   }
 
@@ -473,7 +536,14 @@ class TextNode extends Node {
     this.nodeType = 3
     this.nodeName = '#text'
     this.data = String(text)
-    this.nodeValue = this.data
+  }
+
+  get nodeValue() {
+    return this.data
+  }
+
+  set nodeValue(value) {
+    this.data = value == null ? '' : String(value)
   }
 }
 
@@ -483,7 +553,14 @@ class CommentNode extends Node {
     this.nodeType = 8
     this.nodeName = '#comment'
     this.data = String(text)
-    this.nodeValue = this.data
+  }
+
+  get nodeValue() {
+    return this.data
+  }
+
+  set nodeValue(value) {
+    this.data = value == null ? '' : String(value)
   }
 }
 
@@ -702,16 +779,24 @@ function getComputedStyle(element) {
       return VARS[name] ?? ''
     },
     get paddingTop() {
-      return inline?.paddingTop || '24px'
+      if (inline?.paddingTop) return inline.paddingTop
+      if (element?.className?.includes('showcase-safe-probe')) return '0px'
+      return '24px'
     },
     get paddingRight() {
-      return inline?.paddingRight || '24px'
+      if (inline?.paddingRight) return inline.paddingRight
+      if (element?.className?.includes('showcase-safe-probe')) return '0px'
+      return '24px'
     },
     get paddingBottom() {
-      return inline?.paddingBottom || '72px'
+      if (inline?.paddingBottom) return inline.paddingBottom
+      if (element?.className?.includes('showcase-safe-probe')) return '0px'
+      return '72px'
     },
     get paddingLeft() {
-      return inline?.paddingLeft || '24px'
+      if (inline?.paddingLeft) return inline.paddingLeft
+      if (element?.className?.includes('showcase-safe-probe')) return '0px'
+      return '24px'
     },
     get visibility() {
       return 'visible'
@@ -813,9 +898,31 @@ const window = {
   addEventListener: addWindowListener,
   removeEventListener: removeWindowListener,
   dispatchEvent(event) {
-    return document.dispatchEvent(event)
+    const list = listeners.get(event.type) ?? []
+    for (const item of [...list]) {
+      if (event._immediate) break
+      event.currentTarget = this
+      item.fn.call(this, event)
+    }
+    return !event.defaultPrevented
   },
-  scrollTo() {},
+  scrollTo(x, y) {
+    if (typeof x === 'object' && x) {
+      if ('left' in x) this.scrollX = x.left
+      if ('top' in x) this.scrollY = x.top
+    } else {
+      this.scrollX = Number(x) || 0
+      this.scrollY = Number(y) || 0
+    }
+    this.pageXOffset = this.scrollX
+    this.pageYOffset = this.scrollY
+  },
+  setTimeout(fn, delay, ...args) {
+    return globalThis.setTimeout(fn, delay, ...args)
+  },
+  clearTimeout(id) {
+    globalThis.clearTimeout(id)
+  },
   innerWidth: 1280,
   innerHeight: 800,
   scrollX: 0,

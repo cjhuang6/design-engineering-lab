@@ -227,9 +227,48 @@ button.hex-picker-cell:focus-visible {
   min-width: 0;
 }
 
-.hex-picker-reset {
-  align-self: flex-start;
-  margin-top: auto;
+.hex-picker-controls-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+  padding-inline: var(--space-3);
+}
+
+.hex-picker-controls-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+button.hex-picker-reset {
+  margin: var(--space-0);
+  min-height: var(--size-control-md);
+  padding-inline: var(--space-3);
+  padding-block: var(--space-1);
+  border-width: var(--border-width-0);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+button.hex-picker-reset:hover,
+button.hex-picker-reset:focus-visible,
+button.hex-picker-reset:active {
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+}
+
+button.hex-picker-reset:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--space-1);
 }
 
 .hex-picker-slider {
@@ -297,7 +336,22 @@ button.hex-picker-cell:focus-visible {
   background: var(--color-primitive-ice-700);
 }
 
+@media (pointer: coarse) {
+  .hex-picker-slider {
+    touch-action: pan-y;
+  }
+
+  .hex-picker-slider input {
+    pointer-events: none;
+  }
+
+  button.hex-picker-reset {
+    min-height: var(--size-control-lg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  button.hex-picker-reset,
   .hex-picker-body,
   .hex-picker-mark,
   .hex-picker-cell,

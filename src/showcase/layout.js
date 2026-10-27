@@ -9,6 +9,7 @@ export const CARD_VIEWPORT_FRACTION = 0.36
 export const CARD_HEIGHT_OF_CONTENT = 0.85
 export const NARROW_CARD_HEIGHT = 0.46
 export const MAX_COLUMNS = 3
+export const MOBILE_BREAKPOINT_TOKEN = '--breakpoint-sm'
 
 function clamp(min, value, max) {
   const lower = Math.min(min, max)
@@ -29,7 +30,12 @@ export function frameFromStyle(style) {
     space24: lengthOf(style, '--space-24'),
     contentSm: lengthOf(style, '--size-content-sm'),
     contentMd: lengthOf(style, '--size-content-md'),
+    breakpointSm: lengthOf(style, MOBILE_BREAKPOINT_TOKEN),
   }
+}
+
+export function isMobileWidth(width, breakpoint) {
+  return breakpoint > 0 && width < breakpoint
 }
 
 export function motionFromStyle(style) {
@@ -50,6 +56,11 @@ export function columnCount(available, gap, minWidth, maxColumns = MAX_COLUMNS) 
   if (!(available > 0) || !(minWidth > 0)) return 1
   const columns = Math.floor((available + gap) / (minWidth + gap))
   return Math.max(1, Math.min(maxColumns, columns))
+}
+
+export function feedColumnCount(viewportWidth, breakpoint, available, gap, minWidth, maxColumns = MAX_COLUMNS) {
+  if (isMobileWidth(viewportWidth, breakpoint)) return 1
+  return columnCount(available, gap, minWidth, maxColumns)
 }
 
 export function masonrySpan(height, gap, row = 1) {
@@ -99,6 +110,30 @@ export function expandedFrame(viewport, tokens) {
     axis: 'y',
     card,
     panel: { x: card.x, y: card.y + card.h + gap, w: card.w, h: Math.round(panelH) },
+  }
+}
+
+export function mobileFrame(viewport, tokens, safe = { top: 0, right: 0, bottom: 0, left: 0 }) {
+  const gap = tokens.space4
+  const gutter = tokens.space4
+  const top = (safe.top || 0) + gutter
+  const bottom = (safe.bottom || 0) + gutter
+  const left = (safe.left || 0) + gutter
+  const right = (safe.right || 0) + gutter
+  const width = Math.max(0, viewport.width - left - right)
+  const usable = Math.max(0, viewport.height - top - bottom - gap)
+  const cardH = Math.round(usable * NARROW_CARD_HEIGHT)
+  const card = { x: Math.round(left), y: Math.round(top), w: Math.round(width), h: cardH }
+  const panelY = card.y + card.h + gap
+  return {
+    axis: 'y',
+    card,
+    panel: {
+      x: card.x,
+      y: panelY,
+      w: card.w,
+      h: Math.max(0, Math.round(viewport.height - bottom - panelY)),
+    },
   }
 }
 

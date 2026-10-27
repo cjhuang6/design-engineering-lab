@@ -28,7 +28,7 @@ Preconditions:
 
 ## Gotchas
 
-- A successful build proves the app compiles, not that it renders correctly. The showcase behavior tests run against a DOM stand-in, not a browser. The picker model tests do not move the pointer or run the idle timers.
+- A successful build proves the app compiles, not that it renders correctly. The showcase behavior tests run against a DOM stand-in, not a browser. The picker model tests do not move the pointer or run the idle timers. One component test clicks a cell center through a scaled border box, including the cell beside a hovered neighbor, in that stand-in.
 - The picker's card width follows the honeycomb. Readout text that does not fit ends in an ellipsis. The full string stays in the element and in its title.
 - Darken starts at 0, so cells near the pointer grow and do not get a brightness filter. Raising Darken sets `--hex-picker-darken`. Radius and Scale set `--hex-picker-radius` and `--hex-picker-scale-hover`. Changing a control while the pointer is over the honeycomb updates the effect without remounting the picker.
 - Opening a card reserves the grid slot at the card's resting height, so the other cards stay put. Every open card uses one shared size derived from the viewport. The component inside scales evenly and stays centered.

@@ -52,6 +52,7 @@ function boxFor(element) {
   if (cls.includes('showcase-card')) return { x: 120, y: 160, w: 340, h: 460 }
   if (cls.includes('showcase-slot') || cls.includes('showcase-grid')) return { x: 80, y: 120, w: 1100, h: 460 }
   if (cls.includes('showcase-panel')) return { x: 720, y: 160, w: 320, h: 460 }
+  if (cls.includes('hex-picker-cell')) return { x: 0, y: 0, w: 40, h: 46 }
   return { x: 0, y: 0, w: 120, h: 40 }
 }
 
@@ -91,6 +92,10 @@ class DomEvent {
     this.repeat = !!init.repeat
     this.button = init.button ?? 0
     this.buttons = init.buttons ?? 0
+    this.clientX = init.clientX ?? 0
+    this.clientY = init.clientY ?? 0
+    this.pointerType = init.pointerType ?? ''
+    this.pointerId = init.pointerId ?? 1
     this.detail = init.detail ?? 1
     this.view = globalThis.window ?? null
     this.isTrusted = false
@@ -296,6 +301,21 @@ class Element extends Node {
     this.scrollTop = 0
     this.scrollLeft = 0
     this.inert = false
+  }
+
+  get dataset() {
+    const element = this
+    return new Proxy(
+      {},
+      {
+        get(_target, key) {
+          if (typeof key !== 'string') return undefined
+          const attr = `data-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`
+          const value = element.getAttribute(attr)
+          return value == null ? undefined : value
+        },
+      },
+    )
   }
 
   get className() {
@@ -807,6 +827,8 @@ const window = {
   cancelAnimationFrame(id) {
     clearTimeout(id)
   },
+  setTimeout,
+  clearTimeout,
   getSelection() {
     return { rangeCount: 0, removeAllRanges() {}, addRange() {} }
   },

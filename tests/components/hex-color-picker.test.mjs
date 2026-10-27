@@ -216,6 +216,13 @@ test("darken 0 paints growth without a brightness filter", () => {
   assert.equal(proximityPaint(0.5, 1.4, 0.3).filter, "brightness(0.8500)");
 });
 
+test("the cell focus ring paints only for :focus-visible", async () => {
+  const css = await readFile("src/components/hex-color-picker/HexColorPicker.css", "utf8");
+  assert.match(css, /\.hex-picker-cell:focus-visible \.hex-picker-focus \{\s*opacity:\s*1;\s*\}/);
+  assert.equal(/\.hex-picker-cell:focus\s+\.hex-picker-focus/.test(css), false);
+  assert.match(css, /\.hex-picker-cell\[aria-checked='true'\] \.hex-picker-mark \{\s*scale:\s*1;/);
+});
+
 test("the card width follows the grid and the readout keeps its full text", async () => {
   const css = await readFile("src/components/hex-color-picker/HexColorPicker.css", "utf8");
   const source = await readFile("src/components/hex-color-picker/HexColorPicker.jsx", "utf8");

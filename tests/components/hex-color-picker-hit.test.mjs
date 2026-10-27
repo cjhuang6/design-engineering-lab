@@ -147,7 +147,9 @@ test("a click on a cell center selects that cell at rest, expanded on desktop, a
     assert.equal(target.node.style.transform, "scale(1.1500)");
     await point("click", visual(neighbor, resting).x, visual(neighbor, resting).y);
     assert.equal(selectedToken(), NEIGHBOR);
-    assert.equal(document.activeElement, neighbor.node);
+    assert.notEqual(document.activeElement, neighbor.node);
+    assert.equal(neighbor.node.tabIndex, 0);
+    assert.equal(target.node.tabIndex, -1);
 
     const cases = [
       { name: "desktop 1280", scale: 1.27578, hit: target, hover: neighbor },
@@ -161,7 +163,8 @@ test("a click on a cell center selects that cell at rest, expanded on desktop, a
       await point("pointermove", visual(hover, scaled).x, visual(hover, scaled).y);
       await point("click", aimed.x, aimed.y);
       assert.equal(selectedToken(), hit.node.getAttribute("data-token"), name);
-      assert.equal(document.activeElement, hit.node);
+      assert.notEqual(document.activeElement, hit.node);
+      assert.equal(hit.node.tabIndex, 0);
       assert.equal(hit.node.getAttribute("aria-checked"), "true");
       assert.equal(hover.node.style.transform, "scale(1.1500)", name);
       assert.equal(hover.node.getAttribute("role"), "radio");
@@ -174,6 +177,75 @@ test("a click on a cell center selects that cell at rest, expanded on desktop, a
     });
     assert.equal(selectedToken(), step.token);
     assert.notEqual(step.token, NEIGHBOR);
+    assert.equal(document.activeElement?.getAttribute("data-token"), step.token);
+    assert.equal(document.activeElement.tabIndex, 0);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("pointer and touch selection do not focus a cell; the keyboard does", async () => {
+  const view = await mount();
+  try {
+    const grid = document.querySelector(".hex-picker-grid");
+    const target = cellBox(TARGET);
+    const neighbor = cellBox(NEIGHBOR);
+    const resting = present(1);
+    const aimed = visual(neighbor, resting);
+
+    await point("pointerdown", aimed.x, aimed.y, { pointerType: "touch" });
+    await point("click", aimed.x, aimed.y, { pointerType: "touch" });
+    assert.equal(selectedToken(), NEIGHBOR);
+    assert.equal(neighbor.node.getAttribute("aria-checked"), "true");
+    assert.equal(neighbor.node.querySelector(".hex-picker-mark") instanceof window.Element, true);
+    assert.equal(neighbor.node.querySelector(".hex-picker-focus") instanceof window.Element, true);
+    assert.equal(grid.contains(document.activeElement), false);
+    assert.equal(neighbor.node.tabIndex, 0);
+    assert.equal(
+      [...grid.querySelectorAll(".hex-picker-cell")].filter((cell) => cell.tabIndex === 0).length,
+      1,
+    );
+
+    neighbor.node.focus();
+    await act(async () => {
+      neighbor.node.dispatchEvent(new window.KeyboardEvent("keydown", { key: " ", bubbles: true }));
+    });
+    assert.equal(document.activeElement, neighbor.node);
+    await act(async () => {
+      neighbor.node.dispatchEvent(new window.KeyboardEvent("keyup", { key: " ", bubbles: true }));
+    });
+    assert.equal(selectedToken(), NEIGHBOR);
+    assert.equal(document.activeElement, neighbor.node);
+
+    await point("click", visual(target, resting).x, visual(target, resting).y);
+    assert.equal(selectedToken(), TARGET);
+    assert.equal(grid.contains(document.activeElement), false);
+    assert.equal(target.node.tabIndex, 0);
+    assert.equal(neighbor.node.tabIndex, -1);
+
+    target.node.focus();
+    const gap = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--space-1"));
+    const step = moveSelection(
+      placeCells(buildPalette(), target.width, gap),
+      TARGET,
+      "ArrowRight",
+      COLUMN,
+      layoutMetrics(target.width, gap).pitchX,
+    );
+    await act(async () => {
+      target.node.dispatchEvent(new window.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    });
+    assert.equal(document.activeElement.getAttribute("data-token"), step.token);
+    assert.equal(selectedToken(), step.token);
+    assert.equal(document.activeElement.tabIndex, 0);
+
+    const focused = document.activeElement;
+    await act(async () => {
+      focused.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      focused.dispatchEvent(new window.KeyboardEvent("keyup", { key: "Enter", bubbles: true }));
+    });
+    assert.equal(document.activeElement, focused);
+    assert.equal(selectedToken(), step.token);
   } finally {
     await view.unmount();
   }

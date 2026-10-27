@@ -247,7 +247,7 @@ test("reels lock on time, retro fill completes at 3s, and the live region speaks
   const scheduleRng = makeRng(0x51c0de);
   const expected = makeSchedule(RETRO_MS, (span) => unbiasedBelow(span, scheduleRng));
   globalThis.__showcaseReducedMotion = false;
-  const view = await mount();
+  const view = await mount({ fillStyle: "retro" });
   try {
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
@@ -367,6 +367,14 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   const css = await readFile("src/components/slot-code/SlotCode.css", "utf8");
   assert.match(css, /\.slot-copy-label > span \{[^}]*grid-area:\s*1 \/ 1;/);
   assert.match(css, /\.slot-copy-label > span\[hidden\] \{[^}]*display:\s*block;[^}]*visibility:\s*hidden;/);
+  assert.match(css, /\.slot-code \{[^}]*gap:\s*var\(--space-4\);/);
+  assert.match(css, /button\.slot-copy \{[^}]*min-height:\s*var\(--size-control-sm\);[^}]*font:\s*var\(--label-sm\);/);
+  assert.match(css, /\.slot-copy-visual \{[^}]*min-height:\s*var\(--size-control-sm\);/);
+  assert.match(css, /\.slot-copy svg \{[^}]*width:\s*calc\(var\(--size-icon-sm\) - var\(--border-width-2\)\);/);
+  assert.match(
+    css,
+    /@media \(pointer: coarse\) \{\s*button\.slot-copy::before \{[^}]*height:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\);/,
+  );
   const written = [];
   const originalClipboard = navigator.clipboard;
   navigator.clipboard = {
@@ -385,6 +393,7 @@ test("the copy button keeps one width, never shows a count, and writes the code"
 
     clock.set(LAST_LOCK);
     await clock.flush();
+    assert.equal(fill().style.clipPath, smoothClip(1));
     assert.equal(button().offsetWidth, spinningWidth);
     assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
     assert.equal(button().getAttribute("aria-label"), "Copy code");

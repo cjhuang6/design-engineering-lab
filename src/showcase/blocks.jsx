@@ -56,11 +56,11 @@ export function useHexBlock() {
 
 export function useSlotCodeBlock() {
   const entry = showcaseBlock('slot-code')
-  const [fillStyle, setFillStyle] = useState('retro')
+  const [fillStyle, setFillStyle] = useState('smooth')
   const [countdown, setCountdown] = useState(COUNTDOWN_DEFAULT)
 
   function reset() {
-    setFillStyle('retro')
+    setFillStyle('smooth')
     setCountdown(COUNTDOWN_DEFAULT)
   }
 

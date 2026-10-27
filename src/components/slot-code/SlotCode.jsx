@@ -60,7 +60,7 @@ function readEase() {
 function createModel() {
   return {
     phase: 'idle',
-    appliedStyle: 'retro',
+    appliedStyle: 'smooth',
     code: [0, 0, 0, 0, 0, 0],
     next: [0, 0, 0, 0, 0, 0],
     plans: [],
@@ -172,9 +172,9 @@ function Flap({ kind }) {
 }
 
 export const SLOT_CODE_DESCRIPTION =
-  'Six split-flap reels show a 6-digit code drawn from crypto.getRandomValues. This is a demo, not a one-time password. The Copy code button fill is the countdown: Retro jumps from empty to full across 3 seconds, and Smooth drains across the selected duration. The button does not show a percent or a seconds count.'
+  'Six split-flap reels show a 6-digit code drawn from crypto.getRandomValues. This is a demo, not a one-time password. The Copy code button fill is the countdown. Smooth is the default and drains across the selected duration. Retro jumps from empty to full across 3 seconds. The button does not show a percent or a seconds count.'
 
-export function SlotCode({ fillStyle = 'retro', countdownSeconds = 5 }) {
+export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
   const rootRef = useRef(null)
   const fillRef = useRef(null)
   const modelRef = useRef(null)
@@ -474,9 +474,11 @@ export function SlotCode({ fillStyle = 'retro', countdownSeconds = 5 }) {
         aria-disabled={view.spinning ? 'true' : 'false'}
         onClick={onCopy}
       >
-        <CopyFace copied={view.copied} />
-        <span className="slot-copy-fill" ref={fillRef} aria-hidden="true">
+        <span className="slot-copy-visual">
           <CopyFace copied={view.copied} />
+          <span className="slot-copy-fill" ref={fillRef} aria-hidden="true">
+            <CopyFace copied={view.copied} />
+          </span>
         </span>
       </button>
       <span className="slot-code-sr" id={timeId}>

@@ -14,6 +14,7 @@ const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 let SegmentedControl;
 let SlotCodeControls;
+let useSlotCodeBlock;
 
 test.before(async () => {
   const dir = await mkdtemp(join(tmpdir(), "showcase-controls-"));
@@ -22,6 +23,7 @@ test.before(async () => {
     entryPoints: {
       controls: "src/showcase/controls.jsx",
       slot: "src/showcase/slot-controls.jsx",
+      blocks: "src/showcase/blocks.jsx",
     },
     bundle: true,
     format: "esm",
@@ -47,6 +49,7 @@ test.before(async () => {
   });
   ({ SegmentedControl } = await import(pathToFileURL(join(dir, "controls.js")).href));
   ({ SlotCodeControls } = await import(pathToFileURL(join(dir, "slot.js")).href));
+  ({ useSlotCodeBlock } = await import(pathToFileURL(join(dir, "blocks.js")).href));
 });
 
 const OPTIONS = [
@@ -170,6 +173,42 @@ test("retro leaves the countdown slider in place and disabled, and reset restore
     assert.equal(input.value, "5");
     assert.equal(slider.offsetHeight, retroHeight);
     assert.equal(document.querySelector(".showcase-reset").getAttribute("aria-label"), "Reset controls");
+  } finally {
+    await view.unmount();
+  }
+});
+
+function BlockHarness() {
+  const block = useSlotCodeBlock();
+  return block.controls;
+}
+
+test("the security code block starts on Smooth at 5 seconds, and reset returns there", async () => {
+  const view = await mount(createElement(BlockHarness));
+  try {
+    const slider = document.querySelector(".showcase-slider");
+    const input = slider.querySelector("input");
+    assert.equal(option("smooth").getAttribute("aria-checked"), "true");
+    assert.equal(input.hasAttribute("disabled"), false);
+    assert.equal(input.value, "5");
+    assert.equal(input.getAttribute("aria-valuetext"), "5 seconds");
+    const smoothHeight = slider.offsetHeight;
+
+    await act(async () => {
+      option("retro").dispatchEvent(new window.MouseEvent("pointerdown", { bubbles: true, cancelable: true, button: 0 }));
+    });
+    assert.equal(input.hasAttribute("disabled"), true);
+    assert.equal(slider.offsetHeight, smoothHeight);
+
+    await act(async () => {
+      document.querySelector(".showcase-reset").click();
+    });
+    const restored = document.querySelector(".showcase-slider");
+    assert.equal(option("smooth").getAttribute("aria-checked"), "true");
+    assert.equal(restored.querySelector("input").hasAttribute("disabled"), false);
+    assert.equal(restored.textContent.includes("5s"), true);
+    assert.equal(restored.querySelector("input").getAttribute("aria-valuetext"), "5 seconds");
+    assert.equal(restored.offsetHeight, smoothHeight);
   } finally {
     await view.unmount();
   }

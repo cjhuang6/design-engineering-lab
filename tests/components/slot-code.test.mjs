@@ -490,3 +490,69 @@ test("hiding the tab pauses the clock, and unmount cancels the frame", async () 
     random.restore();
   }
 });
+
+function ruleBody(css, selector) {
+  const match = css.match(new RegExp(`(?:^|\\n)${selector}\\s*\\{([^}]*)\\}`));
+  assert.ok(match, selector);
+  return match[1];
+}
+
+function declared(body, property) {
+  const match = body.match(new RegExp(`${property}:\\s*([^;]+);`));
+  assert.ok(match, property);
+  return match[1].trim();
+}
+
+function coveredWidth(borderBox, borderDecl, insetDecl) {
+  const border = borderDecl === "var(--border-width-0)" ? 0 : Number.NaN;
+  const inset = insetDecl === "0" ? 0 : Number.NaN;
+  return borderBox - border * 2 - inset * 2;
+}
+
+test("a full fill covers the copy button border box", async () => {
+  const css = await readFile("src/components/slot-code/SlotCode.css", "utf8");
+  const visual = ruleBody(css, "\\.slot-copy-visual");
+  const fillRule = ruleBody(css, "\\.slot-copy-fill");
+  const border = declared(visual, "border-width");
+  const inset = declared(fillRule, "inset");
+  assert.equal(border, "var(--border-width-0)");
+  assert.equal(inset, "0");
+  assert.match(visual, /overflow:\s*hidden/);
+  assert.match(visual, /border-radius:\s*inherit/);
+  assert.match(visual, /box-shadow:\s*inset 0 0 0 var\(--border-width-1\)/);
+  assert.equal(visual.includes("border-style"), false);
+  const borderBox = 181.5;
+  assert.equal(coveredWidth(borderBox, border, inset), borderBox);
+  assert.equal(smoothClip(1), "inset(0 0 0 0.000%)");
+  assert.equal(retroClip(100), "inset(0 0% 0 0)");
+  const smoothEdges = smoothClip(1).slice(6, -1).split(/\s+/);
+  const retroEdges = retroClip(100).slice(6, -1).split(/\s+/);
+  assert.equal(smoothEdges[1], "0");
+  assert.equal(retroEdges[1], "0%");
+
+  const clock = installClock();
+  const random = installRandom([1, 2, 3, 4, 5, 6], 11);
+  globalThis.__showcaseReducedMotion = false;
+  const view = await mount({ fillStyle: "smooth" });
+  try {
+    await clock.flush();
+    clock.set(LAST_LOCK);
+    await clock.flush();
+    assert.equal(fill().style.clipPath, smoothClip(1));
+    const buttonBox = button().getBoundingClientRect();
+    const fillBox = fill().getBoundingClientRect();
+    const visualBox = document.querySelector(".slot-copy-visual").getBoundingClientRect();
+    assert.equal(fillBox.width, buttonBox.width);
+    assert.equal(fillBox.right, buttonBox.right);
+    assert.equal(visualBox.width, buttonBox.width);
+    const faces = [...document.querySelectorAll(".slot-copy-face")];
+    assert.equal(faces.length, 2);
+    assert.equal(faces[0].parentElement, document.querySelector(".slot-copy-visual"));
+    assert.equal(faces[1].parentElement, fill());
+    assert.equal(fill().parentElement, document.querySelector(".slot-copy-visual"));
+  } finally {
+    await view.unmount();
+    clock.restore();
+    random.restore();
+  }
+});

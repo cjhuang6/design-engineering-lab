@@ -9,6 +9,7 @@ export const CARD_VIEWPORT_FRACTION = 0.36
 export const CARD_HEIGHT_OF_CONTENT = 0.85
 export const NARROW_CARD_HEIGHT = 0.46
 export const MAX_COLUMNS = 3
+export const MIN_FEED_SCALE = 0.75
 export const MOBILE_BREAKPOINT_TOKEN = '--breakpoint-sm'
 
 function clamp(min, value, max) {
@@ -58,9 +59,30 @@ export function columnCount(available, gap, minWidth, maxColumns = MAX_COLUMNS) 
   return Math.max(1, Math.min(maxColumns, columns))
 }
 
-export function feedColumnCount(viewportWidth, breakpoint, available, gap, minWidth, maxColumns = MAX_COLUMNS) {
+function feedFit(available, gap, naturalWidth, columns, padding) {
+  const track = (available - gap * (columns - 1)) / columns
+  const inner = track - padding * 2
+  if (!(inner > 0)) return { scale: 0, padding }
+  return { scale: Math.min(1, inner / naturalWidth), padding }
+}
+
+export function feedColumnPlan(available, gap, naturalWidth, options = {}) {
+  const roomy = options.padding ?? 0
+  const tight = options.tightPadding ?? roomy
+  if (!(available > 0) || !(naturalWidth > 0)) return { columns: 1, scale: 1, padding: roomy }
+  const limit = Math.max(1, options.maxColumns ?? MAX_COLUMNS)
+  const minScale = options.minScale ?? MIN_FEED_SCALE
+  for (let columns = limit; columns >= 1; columns -= 1) {
+    let fit = feedFit(available, gap, naturalWidth, columns, roomy)
+    if (fit.scale < 1 && tight < roomy) fit = feedFit(available, gap, naturalWidth, columns, tight)
+    if (columns === 1 || fit.scale >= minScale - 1e-9) return { columns, scale: fit.scale, padding: fit.padding }
+  }
+  return { columns: 1, scale: 1, padding: roomy }
+}
+
+export function feedColumnCount(viewportWidth, breakpoint, available, gap, naturalWidth, maxColumns = MAX_COLUMNS) {
   if (isMobileWidth(viewportWidth, breakpoint)) return 1
-  return columnCount(available, gap, minWidth, maxColumns)
+  return feedColumnPlan(available, gap, naturalWidth, { maxColumns }).columns
 }
 
 export function masonrySpan(height, gap, row = 1) {

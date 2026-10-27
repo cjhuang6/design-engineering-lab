@@ -4,7 +4,7 @@ import { useHexBlock, useSlotCodeBlock } from './blocks.jsx'
 import {
   closeMotion,
   expandedFrame,
-  feedColumnCount,
+  feedColumnPlan,
   frameFromStyle,
   isMobileWidth,
   masonrySpan,
@@ -208,14 +208,15 @@ function Slot({ block, reserved, onBeforeMeasure, onOpen }) {
     if (!card || !fit) return
     onBeforeMeasure()
     const rect = card.getBoundingClientRect()
-    const fitRect = fit.getBoundingClientRect()
     const padding = paddingOf(getComputedStyle(card))
+    const natural = { w: fit.offsetWidth, h: fit.offsetHeight }
+    const feedScale = Number.parseFloat(fit.getAttribute('data-feed-scale'))
     onOpen({
       from: { x: rect.left, y: rect.top, w: rect.width, h: rect.height },
-      natural: { w: fitRect.width, h: fitRect.height },
+      natural,
+      feedScale: Number.isFinite(feedScale) && feedScale > 0 ? feedScale : 1,
       restPadding: padding,
       slotHeight: card.offsetHeight,
-      minWidth: fitRect.width + padding.left + padding.right,
     })
   }
 
@@ -235,7 +236,7 @@ function Slot({ block, reserved, onBeforeMeasure, onOpen }) {
 export function Showcase({ blocks: blocksProp }) {
   const hex = useHexBlock()
   const slotCode = useSlotCodeBlock()
-  const blocks = blocksProp ?? [hex, slotCode]
+  const blocks = blocksProp ?? [slotCode, hex]
   const [session, setSession] = useState(null)
   const pendingClose = useRef(false)
   const returnFocusId = useRef(null)
@@ -247,7 +248,7 @@ export function Showcase({ blocks: blocksProp }) {
   const scrimRef = useRef(null)
   const titleRef = useRef(null)
   const stageRef = useRef(null)
-  const minWidths = useRef(new Map())
+  const naturals = useRef(new Map())
   const measureRef = useRef(() => {})
   const closeRef = useRef(() => {})
   const sessionRef = useRef(null)
@@ -261,7 +262,6 @@ export function Showcase({ blocks: blocksProp }) {
 
   function openBlock(id, measurement) {
     if (sessionRef.current) return
-    minWidths.current.set(id, measurement.minWidth)
     pendingClose.current = false
     const next = { id, phase: 'opening', measurement }
     sessionRef.current = next
@@ -280,6 +280,39 @@ export function Showcase({ blocks: blocksProp }) {
     })
   }
 
+  function readNatural(fit) {
+    const width = fit.style.width
+    const maxWidth = fit.style.maxWidth
+    fit.style.width = 'max-content'
+    fit.style.maxWidth = 'none'
+    const size = { w: fit.offsetWidth, h: fit.offsetHeight }
+    fit.style.width = width
+    fit.style.maxWidth = maxWidth
+    return size
+  }
+
+  function settleNatural(id, next) {
+    const previous = naturals.current.get(id)
+    const settled =
+      previous && Math.abs(previous.w - next.w) <= 1 && Math.abs(previous.h - next.h) <= 1 ? previous : next
+    naturals.current.set(id, settled)
+    return settled
+  }
+
+  function clearFeedFit(viewport, fit) {
+    viewport.removeAttribute('data-feed-fit')
+    viewport.style.height = ''
+    fit.style.transform = ''
+    fit.removeAttribute('data-feed-scale')
+  }
+
+  function parkFeedFit(viewport, fit, natural, scale) {
+    viewport.setAttribute('data-feed-fit', '')
+    viewport.style.height = `${Math.round(natural.h * scale)}px`
+    fit.style.transform = `translateX(-50%) scale(${scale})`
+    fit.setAttribute('data-feed-scale', String(scale))
+  }
+
   function measureGrid() {
     const grid = gridRef.current
     if (!grid) return
@@ -288,29 +321,38 @@ export function Showcase({ blocks: blocksProp }) {
     const rowValue = Number.parseFloat(style.getPropertyValue('--showcase-masonry-row'))
     const row = rowValue > 0 ? rowValue : 1
     const slots = [...grid.querySelectorAll('[data-showcase-slot]')]
-    let minWidth = 0
+    const mobile = isMobileWidth(window.innerWidth, tokens.breakpointSm)
+    markFeed(mobile)
+    const measured = []
     for (const slot of slots) {
       const id = slot.getAttribute('data-showcase-slot')
       const fit = slot.querySelector('.showcase-card-fit')
       const card = slot.querySelector('.showcase-card')
-      if (fit && card) {
-        const padding = paddingOf(getComputedStyle(card))
-        minWidths.current.set(id, fit.offsetWidth + padding.left + padding.right)
+      const viewport = slot.querySelector('.showcase-card-viewport')
+      if (fit && card && viewport) {
+        const natural = settleNatural(id, readNatural(fit))
+        measured.push({ card, fit, viewport, natural })
       }
-      minWidth = Math.max(minWidth, minWidths.current.get(id) || 0)
     }
-    const mobile = isMobileWidth(window.innerWidth, tokens.breakpointSm)
-    markFeed(mobile)
-    const columns = feedColumnCount(
-      window.innerWidth,
-      tokens.breakpointSm,
-      grid.clientWidth,
-      tokens.space6,
-      minWidth,
-    )
+    let widest = 0
+    for (const size of naturals.current.values()) widest = Math.max(widest, size.w)
     const gap = mobile ? tokens.space4 : tokens.space6
+    const available = grid.clientWidth
+    const plan = mobile
+      ? { columns: 1, scale: 1, padding: tokens.space4 }
+      : feedColumnPlan(available, gap, widest, { padding: tokens.space6, tightPadding: tokens.space4 })
+    const track = plan.columns > 0 ? (available - gap * (plan.columns - 1)) / plan.columns : available
     // Reading these back can normalize 0 to 0px, so a string compare never settles.
-    grid.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`
+    grid.style.gridTemplateColumns = `repeat(${plan.columns}, minmax(0, 1fr))`
+    for (const item of measured) {
+      const tight = !mobile && plan.padding < tokens.space6 - 0.5
+      if (tight) item.card.setAttribute('data-feed-pad', 'tight')
+      else item.card.removeAttribute('data-feed-pad')
+      const inner = track - (mobile ? tokens.space4 : plan.padding) * 2
+      const scale = !mobile && item.natural.w > 0 && inner > 0 ? Math.min(1, inner / item.natural.w) : 1
+      if (!mobile && scale < 1 - 1e-4) parkFeedFit(item.viewport, item.fit, item.natural, scale)
+      else clearFeedFit(item.viewport, item.fit)
+    }
     for (const slot of slots) {
       slot.style.gridRowEnd = `span ${masonrySpan(slot.offsetHeight, gap, row)}`
     }
@@ -394,7 +436,15 @@ export function Showcase({ blocks: blocksProp }) {
     window.addEventListener('resize', run)
     const visual = window.visualViewport
     if (visual) visual.addEventListener('resize', run)
+    let cancelFonts = false
+    const fontsReady = document.fonts?.ready
+    if (fontsReady && typeof fontsReady.then === 'function') {
+      fontsReady.then(() => {
+        if (!cancelFonts) measureRef.current()
+      })
+    }
     return () => {
+      cancelFonts = true
       observer.disconnect()
       window.removeEventListener('resize', run)
       if (visual) visual.removeEventListener('resize', run)
@@ -430,6 +480,7 @@ export function Showcase({ blocks: blocksProp }) {
     const panel = panelRef.current
     const scrim = scrimRef.current
     const measurement = session.measurement
+    const fromScale = measurement.feedScale > 0 ? measurement.feedScale : 1
     const reduced = prefersReducedMotion()
     const animations = []
     const play = (element, keyframes, options) => {
@@ -449,13 +500,13 @@ export function Showcase({ blocks: blocksProp }) {
       } else {
         const overlap = overlapWindow(placed.from, placed.card, placed.panel, placed.motion.card, placed.motion.ease)
         const delay = openPanelDelay(placed.motion.panelDelay, overlap)
-        applyCard(card, fit, placed.from, measurement.restPadding, 1)
+        applyCard(card, fit, placed.from, measurement.restPadding, fromScale)
         play(scrim, [{ opacity: 0 }, { opacity: 1 }], { duration: placed.motion.card, easing: 'linear' })
         play(card, cardFrames(placed.from, placed.card, measurement.restPadding, placed.padding), {
           duration: placed.motion.card,
           easing: placed.motion.ease,
         })
-        play(fit, [{ transform: fitTransform(1) }, { transform: fitTransform(placed.scale) }], {
+        play(fit, [{ transform: fitTransform(fromScale) }, { transform: fitTransform(placed.scale) }], {
           duration: placed.motion.card,
           easing: placed.motion.ease,
         })
@@ -465,7 +516,7 @@ export function Showcase({ blocks: blocksProp }) {
           easing: placed.motion.ease,
         })
       }
-      titleRef.current?.focus({ preventScroll: true })
+      titleRef.current?.focus({ preventScroll: true, focusVisible: false })
       Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(() => {
         if (cancelled) return
         animations.forEach((animation) => animation.cancel())
@@ -519,7 +570,7 @@ export function Showcase({ blocks: blocksProp }) {
           delay: timing.cardDelay,
           easing: placed.motion.ease,
         })
-        play(fit, [{ transform: fitTransform(placed.scale) }, { transform: fitTransform(1) }], {
+        play(fit, [{ transform: fitTransform(placed.scale) }, { transform: fitTransform(fromScale) }], {
           duration: timing.cardDuration,
           delay: timing.cardDelay,
           easing: placed.motion.ease,

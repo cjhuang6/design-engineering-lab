@@ -17,7 +17,9 @@ import {
   columnCount,
   expandedFrame,
   feedColumnCount,
+  feedColumnPlan,
   isMobileWidth,
+  MIN_FEED_SCALE,
   masonrySpan,
   mobileFrame,
   motionFromStyle,
@@ -144,6 +146,35 @@ test("columns and masonry spans follow the available width", () => {
   assert.equal(columnCount(2000, 24, 100, 3), 3);
   assert.equal(feedColumnCount(620, 640, 588, 24, 128), 1);
   assert.equal(feedColumnCount(640, 640, 608, 24, 128), 3);
+  assert.equal(MIN_FEED_SCALE, 0.75);
+  const content = 304;
+  const gap = 24;
+  const roomy = 24;
+  const tight = 16;
+  const paddingBox = (available, columns, padding) => (available - gap * (columns - 1)) / columns - padding * 2;
+  const fitted = [
+    { available: 712, columns: 2, padding: tight, scale: 1 },
+    { available: 788, columns: 2, padding: roomy, scale: 1 },
+    { available: 992, columns: 3, padding: tight, scale: paddingBox(992, 3, tight) / content },
+    { available: 1148, columns: 3, padding: roomy, scale: 1 },
+    { available: 1168, columns: 3, padding: roomy, scale: 1 },
+  ];
+  for (const item of fitted) {
+    const plan = feedColumnPlan(item.available, gap, content, { padding: roomy, tightPadding: tight });
+    assert.deepEqual(
+      { columns: plan.columns, padding: plan.padding, scale: Math.round(plan.scale * 1e9) / 1e9 },
+      { columns: item.columns, padding: item.padding, scale: Math.round(item.scale * 1e9) / 1e9 },
+    );
+    const inner = paddingBox(item.available, plan.columns, plan.padding);
+    const visual = content * plan.scale;
+    assert.ok(visual <= inner + 1e-6);
+    assert.ok(plan.padding > 0 && visual < (item.available - gap * (plan.columns - 1)) / plan.columns);
+    assert.ok(plan.scale >= MIN_FEED_SCALE - 1e-9);
+  }
+  assert.ok(paddingBox(788, 3, tight) / content < MIN_FEED_SCALE);
+  assert.ok(content <= 358 - tight * 2);
+  assert.deepEqual(feedColumnPlan(400, 24, content), { columns: 1, scale: 1, padding: 0 });
+  assert.deepEqual(feedColumnPlan(0, 24, content), { columns: 1, scale: 1, padding: 0 });
   assert.equal(isMobileWidth(639, 640), true);
   assert.equal(isMobileWidth(640, 640), false);
   assert.equal(masonrySpan(460, 24, 1), 484);
@@ -279,17 +310,18 @@ test("shell motion reads tokens, and the card surface is not a placeholder", asy
   assert.equal(source.includes("scaleY"), false);
   assert.match(source, /translate\(-50%, -50%\) scale\(\$\{scale\}\)/);
   assert.match(source, /fitTransform\(placed\.scale\)/);
-  assert.match(source, /fitTransform\(1\)/);
+  assert.match(source, /fitTransform\(fromScale\)/);
+  assert.equal(source.includes("fitTransform(1)"), false);
   assert.match(
     css,
     /\.showcase-card\[data-open\] \.showcase-card-fit \{[^}]*top:\s*50%;[^}]*left:\s*50%;/,
   );
 });
 
-test("the shipped catalog lists the hex color picker, then the security code", () => {
+test("the shipped catalog lists the security code, then the hex color picker", () => {
   assert.deepEqual(
     SHOWCASE_BLOCKS.map((block) => block.name),
-    ["Hex color picker", "Security code"],
+    ["Security code", "Hex color picker"],
   );
 });
 
@@ -354,6 +386,62 @@ test("Escape, the scrim, and Close dismiss the dialog and return focus", async (
     assert.equal(document.activeElement, trigger());
   } finally {
     await view.unmount();
+  }
+});
+
+test("every feed card's content stays inside the card padding", async () => {
+  const previous = rememberViewport();
+  globalThis.__showcaseFitWidth = 304;
+  const css = await readFile(join(ROOT, "src/showcase/showcase.css"), "utf8");
+  assert.match(css, /\.showcase-card\[data-feed-pad='tight'\] \{\s*padding-inline: var\(--space-4\);/);
+  assert.match(
+    css,
+    /\.showcase-card\[data-feed-pad='tight'\] \.showcase-actions \{[^}]*left: var\(--space-4\);[^}]*right: var\(--space-4\);/,
+  );
+  const blocks = [sampleBlock(), { ...sampleBlock(), id: "other", name: "Other block" }];
+  const expected = {
+    390: { columns: 1, padding: 16, scaled: false },
+    744: { columns: 2, padding: 16, scaled: false },
+    820: { columns: 2, padding: 24, scaled: false },
+    1024: { columns: 3, padding: 16, scaled: true },
+    1180: { columns: 3, padding: 24, scaled: false },
+    1280: { columns: 3, padding: 24, scaled: false },
+    1440: { columns: 3, padding: 24, scaled: false },
+  };
+  try {
+    for (const [width, want] of Object.entries(expected)) {
+      window.innerWidth = Number(width);
+      const view = await mount(blocks);
+      try {
+        const grid = document.querySelector(".showcase-grid");
+        const columns = Number(grid.style.gridTemplateColumns.match(/repeat\((\d+)/)[1]);
+        assert.equal(columns, want.columns, width);
+        const mobile = Number(width) < 640;
+        const gap = mobile ? 16 : 24;
+        const available = grid.clientWidth;
+        const cards = [...grid.querySelectorAll(".showcase-card")];
+        assert.equal(cards.length, 2, width);
+        for (const card of cards) {
+          const fit = card.querySelector(".showcase-card-fit");
+          const parsed = Number.parseFloat(fit.getAttribute("data-feed-scale"));
+          const scale = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+          const padding = mobile ? 16 : card.getAttribute("data-feed-pad") === "tight" ? 16 : 24;
+          const track = (available - gap * (columns - 1)) / columns;
+          const inner = track - padding * 2;
+          const visual = fit.offsetWidth * scale;
+          assert.equal(padding, want.padding, width);
+          assert.equal(scale < 1, want.scaled, width);
+          assert.ok(visual <= inner + 1e-6, `${width} visual ${visual} inner ${inner}`);
+          assert.ok(visual < track, width);
+          if (mobile) assert.equal(card.hasAttribute("data-feed-pad"), false);
+          if (want.scaled) assert.ok(scale >= MIN_FEED_SCALE - 1e-9, width);
+        }
+      } finally {
+        await view.unmount();
+      }
+    }
+  } finally {
+    restoreViewport(previous);
   }
 });
 
@@ -817,6 +905,35 @@ test("mobile shell rules use the breakpoint token, dvh, and safe-area insets", a
   assert.match(css, /\[data-showcase-scroll\] \{[^}]*overflow-y:\s*auto;/);
   assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \.hex-picker-slider \{[^}]*flex:\s*none;/);
   assert.match(css, /@media \(hover: none\) \{[^}]*\.showcase-actions \{[^}]*opacity:\s*var\(--opacity-full\);/);
+  assert.match(source, /\[slotCode, hex\]/);
+  assert.match(source, /titleRef\.current\?\.focus\(\{ preventScroll: true, focusVisible: false \}\)/);
+  assert.match(source, /\?\.focus\(\{ preventScroll: true \}\)/);
+  const beforeMedia = css.slice(0, css.indexOf("@media"));
+  assert.match(beforeMedia, /\.showcase-grid \{[^}]*isolation:\s*isolate;/);
+  assert.match(beforeMedia, /\.showcase-bar \{[^}]*z-index:\s*var\(--z-sticky\);/);
+  assert.match(css, /\.showcase-layer \{[^}]*z-index:\s*var\(--z-modal\);/);
+  assert.match(css, /\.showcase-panel h2:focus,\s*\.showcase-panel h2:focus-visible \{[^}]*outline:\s*none;/);
+  assert.doesNotMatch(css, /\.showcase-panel h2:focus-visible \{[^}]*--border-focus/);
+  assert.match(css, /\.showcase-bar nav \{[^}]*display:\s*flex;/);
+  assert.match(css, /\.showcase-nav \{[^}]*display:\s*flex;[^}]*gap:\s*var\(--space-0\);/);
+  assert.match(css, /\.showcase-nav li \{[^}]*display:\s*flex;/);
+  assert.match(
+    css,
+    /\.showcase-nav a \{[^}]*display:\s*inline-flex;[^}]*color:\s*var\(--color-text-secondary\);[^}]*font:\s*var\(--label-md\);[^}]*border-radius:\s*var\(--radius-full\);/,
+  );
+  assert.match(css, /\.showcase-nav > li:first-child > a \{[^}]*margin-inline-start:\s*calc\(var\(--space-3\) \* -1\);/);
+  assert.match(css, /\.showcase-nav a:focus \{[^}]*outline:\s*none;/);
+  assert.match(css, /\.showcase-nav a:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);
+  assert.match(
+    css,
+    /\.showcase-nav a:hover \{[^}]*color:\s*var\(--color-text-primary\);[^}]*background-color:\s*var\(--color-surface-subtle\);/,
+  );
+  assert.doesNotMatch(css, /\.showcase-nav a:hover \{[^}]*--color-action-primary/);
+  assert.match(css, /\.showcase-nav a\[aria-current='page'\] \{[^}]*color:\s*var\(--color-text-primary\);/);
+  assert.doesNotMatch(css.match(/\.showcase-nav a\[aria-current='page'\] \{([^}]*)\}/)[1], /font-weight/);
+  assert.match(css, /\.showcase-bar-inner \{[^}]*padding-block:\s*var\(--space-4\);/);
+  assert.match(css, /@media \(pointer: coarse\) \{\s*\.showcase-nav a \{[^}]*min-height:\s*var\(--showcase-hit\);/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*\.showcase-nav a \{[^}]*transition:\s*none;/);
   assert.match(
     picker,
     /button\.hex-picker-reset \{[^}]*border-radius:\s*var\(--radius-full\);[^}]*background:\s*transparent;/,

@@ -132,12 +132,19 @@ export function HexColorPicker({
     return gridRef.current?.querySelector(`[data-token="${token}"]`) ?? null
   }
 
-  function commit(token) {
+  function commit(token, keyboard = false) {
     if (!knownToken(token)) return
     memoryRef.current = { colX: null, colId: null }
     setFocusToken(token)
     focusRef.current = token
-    nodeFor(token)?.focus({ preventScroll: true })
+    const node = nodeFor(token)
+    if (keyboard) {
+      node?.focus({ preventScroll: true })
+    } else if (node) {
+      // Safari paints :focus-visible for a scripted focus(), so a tap must not move focus.
+      const active = node.ownerDocument?.activeElement
+      if (active && gridRef.current?.contains(active)) active.blur()
+    }
     if (token === selectedRef.current) return
     if (!isControlled) {
       selectedRef.current = token
@@ -312,9 +319,8 @@ export function HexColorPicker({
     pokeRef.current()
     release()
     const step = moveSelection(positions, current, event.key, memoryRef.current, size.pitchX)
-    commit(step.token)
+    commit(step.token, true)
     memoryRef.current = step.memory
-    nodeFor(step.token)?.focus({ preventScroll: true })
   }
 
   function onKeyUp(event) {
@@ -322,7 +328,7 @@ export function HexColorPicker({
     event.preventDefault()
     const current = focusRef.current
     release()
-    if (current) commit(current)
+    if (current) commit(current, true)
   }
 
   useLayoutEffect(() => {

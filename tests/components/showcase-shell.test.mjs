@@ -498,6 +498,74 @@ test("scroll lock restores the page, and Escape, the scrim, and Close return foc
   }
 });
 
+test("closing drops the dialog without cancelling the move while it is showing", async () => {
+  const original = HTMLElement.prototype.animate;
+  const cancels = [];
+  const pending = [];
+  HTMLElement.prototype.animate = function animate() {
+    const element = this;
+    let resolveFinished = () => {};
+    const finished = new Promise((resolve) => {
+      resolveFinished = resolve;
+    });
+    pending.push(resolveFinished);
+    return {
+      playState: "running",
+      effect: { target: element },
+      cancel() {
+        cancels.push(!!document.querySelector(".showcase-layer") && document.body.contains(element));
+      },
+      pause() {},
+      play() {},
+      finish() {},
+      finished,
+    };
+  };
+  const view = await mount();
+  try {
+    await act(async () => {
+      trigger().click();
+    });
+    assert.ok(pending.length > 0);
+    await act(async () => {
+      pending.splice(0).forEach((resolve) => resolve());
+    });
+    assert.equal(document.querySelector(".showcase-layer").getAttribute("data-mode"), "desktop");
+    cancels.length = 0;
+
+    await act(async () => {
+      document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    assert.ok(pending.length > 0);
+    await act(async () => {
+      pending.splice(0).forEach((resolve) => resolve());
+    });
+    assert.equal(document.querySelector(".showcase-layer"), null);
+    assert.equal(cancels.some(Boolean), false);
+  } finally {
+    HTMLElement.prototype.animate = original;
+    await view.unmount();
+  }
+});
+
+test("unlock reads layout after releasing the fixed body and before scrollTo", async () => {
+  const source = await readFile(join(ROOT, "src/showcase/Showcase.jsx"), "utf8");
+  const unlock = source.slice(source.indexOf("function unlockPageScroll"), source.indexOf("function tabbables"));
+  const release = unlock.indexOf("classList.remove('showcase-scroll-lock')");
+  const reflow = unlock.indexOf("offsetHeight");
+  const scroll = unlock.indexOf("window.scrollTo(0, y)");
+  assert.ok(release > 0);
+  assert.ok(reflow > release);
+  assert.ok(scroll > reflow);
+  assert.ok(unlock.indexOf("requestAnimationFrame") > scroll);
+  assert.ok(unlock.lastIndexOf("overflowAnchor = ''") > scroll);
+  const closingAt = source.indexOf("if (session.phase === 'closing')");
+  const closing = source.slice(closingAt, source.indexOf("return () => {", closingAt));
+  const finish = closing.slice(closing.lastIndexOf("Promise.all"));
+  assert.equal(finish.includes("animation.cancel()"), false);
+  assert.match(finish, /phase === 'closing'/);
+});
+
 test("a wide viewport still opens the side-by-side frame", async () => {
   const previous = rememberViewport();
   window.innerWidth = 1280;

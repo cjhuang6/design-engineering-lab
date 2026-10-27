@@ -128,10 +128,18 @@ function unlockPageScroll(lockRef) {
   if (lockRef.current == null) return
   const y = lockRef.current
   lockRef.current = null
-  document.documentElement.classList.remove('showcase-scroll-lock')
+  const root = document.documentElement
+  root.style.overflowAnchor = 'none'
+  root.classList.remove('showcase-scroll-lock')
   document.body.style.top = ''
   document.body.style.paddingRight = ''
+  // Chrome ignores scrollTo until it has laid out the body without position:fixed,
+  // then scroll anchoring shifts the restored offset unless it stays off through that pass.
+  void root.offsetHeight
   window.scrollTo(0, y)
+  requestAnimationFrame(() => {
+    root.style.overflowAnchor = ''
+  })
 }
 
 function tabbables(root) {
@@ -523,7 +531,8 @@ export function Showcase({ blocks: blocksProp }) {
       }
       Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(() => {
         if (cancelled) return
-        animations.forEach((animation) => animation.cancel())
+        // Leave the finished fill in place. Cancelling here restores the open-state
+        // inline styles and paints the expanded card for one frame before unmount.
         setSession((current) => (current && current.phase === 'closing' ? null : current))
       })
     }

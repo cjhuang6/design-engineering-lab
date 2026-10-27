@@ -3,6 +3,7 @@ import {
   buildPalette,
   cellAtPoint,
   cssDurationMs,
+  draggedSliderValue,
   focusRingPoints,
   formatHex,
   layoutMetrics,
@@ -679,6 +680,8 @@ export const DARKEN_DEFAULT = 0
 export const PICKER_DESCRIPTION =
   "A honeycomb of Camellia's solid color tokens. Cells near the pointer grow as it passes, and the selected color breathes gently until you move on. Use the controls to tune how far the effect reaches, how much cells grow, and whether they darken."
 
+const TOUCH_DRAG_SLOP = 6
+
 function controlFill(value, min, max) {
   if (!(max > min)) return '0%'
   const amount = (Number(value) - min) / (max - min)
@@ -687,8 +690,47 @@ function controlFill(value, min, max) {
 
 function ControlSlider({ label, min, max, step, value, display, onChange }) {
   const id = useId()
+  const drag = useRef(null)
+
+  function onPointerDown(event) {
+    if (event.pointerType !== 'touch') return
+    drag.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      value: Number(value),
+      active: false,
+    }
+  }
+
+  function onPointerMove(event) {
+    const current = drag.current
+    if (!current || event.pointerId !== current.id) return
+    const dx = event.clientX - current.x
+    const dy = event.clientY - current.y
+    if (!current.active) {
+      if (Math.abs(dx) < TOUCH_DRAG_SLOP || Math.abs(dx) < Math.abs(dy)) return
+      current.active = true
+      event.currentTarget.setPointerCapture?.(event.pointerId)
+      event.currentTarget.querySelector('input')?.focus({ preventScroll: true })
+    }
+    onChange(draggedSliderValue(current.value, dx, event.currentTarget.clientWidth, min, max, step))
+  }
+
+  function onPointerEnd(event) {
+    const current = drag.current
+    if (!current || event.pointerId !== current.id) return
+    drag.current = null
+  }
+
   return (
-    <div className="hex-picker-slider">
+    <div
+      className="hex-picker-slider"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+    >
       <span className="hex-picker-slider-fill" style={{ width: controlFill(value, min, max) }} aria-hidden="true" />
       <label className="hex-picker-slider-label" htmlFor={id}>
         {label}
@@ -711,10 +753,16 @@ function ControlSlider({ label, min, max, step, value, display, onChange }) {
 }
 
 export function HexPickerControls({ radius, scaleHover, darken, onRadius, onScale, onDarken, onReset }) {
+  const headingId = useId()
   return (
-    <>
-      <div className="hex-picker-controls">
-        <h4>Controls</h4>
+    <div className="hex-picker-controls">
+      <div className="hex-picker-controls-head">
+        <h4 id={headingId}>Controls</h4>
+        <button type="button" className="hex-picker-reset" aria-label="Reset controls" onClick={onReset}>
+          Reset
+        </button>
+      </div>
+      <div className="hex-picker-controls-list" data-showcase-scroll="" role="group" aria-labelledby={headingId}>
         <ControlSlider
           label="Radius"
           min={40}
@@ -743,9 +791,6 @@ export function HexPickerControls({ radius, scaleHover, darken, onRadius, onScal
           onChange={onDarken}
         />
       </div>
-      <button type="button" className="hex-picker-reset" onClick={onReset}>
-        Reset
-      </button>
-    </>
+    </div>
   )
 }

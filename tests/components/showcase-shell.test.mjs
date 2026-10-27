@@ -270,7 +270,13 @@ test("shell motion reads tokens, and the card surface is not a placeholder", asy
   assert.equal(frames.includes("background"), false);
   assert.equal(source.includes("scaleX"), false);
   assert.equal(source.includes("scaleY"), false);
-  assert.match(source, /scale\(\$\{placed\.scale\}\)/);
+  assert.match(source, /translate\(-50%, -50%\) scale\(\$\{scale\}\)/);
+  assert.match(source, /fitTransform\(placed\.scale\)/);
+  assert.match(source, /fitTransform\(1\)/);
+  assert.match(
+    css,
+    /\.showcase-card\[data-open\] \.showcase-card-fit \{[^}]*top:\s*50%;[^}]*left:\s*50%;/,
+  );
 });
 
 test("the shipped catalog is the hex color picker and nothing else", () => {

@@ -74,6 +74,10 @@ function panelFrames(fromScale) {
   ]
 }
 
+function fitTransform(scale) {
+  return `translate(-50%, -50%) scale(${scale})`
+}
+
 function applyCard(card, fit, box, padding, scale) {
   card.style.left = `${box.x}px`
   card.style.top = `${box.y}px`
@@ -83,7 +87,7 @@ function applyCard(card, fit, box, padding, scale) {
   card.style.paddingRight = `${padding.right}px`
   card.style.paddingBottom = `${padding.bottom}px`
   card.style.paddingLeft = `${padding.left}px`
-  fit.style.transform = `scale(${scale})`
+  fit.style.transform = fitTransform(scale)
 }
 
 function applyPanel(panel, box) {
@@ -442,7 +446,7 @@ export function Showcase({ blocks: blocksProp }) {
           duration: placed.motion.card,
           easing: placed.motion.ease,
         })
-        play(fit, [{ transform: 'scale(1)' }, { transform: `scale(${placed.scale})` }], {
+        play(fit, [{ transform: fitTransform(1) }, { transform: fitTransform(placed.scale) }], {
           duration: placed.motion.card,
           easing: placed.motion.ease,
         })
@@ -506,7 +510,7 @@ export function Showcase({ blocks: blocksProp }) {
           delay: timing.cardDelay,
           easing: placed.motion.ease,
         })
-        play(fit, [{ transform: `scale(${placed.scale})` }, { transform: 'scale(1)' }], {
+        play(fit, [{ transform: fitTransform(placed.scale) }, { transform: fitTransform(1) }], {
           duration: timing.cardDuration,
           delay: timing.cardDelay,
           easing: placed.motion.ease,

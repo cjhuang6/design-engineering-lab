@@ -147,6 +147,7 @@ test("a click on a cell center selects that cell at rest, expanded on desktop, a
     assert.equal(target.node.style.transform, "scale(1.1500)");
     await point("click", visual(neighbor, resting).x, visual(neighbor, resting).y);
     assert.equal(selectedToken(), NEIGHBOR);
+    assert.equal(document.activeElement, neighbor.node);
 
     const cases = [
       { name: "desktop 1280", scale: 1.27578, hit: target, hover: neighbor },
@@ -160,6 +161,7 @@ test("a click on a cell center selects that cell at rest, expanded on desktop, a
       await point("pointermove", visual(hover, scaled).x, visual(hover, scaled).y);
       await point("click", aimed.x, aimed.y);
       assert.equal(selectedToken(), hit.node.getAttribute("data-token"), name);
+      assert.equal(document.activeElement, hit.node);
       assert.equal(hit.node.getAttribute("aria-checked"), "true");
       assert.equal(hover.node.style.transform, "scale(1.1500)", name);
       assert.equal(hover.node.getAttribute("role"), "radio");

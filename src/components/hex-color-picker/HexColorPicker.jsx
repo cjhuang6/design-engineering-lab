@@ -137,6 +137,7 @@ export function HexColorPicker({
     memoryRef.current = { colX: null, colId: null }
     setFocusToken(token)
     focusRef.current = token
+    nodeFor(token)?.focus({ preventScroll: true })
     if (token === selectedRef.current) return
     if (!isControlled) {
       selectedRef.current = token

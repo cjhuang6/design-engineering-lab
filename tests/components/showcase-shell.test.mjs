@@ -151,25 +151,32 @@ test("columns and masonry spans follow the available width", () => {
   assert.equal(masonrySpan(0, 0, 0), 1);
 });
 
+function assertBeside(viewport) {
+  const frame = expandedFrame(viewport, WIDE);
+  assert.equal(frame.axis, "x");
+  assert.equal(frame.panel.x - (frame.card.x + frame.card.w), WIDE.space4);
+  assert.equal(frame.panel.y, frame.card.y);
+  assert.equal(frame.panel.h, frame.card.h);
+  assert.ok(frame.panel.w >= 280);
+  assert.ok(frame.card.x >= WIDE.space8);
+  assert.ok(frame.card.y >= WIDE.space8);
+  assert.ok(frame.panel.x + frame.panel.w <= viewport.width);
+  assert.ok(frame.card.y + frame.card.h <= viewport.height);
+  return frame;
+}
+
 test("every component opens to the same viewport frame", () => {
-  const wide = expandedFrame({ width: 1280, height: 800 }, WIDE);
+  const wide = assertBeside({ width: 1280, height: 800 });
   assert.deepEqual(wide, expandedFrame({ width: 1280, height: 800 }, WIDE));
-  assert.equal(wide.axis, "x");
   assert.deepEqual(wide.card, { x: 261, y: 128, w: 461, h: 544 });
-  assert.equal(wide.panel.x - (wide.card.x + wide.card.w), WIDE.space4);
-  assert.equal(wide.panel.y, wide.card.y);
-  assert.equal(wide.panel.h, wide.card.h);
 
-  const narrow = expandedFrame({ width: 400, height: 700 }, WIDE);
-  assert.equal(narrow.axis, "y");
-  assert.equal(narrow.panel.y - (narrow.card.y + narrow.card.h), WIDE.space4);
-  assert.equal(narrow.panel.x, narrow.card.x);
-  assert.equal(narrow.card.w, 368);
-  assert.ok(narrow.card.h < wide.card.h);
+  assert.deepEqual(assertBeside({ width: 640, height: 900 }).card, { x: 32, y: 178, w: 280, h: 544 });
+  assert.deepEqual(assertBeside({ width: 768, height: 1024 }).card, { x: 76, y: 240, w: 320, h: 544 });
+  assert.deepEqual(assertBeside({ width: 800, height: 800 }).card, { x: 92, y: 128, w: 320, h: 544 });
+  assert.deepEqual(assertBeside({ width: 820, height: 1180 }).card, { x: 102, y: 318, w: 320, h: 544 });
+  assert.deepEqual(assertBeside({ width: 1024, height: 768 }).card, { x: 180, y: 112, w: 369, h: 544 });
+  assert.deepEqual(assertBeside({ width: 1180, height: 820 }).card, { x: 230, y: 138, w: 425, h: 544 });
 
-  const band = expandedFrame({ width: 800, height: 800 }, WIDE);
-  assert.equal(band.axis, "y");
-  assert.equal(band.card.w, 480);
   const phone = mobileFrame({ width: 390, height: 844 }, WIDE);
   assert.equal(phone.card.w, 358);
   assert.equal(phone.card.h, 366);
@@ -498,22 +505,54 @@ test("a wide viewport still opens the side-by-side frame", async () => {
   const view = await mount();
   try {
     await openDetails();
-    const frame = expandedFrame({ width: 1280, height: 800 }, WIDE);
-    const card = document.querySelector(".showcase-card[data-open]");
-    const panel = document.querySelector(".showcase-panel");
-    assert.equal(document.querySelector(".showcase-layer").getAttribute("data-mode"), "desktop");
-    assert.equal(card.style.left, `${frame.card.x}px`);
-    assert.equal(card.style.top, `${frame.card.y}px`);
-    assert.equal(card.style.width, `${frame.card.w}px`);
-    assert.equal(card.style.height, `${frame.card.h}px`);
-    assert.equal(panel.style.left, `${frame.panel.x}px`);
-    assert.equal(panel.style.width, `${frame.panel.w}px`);
-    assert.equal(panel.style.height, `${frame.panel.h}px`);
+    assertDesktopFrame(1280, 800);
   } finally {
     await view.unmount();
     restoreViewport(previous);
   }
 });
+
+test("tablets from 640px up open the desktop frame beside the card", async () => {
+  const previous = rememberViewport();
+  const sizes = [
+    [640, 900],
+    [768, 1024],
+    [820, 1180],
+    [1024, 768],
+    [1180, 820],
+  ];
+  try {
+    for (const [width, height] of sizes) {
+      window.innerWidth = width;
+      window.innerHeight = height;
+      const view = await mount();
+      try {
+        await openDetails();
+        assertDesktopFrame(width, height);
+      } finally {
+        await view.unmount();
+      }
+    }
+  } finally {
+    restoreViewport(previous);
+  }
+});
+
+function assertDesktopFrame(width, height) {
+  const frame = expandedFrame({ width, height }, WIDE);
+  const card = document.querySelector(".showcase-card[data-open]");
+  const panel = document.querySelector(".showcase-panel");
+  assert.equal(frame.axis, "x");
+  assert.equal(document.querySelector(".showcase-layer").getAttribute("data-mode"), "desktop");
+  assert.equal(card.style.left, `${frame.card.x}px`);
+  assert.equal(card.style.top, `${frame.card.y}px`);
+  assert.equal(card.style.width, `${frame.card.w}px`);
+  assert.equal(card.style.height, `${frame.card.h}px`);
+  assert.equal(panel.style.left, `${frame.panel.x}px`);
+  assert.ok(Number.parseFloat(panel.style.left) > Number.parseFloat(card.style.left) + Number.parseFloat(card.style.width));
+  assert.equal(panel.style.width, `${frame.panel.w}px`);
+  assert.equal(panel.style.height, `${frame.panel.h}px`);
+}
 
 test("the safe-area inset moves the pinned card and the panel still fills to the bottom", async () => {
   const previous = rememberViewport();
@@ -690,8 +729,16 @@ test("Reset sits in the Controls row, restores values, and a touch drag moves a 
 
 test("mobile shell rules use the breakpoint token, dvh, and safe-area insets", async () => {
   const css = await readFile(join(ROOT, "src/showcase/showcase.css"), "utf8");
+  const layout = await readFile(join(ROOT, "src/showcase/layout.js"), "utf8");
+  const source = await readFile(join(ROOT, "src/showcase/Showcase.jsx"), "utf8");
   const picker = await readFile(join(ROOT, "src/components/hex-color-picker/HexColorPicker.css"), "utf8");
   const page = await readFile(join(ROOT, "index.html"), "utf8");
+  assert.match(layout, /return breakpoint > 0 && width < breakpoint/);
+  assert.doesNotMatch(layout, /userAgent|maxTouch|ontouchstart|pointer|hover|matchMedia/);
+  assert.equal(layout.match(/axis: 'y'/g).length, 1);
+  assert.doesNotMatch(layout, /viewport\.width >= tokens\.contentMd/);
+  assert.doesNotMatch(source, /userAgent|maxTouchPoints|ontouchstart|matchMedia\(\s*['"][^'"]*pointer|matchMedia\(\s*['"][^'"]*hover/);
+  assert.equal(source.match(/isMobileWidth\(window\.innerWidth/g).length, 3);
   assert.match(page, /viewport-fit=cover/);
   assert.match(css, /html\[data-showcase-feed\] \.showcase-card \{[^}]*padding-inline:\s*var\(--space-4\);/);
   assert.match(css, /html\[data-showcase-feed\] \.showcase-grid \{[^}]*column-gap:\s*var\(--space-4\);/);

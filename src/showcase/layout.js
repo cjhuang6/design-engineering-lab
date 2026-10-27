@@ -70,46 +70,31 @@ export function masonrySpan(height, gap, row = 1) {
 
 export function expandedFrame(viewport, tokens) {
   const gap = tokens.space4
-  if (viewport.width >= tokens.contentMd) {
-    const pad = tokens.space8
-    let panelW = clamp(
-      tokens.contentSm * PANEL_MIN_OF_CONTENT,
-      viewport.width * PANEL_VIEWPORT_FRACTION,
-      tokens.contentSm * PANEL_MAX_OF_CONTENT,
-    )
-    let cardW = clamp(
-      tokens.contentSm * CARD_MIN_OF_CONTENT,
-      viewport.width * CARD_VIEWPORT_FRACTION,
-      tokens.contentSm * CARD_MAX_OF_CONTENT,
-    )
-    const available = Math.max(0, viewport.width - pad * 2)
-    if (cardW + gap + panelW > available) cardW = Math.max(0, available - gap - panelW)
-    const cardH = Math.min(
-      tokens.contentSm * CARD_HEIGHT_OF_CONTENT,
-      Math.max(0, viewport.height - pad * 2),
-    )
-    const total = cardW + gap + panelW
-    const x = Math.max(pad, (viewport.width - total) / 2)
-    const y = Math.max(pad, (viewport.height - cardH) / 2)
-    const card = { x: Math.round(x), y: Math.round(y), w: Math.round(cardW), h: Math.round(cardH) }
-    return {
-      axis: 'x',
-      card,
-      panel: { x: card.x + card.w + gap, y: card.y, w: Math.round(panelW), h: card.h },
-    }
-  }
-
-  const inset = tokens.space4
-  const cardW = Math.min(Math.max(0, viewport.width - inset * 2), tokens.contentSm * CARD_MAX_OF_CONTENT)
-  const availableHeight = Math.max(0, viewport.height - inset * 2 - gap)
-  const cardH = Math.min(availableHeight * NARROW_CARD_HEIGHT, tokens.contentSm * 0.6)
-  const panelH = Math.max(tokens.space24, availableHeight - cardH)
-  const x = Math.max(inset, (viewport.width - cardW) / 2)
-  const card = { x: Math.round(x), y: Math.round(inset), w: Math.round(cardW), h: Math.round(cardH) }
+  const pad = tokens.space8
+  let panelW = clamp(
+    tokens.contentSm * PANEL_MIN_OF_CONTENT,
+    viewport.width * PANEL_VIEWPORT_FRACTION,
+    tokens.contentSm * PANEL_MAX_OF_CONTENT,
+  )
+  let cardW = clamp(
+    tokens.contentSm * CARD_MIN_OF_CONTENT,
+    viewport.width * CARD_VIEWPORT_FRACTION,
+    tokens.contentSm * CARD_MAX_OF_CONTENT,
+  )
+  const available = Math.max(0, viewport.width - pad * 2)
+  if (cardW + gap + panelW > available) cardW = Math.max(0, available - gap - panelW)
+  const cardH = Math.min(
+    tokens.contentSm * CARD_HEIGHT_OF_CONTENT,
+    Math.max(0, viewport.height - pad * 2),
+  )
+  const total = cardW + gap + panelW
+  const x = Math.max(pad, (viewport.width - total) / 2)
+  const y = Math.max(pad, (viewport.height - cardH) / 2)
+  const card = { x: Math.round(x), y: Math.round(y), w: Math.round(cardW), h: Math.round(cardH) }
   return {
-    axis: 'y',
+    axis: 'x',
     card,
-    panel: { x: card.x, y: card.y + card.h + gap, w: card.w, h: Math.round(panelH) },
+    panel: { x: card.x + card.w + gap, y: card.y, w: Math.round(panelW), h: card.h },
   }
 }
 

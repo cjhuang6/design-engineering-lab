@@ -9,6 +9,7 @@ export const CARD_VIEWPORT_FRACTION = 0.36
 export const CARD_HEIGHT_OF_CONTENT = 0.85
 export const NARROW_CARD_HEIGHT = 0.46
 export const MAX_COLUMNS = 3
+export const MIN_FEED_SCALE = 0.75
 export const MOBILE_BREAKPOINT_TOKEN = '--breakpoint-sm'
 
 function clamp(min, value, max) {
@@ -58,9 +59,20 @@ export function columnCount(available, gap, minWidth, maxColumns = MAX_COLUMNS) 
   return Math.max(1, Math.min(maxColumns, columns))
 }
 
-export function feedColumnCount(viewportWidth, breakpoint, available, gap, minWidth, maxColumns = MAX_COLUMNS) {
+export function feedColumnPlan(available, gap, naturalWidth, maxColumns = MAX_COLUMNS, minScale = MIN_FEED_SCALE) {
+  if (!(available > 0) || !(naturalWidth > 0)) return { columns: 1, scale: 1 }
+  const limit = Math.max(1, maxColumns)
+  for (let columns = limit; columns >= 1; columns -= 1) {
+    const track = (available - gap * (columns - 1)) / columns
+    const scale = Math.min(1, track / naturalWidth)
+    if (columns === 1 || scale >= minScale - 1e-9) return { columns, scale }
+  }
+  return { columns: 1, scale: 1 }
+}
+
+export function feedColumnCount(viewportWidth, breakpoint, available, gap, naturalWidth, maxColumns = MAX_COLUMNS) {
   if (isMobileWidth(viewportWidth, breakpoint)) return 1
-  return columnCount(available, gap, minWidth, maxColumns)
+  return feedColumnPlan(available, gap, naturalWidth, maxColumns).columns
 }
 
 export function masonrySpan(height, gap, row = 1) {

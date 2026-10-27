@@ -17,7 +17,9 @@ import {
   columnCount,
   expandedFrame,
   feedColumnCount,
+  feedColumnPlan,
   isMobileWidth,
+  MIN_FEED_SCALE,
   masonrySpan,
   mobileFrame,
   motionFromStyle,
@@ -144,6 +146,18 @@ test("columns and masonry spans follow the available width", () => {
   assert.equal(columnCount(2000, 24, 100, 3), 3);
   assert.equal(feedColumnCount(620, 640, 588, 24, 128), 1);
   assert.equal(feedColumnCount(640, 640, 608, 24, 128), 3);
+  assert.equal(MIN_FEED_SCALE, 0.75);
+  const content = 304;
+  assert.deepEqual(feedColumnPlan(712, 24, content), { columns: 2, scale: 1 });
+  const tablet = feedColumnPlan(788, 24, content);
+  assert.equal(tablet.columns, 3);
+  assert.ok(Math.abs(tablet.scale - (788 - 48) / 3 / content) < 1e-9);
+  assert.ok(tablet.scale >= MIN_FEED_SCALE);
+  assert.deepEqual(feedColumnPlan(992, 24, content), { columns: 3, scale: 1 });
+  assert.deepEqual(feedColumnPlan(1148, 24, content), { columns: 3, scale: 1 });
+  assert.deepEqual(feedColumnPlan(1168, 24, content), { columns: 3, scale: 1 });
+  assert.deepEqual(feedColumnPlan(400, 24, content), { columns: 1, scale: 1 });
+  assert.deepEqual(feedColumnPlan(0, 24, content), { columns: 1, scale: 1 });
   assert.equal(isMobileWidth(639, 640), true);
   assert.equal(isMobileWidth(640, 640), false);
   assert.equal(masonrySpan(460, 24, 1), 484);
@@ -279,17 +293,18 @@ test("shell motion reads tokens, and the card surface is not a placeholder", asy
   assert.equal(source.includes("scaleY"), false);
   assert.match(source, /translate\(-50%, -50%\) scale\(\$\{scale\}\)/);
   assert.match(source, /fitTransform\(placed\.scale\)/);
-  assert.match(source, /fitTransform\(1\)/);
+  assert.match(source, /fitTransform\(fromScale\)/);
+  assert.equal(source.includes("fitTransform(1)"), false);
   assert.match(
     css,
     /\.showcase-card\[data-open\] \.showcase-card-fit \{[^}]*top:\s*50%;[^}]*left:\s*50%;/,
   );
 });
 
-test("the shipped catalog lists the hex color picker, then the security code", () => {
+test("the shipped catalog lists the security code, then the hex color picker", () => {
   assert.deepEqual(
     SHOWCASE_BLOCKS.map((block) => block.name),
-    ["Hex color picker", "Security code"],
+    ["Security code", "Hex color picker"],
   );
 });
 
@@ -817,6 +832,35 @@ test("mobile shell rules use the breakpoint token, dvh, and safe-area insets", a
   assert.match(css, /\[data-showcase-scroll\] \{[^}]*overflow-y:\s*auto;/);
   assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \.hex-picker-slider \{[^}]*flex:\s*none;/);
   assert.match(css, /@media \(hover: none\) \{[^}]*\.showcase-actions \{[^}]*opacity:\s*var\(--opacity-full\);/);
+  assert.match(source, /\[slotCode, hex\]/);
+  assert.match(source, /titleRef\.current\?\.focus\(\{ preventScroll: true, focusVisible: false \}\)/);
+  assert.match(source, /\?\.focus\(\{ preventScroll: true \}\)/);
+  const beforeMedia = css.slice(0, css.indexOf("@media"));
+  assert.match(beforeMedia, /\.showcase-grid \{[^}]*isolation:\s*isolate;/);
+  assert.match(beforeMedia, /\.showcase-bar \{[^}]*z-index:\s*var\(--z-sticky\);/);
+  assert.match(css, /\.showcase-layer \{[^}]*z-index:\s*var\(--z-modal\);/);
+  assert.match(css, /\.showcase-panel h2:focus,\s*\.showcase-panel h2:focus-visible \{[^}]*outline:\s*none;/);
+  assert.doesNotMatch(css, /\.showcase-panel h2:focus-visible \{[^}]*--border-focus/);
+  assert.match(css, /\.showcase-bar nav \{[^}]*display:\s*flex;/);
+  assert.match(css, /\.showcase-nav \{[^}]*display:\s*flex;[^}]*gap:\s*var\(--space-0\);/);
+  assert.match(css, /\.showcase-nav li \{[^}]*display:\s*flex;/);
+  assert.match(
+    css,
+    /\.showcase-nav a \{[^}]*display:\s*inline-flex;[^}]*color:\s*var\(--color-text-secondary\);[^}]*font:\s*var\(--label-md\);[^}]*border-radius:\s*var\(--radius-full\);/,
+  );
+  assert.match(css, /\.showcase-nav > li:first-child > a \{[^}]*margin-inline-start:\s*calc\(var\(--space-3\) \* -1\);/);
+  assert.match(css, /\.showcase-nav a:focus \{[^}]*outline:\s*none;/);
+  assert.match(css, /\.showcase-nav a:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);
+  assert.match(
+    css,
+    /\.showcase-nav a:hover \{[^}]*color:\s*var\(--color-text-primary\);[^}]*background-color:\s*var\(--color-surface-subtle\);/,
+  );
+  assert.doesNotMatch(css, /\.showcase-nav a:hover \{[^}]*--color-action-primary/);
+  assert.match(css, /\.showcase-nav a\[aria-current='page'\] \{[^}]*color:\s*var\(--color-text-primary\);/);
+  assert.doesNotMatch(css.match(/\.showcase-nav a\[aria-current='page'\] \{([^}]*)\}/)[1], /font-weight/);
+  assert.match(css, /\.showcase-bar-inner \{[^}]*padding-block:\s*var\(--space-4\);/);
+  assert.match(css, /@media \(pointer: coarse\) \{\s*\.showcase-nav a \{[^}]*min-height:\s*var\(--showcase-hit\);/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*\.showcase-nav a \{[^}]*transition:\s*none;/);
   assert.match(
     picker,
     /button\.hex-picker-reset \{[^}]*border-radius:\s*var\(--radius-full\);[^}]*background:\s*transparent;/,

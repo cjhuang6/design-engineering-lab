@@ -1,11 +1,11 @@
 export const SHOWCASE_BLOCKS = [
   {
-    id: 'hex-color-picker',
-    name: 'Hex color picker',
-  },
-  {
     id: 'slot-code',
     name: 'Security code',
+  },
+  {
+    id: 'hex-color-picker',
+    name: 'Hex color picker',
   },
 ]
 

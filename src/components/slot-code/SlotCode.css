@@ -230,7 +230,8 @@ button.slot-copy[aria-disabled='true'] {
 .slot-copy-icons,
 .slot-copy-label {
   display: inline-grid;
-  justify-items: center;
+  justify-items: start;
+  align-items: center;
 }
 
 .slot-copy-icons > svg,
@@ -243,6 +244,14 @@ button.slot-copy[aria-disabled='true'] {
     opacity var(--duration-normal) var(--ease-enter),
     filter var(--duration-normal) var(--ease-enter),
     transform var(--duration-normal) var(--ease-enter);
+}
+
+.slot-copy-icons > svg {
+  transform-origin: right center;
+}
+
+.slot-copy-label > span {
+  transform-origin: left center;
 }
 
 .slot-copy-icons > svg.is-on,

@@ -3,33 +3,38 @@ import { flushSync } from 'react-dom'
 import { cssDurationMs } from '../hex-color-picker/model.js'
 import {
   COPIED_MS,
+  COUNTDOWN_DEFAULT,
+  FILL_EMPTY,
+  REEL_COUNT,
+  REST_WORD,
   RETRO_HOLD_MS,
   cycleDurationMs,
   expiryText,
+  idleDelayMs,
   makeSchedule,
-  mod10,
+  motionFromCss,
   percentAt,
-  plansFor,
+  poseAt,
   randomDigits,
+  returnRun,
   retroClip,
   smoothClip,
-  smoothRemaining,
+  spinRun,
   spokenCode,
   unbiasedBelow,
   unitEase,
 } from './model.js'
 import './SlotCode.css'
 
-const REELS = 6
-
 const INITIAL_VIEW = {
-  spinning: true,
-  copied: false,
-  digits: [0, 0, 0, 0, 0, 0],
+  busy: false,
+  counting: false,
+  label: 'create',
+  glyphs: REST_WORD.slice(),
   announcement: '',
-  description: 'Generating a new code',
+  description: '',
   status: '',
-  codeText: 'Generating code',
+  codeText: 'No code yet',
 }
 
 function nextByte() {
@@ -42,6 +47,13 @@ function nextUint32() {
   const words = new Uint32Array(1)
   crypto.getRandomValues(words)
   return words[0]
+}
+
+function nextDigit() {
+  for (;;) {
+    const value = nextByte()
+    if (value < 250) return String(value % 10)
+  }
 }
 
 function reducedMotion() {
@@ -57,37 +69,54 @@ function readEase() {
   return getComputedStyle(document.documentElement).getPropertyValue('--ease-standard').trim()
 }
 
+function readMotion() {
+  const style = getComputedStyle(document.documentElement)
+  return motionFromCss((name) => cssDurationMs(style.getPropertyValue(name)))
+}
+
+function blankRuns() {
+  return Array.from({ length: REEL_COUNT }, () => null)
+}
+
+function staticPoses(glyphs) {
+  return glyphs.map((glyph) => ({ a: glyph, b: glyph, phase: 0 }))
+}
+
 function createModel() {
+  const shown = REST_WORD.slice()
   return {
-    phase: 'idle',
+    phase: 'resting',
     appliedStyle: 'smooth',
-    code: [0, 0, 0, 0, 0, 0],
-    next: [0, 0, 0, 0, 0, 0],
-    plans: [],
-    poses: Array.from({ length: REELS }, () => ({ a: 0, b: 0, phase: 0 })),
+    shown,
+    from: shown.slice(),
+    next: shown.slice(),
+    runs: blankRuns(),
+    poses: staticPoses(shown),
     reduced: false,
-    spinStart: 0,
+    motionStart: 0,
     frameNow: 0,
     fadeMs: 200,
     ease: 'linear',
+    motion: readMotion(),
     cycleStart: 0,
-    deadline: 0,
     duration: 0,
     schedule: [],
     hinted: false,
     lastSecond: null,
     copiedUntil: 0,
-    clip: retroClip(0),
+    nextIdle: Number.POSITIVE_INFINITY,
+    clip: FILL_EMPTY,
     readNow: () => performance.now(),
+    requestCreate: () => {},
     announcement: '',
-    description: 'Generating a new code',
+    description: '',
     status: '',
-    codeText: 'Generating code',
-    published: { ...INITIAL_VIEW, digits: [0, 0, 0, 0, 0, 0] },
+    codeText: 'No code yet',
+    published: { ...INITIAL_VIEW, glyphs: shown.slice() },
   }
 }
 
-function setFlap(flap, fromDigit, toDigit, phase) {
+function setFlap(flap, fromGlyph, toGlyph, phase) {
   const staticTop = flap.querySelector('.slot-static.slot-half-top')
   const staticBot = flap.querySelector('.slot-static.slot-half-bot')
   const leafTop = flap.querySelector('.slot-leaf.slot-half-top')
@@ -98,10 +127,10 @@ function setFlap(flap, fromDigit, toDigit, phase) {
   const leafBotText = leafBot.firstChild
   const topShade = leafTop.lastChild
   const botShade = leafBot.lastChild
-  topText.textContent = String(toDigit)
-  botText.textContent = String(fromDigit)
-  leafTopText.textContent = String(fromDigit)
-  leafBotText.textContent = String(toDigit)
+  topText.textContent = String(toGlyph)
+  botText.textContent = String(fromGlyph)
+  leafTopText.textContent = String(fromGlyph)
+  leafBotText.textContent = String(toGlyph)
   const angle = -180 * phase * phase
   if (phase <= 0) {
     leafTop.style.visibility = 'hidden'
@@ -110,7 +139,7 @@ function setFlap(flap, fromDigit, toDigit, phase) {
     leafBot.style.transform = ''
     topShade.style.opacity = '0'
     botShade.style.opacity = '0'
-    topText.textContent = String(fromDigit)
+    topText.textContent = String(fromGlyph)
     return
   }
   if (angle > -90) {
@@ -129,22 +158,61 @@ function setFlap(flap, fromDigit, toDigit, phase) {
   botShade.style.opacity = (0.2 * Math.sin((bottom * Math.PI) / 180)).toFixed(3)
 }
 
-function CopyIcon() {
+function RefreshIcon({ active }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      data-icon="create"
+      className={active ? 'is-on' : undefined}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </svg>
+  )
+}
+
+function CopyIcon({ active }) {
+  return (
+    <svg
+      data-icon="copy"
+      className={active ? 'is-on' : undefined}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <rect x="9" y="9" width="13" height="13" rx="2" />
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </svg>
   )
 }
 
-function CopyFace({ copied }) {
+function ButtonFace({ label }) {
   return (
     <span className="slot-copy-face">
-      <CopyIcon />
+      <span className="slot-copy-icons">
+        <RefreshIcon active={label === 'create'} />
+        <CopyIcon active={label !== 'create'} />
+      </span>
       <span className="slot-copy-label">
-        <span hidden={copied}>Copy code</span>
-        <span hidden={!copied}>Copied</span>
+        <span className={label === 'create' ? 'is-on' : undefined} data-label="create">
+          Create code
+        </span>
+        <span className={label === 'copy' ? 'is-on' : undefined} data-label="copy">
+          Copy code
+        </span>
+        <span className={label === 'copied' ? 'is-on' : undefined} data-label="copied">
+          Copied
+        </span>
       </span>
     </span>
   )
@@ -171,10 +239,16 @@ function Flap({ kind }) {
   )
 }
 
-export const SLOT_CODE_DESCRIPTION =
-  'Six split-flap reels show a 6-digit code drawn from crypto.getRandomValues. This is a demo, not a one-time password. The Copy code button fill is the countdown. Smooth is the default and drains across the selected duration. Retro jumps from empty to full across 3 seconds. The button does not show a percent or a seconds count.'
+function labelName(label) {
+  if (label === 'copied') return 'Copied'
+  if (label === 'copy') return 'Copy code'
+  return 'Create code'
+}
 
-export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
+export const SLOT_CODE_DESCRIPTION =
+  'Six split-flap reels rest on HELLO!. Create code spins a 6-digit code drawn from crypto.getRandomValues. This is a demo, not a one-time password. The button fill is the countdown. Smooth is the default and the graphite fill grows left to right across the selected duration. Retro jumps from empty to full across 3 seconds. When time runs out, the reels flip back to HELLO!. The button does not show a percent or a seconds count.'
+
+export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DEFAULT }) {
   const rootRef = useRef(null)
   const fillRef = useRef(null)
   const modelRef = useRef(null)
@@ -192,15 +266,16 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
     const root = rootRef.current
     const model = modelRef.current
     if (!root || !model) return
-    const spinning = model.phase === 'spinning'
+    const moving = model.phase === 'spinning' || model.phase === 'returning'
     const reels = root.querySelectorAll('.slot-reel')
     reels.forEach((reel, index) => {
       const current = reel.querySelector('.slot-flap-current')
       const incoming = reel.querySelector('.slot-flap-next')
-      if (spinning && model.reduced) {
-        setFlap(current, model.code[index], model.code[index], 0)
-        setFlap(incoming, model.next[index], model.next[index], 0)
-        const amount = model.fadeMs > 0 ? (model.frameNow - model.spinStart) / model.fadeMs : 1
+      if (moving && model.reduced) {
+        const target = model.phase === 'returning' ? REST_WORD[index] : model.next[index]
+        setFlap(current, model.from[index], model.from[index], 0)
+        setFlap(incoming, target, target, 0)
+        const amount = model.fadeMs > 0 ? (model.frameNow - model.motionStart) / model.fadeMs : 1
         const eased = unitEase(model.ease, amount)
         current.style.opacity = String(1 - eased)
         incoming.style.visibility = 'visible'
@@ -240,12 +315,14 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
     }
 
     function publish(time) {
-      const spinning = model.phase !== 'counting' && model.phase !== 'holding'
-      const copied = !spinning && time < model.copiedUntil
+      const counting = model.phase === 'counting' || model.phase === 'holding'
+      const busy = model.phase === 'spinning' || model.phase === 'returning'
+      const copied = counting && time < model.copiedUntil
       const next = {
-        spinning,
-        copied,
-        digits: model.code.slice(),
+        busy,
+        counting,
+        label: counting ? (copied ? 'copied' : 'copy') : 'create',
+        glyphs: model.shown.slice(),
         announcement: model.announcement,
         description: model.description,
         status: model.status,
@@ -253,7 +330,7 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
       }
       const previous = model.published
       const changed = Object.keys(next).some((key) => {
-        if (key === 'digits') return next.digits.join('') !== previous.digits.join('')
+        if (key === 'glyphs') return next.glyphs.join('') !== previous.glyphs.join('')
         return next[key] !== previous[key]
       })
       if (!changed) return
@@ -262,47 +339,85 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
       flushSync(() => setView(next))
     }
 
+    function sync(time) {
+      publish(time)
+      paint()
+    }
+
+    function applyPoses(time) {
+      for (let index = 0; index < REEL_COUNT; index += 1) {
+        const run = model.runs[index]
+        if (!run) {
+          const glyph = model.shown[index]
+          model.poses[index] = { a: glyph, b: glyph, phase: 0 }
+          continue
+        }
+        const pose = poseAt(time - model.motionStart, run)
+        model.poses[index] = { a: pose.a, b: pose.b, phase: pose.phase }
+        if (pose.done) model.shown[index] = pose.a
+      }
+    }
+
+    function motionSettled(time) {
+      if (model.reduced) return time - model.motionStart >= model.fadeMs
+      applyPoses(time)
+      return model.runs.every((run) => run == null || poseAt(time - model.motionStart, run).done)
+    }
+
+    function scheduleIdle(time) {
+      model.runs = blankRuns()
+      model.poses = staticPoses(model.shown)
+      if (reducedMotion()) {
+        model.nextIdle = Number.POSITIVE_INFINITY
+        return
+      }
+      model.nextIdle = time + idleDelayMs((limit) => unbiasedBelow(limit, nextUint32))
+    }
+
     function beginSpin(time) {
       model.phase = 'spinning'
       model.appliedStyle = styleNow()
       model.reduced = reducedMotion()
+      model.from = model.shown.slice()
       model.next = randomDigits(nextByte)
-      model.spinStart = time
+      model.motionStart = time
       model.frameNow = time
-      model.copiedUntil = 0
       model.fadeMs = readFade()
       model.ease = readEase()
-      if (!model.reduced) model.plans = plansFor(model.code, model.next)
-      for (let index = 0; index < REELS; index += 1) {
-        model.poses[index] = { a: model.code[index], b: model.code[index], phase: 0 }
-      }
+      model.motion = readMotion()
+      model.copiedUntil = 0
+      model.clip = FILL_EMPTY
+      model.nextIdle = Number.POSITIVE_INFINITY
       model.codeText = 'Generating code'
       model.description = 'Generating a new code'
       model.status = ''
-      model.lastSecond = null
+      if (model.reduced) {
+        model.runs = blankRuns()
+        model.poses = staticPoses(model.from)
+        return
+      }
+      model.runs = model.from.map((glyph, index) => spinRun(glyph, model.next[index], index, model.motion, nextDigit))
+      applyPoses(time)
     }
 
     function beginCount(time) {
       model.phase = 'counting'
-      model.code = model.next.slice()
+      model.shown = model.next.slice()
+      model.runs = blankRuns()
+      model.poses = staticPoses(model.shown)
       model.appliedStyle = styleNow()
       model.cycleStart = time
       model.duration = cycleDurationMs(model.appliedStyle, countdownRef.current)
-      model.deadline = time + model.duration
       model.hinted = false
       model.lastSecond = null
       model.copiedUntil = 0
-      for (let index = 0; index < REELS; index += 1) {
-        model.poses[index] = { a: model.code[index], b: model.code[index], phase: 0 }
-      }
+      model.clip = FILL_EMPTY
       if (model.appliedStyle === 'retro') {
         model.schedule = makeSchedule(model.duration, (span) => unbiasedBelow(span, nextUint32))
-        model.clip = retroClip(0)
       } else {
         model.schedule = []
-        model.clip = smoothClip(1)
       }
-      const spoken = spokenCode(model.code)
+      const spoken = spokenCode(model.shown)
       const seconds = Math.max(0, Math.ceil(model.duration / 1000))
       model.lastSecond = seconds
       model.codeText = `Security code ${spoken}`
@@ -310,41 +425,77 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
       model.description = expiryText(seconds)
     }
 
-    function advanceSpin(time) {
+    function beginReturn(time) {
+      model.phase = 'returning'
+      model.reduced = reducedMotion()
+      model.from = model.shown.slice()
+      model.motionStart = time
       model.frameNow = time
-      if (model.reduced) return time - model.spinStart >= model.fadeMs
-      const elapsed = time - model.spinStart
-      let settled = true
-      for (let index = 0; index < REELS; index += 1) {
-        const plan = model.plans[index]
-        if (elapsed >= plan.lockAt) {
-          model.poses[index] = { a: model.next[index], b: model.next[index], phase: 0 }
-          continue
-        }
-        settled = false
-        const into = elapsed - plan.delay
-        if (into < 0) {
-          model.poses[index] = { a: model.code[index], b: model.code[index], phase: 0 }
-          continue
-        }
-        const step = Math.floor(into / plan.per)
-        if (step >= plan.n) {
-          model.poses[index] = { a: model.next[index], b: model.next[index], phase: 0 }
-          continue
-        }
-        const from = mod10(model.code[index] + step)
-        model.poses[index] = {
-          a: from,
-          b: mod10(from + 1),
-          phase: (into - step * plan.per) / plan.per,
-        }
+      model.fadeMs = readFade()
+      model.ease = readEase()
+      model.motion = readMotion()
+      model.copiedUntil = 0
+      model.clip = FILL_EMPTY
+      model.codeText = 'No code yet'
+      model.description = ''
+      if (model.reduced) {
+        model.runs = blankRuns()
+        model.poses = staticPoses(model.from)
+        return
       }
-      return settled
+      model.runs = model.from.map((glyph, index) => returnRun(glyph, index, model.motion))
+      applyPoses(time)
+    }
+
+    function finishReturn(time) {
+      model.phase = 'resting'
+      model.shown = REST_WORD.slice()
+      model.runs = blankRuns()
+      model.poses = staticPoses(model.shown)
+      model.clip = FILL_EMPTY
+      model.copiedUntil = 0
+      model.codeText = 'No code yet'
+      model.description = ''
+      model.announcement = 'Code expired. Create code.'
+      scheduleIdle(time)
+    }
+
+    function startBreath(time) {
+      const index = unbiasedBelow(REEL_COUNT, nextUint32)
+      model.motion = readMotion()
+      model.motionStart = time
+      model.frameNow = time
+      model.reduced = false
+      model.runs = blankRuns()
+      model.runs[index] = {
+        delay: 0,
+        times: [0, model.motion.expressionSm],
+        glyphs: [model.shown[index], model.shown[index]],
+      }
+      model.nextIdle = Number.POSITIVE_INFINITY
+    }
+
+    function advanceRest(time) {
+      if (reducedMotion()) {
+        model.runs = blankRuns()
+        model.poses = staticPoses(model.shown)
+        model.nextIdle = Number.POSITIVE_INFINITY
+        return
+      }
+      if (model.runs.some(Boolean)) {
+        if (motionSettled(time)) scheduleIdle(time)
+        return
+      }
+      if (!Number.isFinite(model.nextIdle)) {
+        scheduleIdle(time)
+        return
+      }
+      if (time >= model.nextIdle) startBreath(time)
     }
 
     function noteSecond(time) {
-      if (model.phase !== 'counting' && model.phase !== 'holding') return
-      const seconds = Math.max(0, Math.ceil((model.deadline - time) / 1000))
+      const remaining = model.cycleStart + model.duration - time
+      const seconds = Math.max(0, Math.ceil(remaining / 1000))
       if (seconds === model.lastSecond) return
       model.lastSecond = seconds
       model.description = expiryText(seconds)
@@ -358,32 +509,37 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
     function advanceCount(time) {
       const elapsed = time - model.cycleStart
       if (model.appliedStyle === 'retro') {
-        model.clip = retroClip(percentAt(model.schedule, Math.max(0, elapsed)))
         if (elapsed >= model.duration + RETRO_HOLD_MS) {
-          beginSpin(time)
+          beginReturn(time)
           return
         }
+        model.clip = retroClip(percentAt(model.schedule, Math.max(0, elapsed)))
         if (elapsed >= model.duration) model.phase = 'holding'
-      } else if (time >= model.deadline) {
-        model.clip = smoothClip(0)
-        beginSpin(time)
+      } else if (elapsed >= model.duration) {
+        beginReturn(time)
         return
       } else {
-        model.clip = smoothClip(smoothRemaining(time, model.deadline, model.duration))
+        model.clip = smoothClip(model.duration > 0 ? elapsed / model.duration : 1)
       }
       noteSecond(time)
     }
 
     function step(time) {
-      const style = styleNow()
-      if (model.phase === 'idle' || model.appliedStyle !== style) beginSpin(time)
-      if (model.phase === 'spinning') {
-        if (advanceSpin(time)) beginCount(time)
-      } else {
-        advanceCount(time)
+      model.frameNow = time
+      if (model.phase === 'resting') advanceRest(time)
+      else if (model.phase === 'spinning') {
+        if (motionSettled(time)) beginCount(time)
+      } else if (model.phase === 'counting' || model.phase === 'holding') advanceCount(time)
+      else if (model.phase === 'returning') {
+        if (motionSettled(time)) finishReturn(time)
       }
-      paint()
-      publish(time)
+      sync(time)
+    }
+
+    model.requestCreate = () => {
+      if (model.phase !== 'resting') return
+      beginSpin(now())
+      sync(now())
     }
 
     function frame() {
@@ -420,6 +576,7 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
     schedule()
     return () => {
       aliveRef.current = false
+      model.requestCreate = () => {}
       if (raf) window.cancelAnimationFrame(raf)
       raf = 0
       document.removeEventListener('visibilitychange', onVisibility)
@@ -429,7 +586,7 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
   async function onCopy() {
     const model = modelRef.current
     if (!model || (model.phase !== 'counting' && model.phase !== 'holding')) return
-    const text = model.code.join('')
+    const text = model.shown.join('')
     try {
       await navigator.clipboard.writeText(text)
     } catch {
@@ -443,17 +600,27 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
     if (!aliveRef.current) return
     const time = model.readNow()
     model.copiedUntil = time + COPIED_MS
-    model.status = 'Copied'
-    const next = { ...model.published, copied: true, status: 'Copied' }
+    model.announcement = 'Copied'
+    const next = { ...model.published, label: 'copied', announcement: 'Copied' }
     model.published = next
     setView(next)
   }
 
+  function onActivate() {
+    const model = modelRef.current
+    if (!model || model.phase === 'spinning' || model.phase === 'returning') return
+    if (model.phase === 'resting') {
+      model.requestCreate()
+      return
+    }
+    onCopy()
+  }
+
   return (
     <section className="slot-code" aria-label="Security code" ref={rootRef}>
-      <div className="slot-reels" aria-hidden={view.spinning ? true : undefined}>
-        {view.digits.map((digit, index) => (
-          <div className="slot-reel" key={index} role="img" aria-label={String(digit)}>
+      <div className="slot-reels" aria-hidden="true">
+        {view.glyphs.map((glyph, index) => (
+          <div className="slot-reel" key={index} role="img" aria-label={String(glyph)}>
             <Flap kind="current" />
             <Flap kind="next" />
           </div>
@@ -469,15 +636,15 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = 5 }) {
       <button
         type="button"
         className="slot-copy"
-        aria-label="Copy code"
+        aria-label={labelName(view.label)}
         aria-describedby={timeId}
-        aria-disabled={view.spinning ? 'true' : 'false'}
-        onClick={onCopy}
+        aria-disabled={view.busy ? 'true' : 'false'}
+        onClick={onActivate}
       >
         <span className="slot-copy-visual">
-          <CopyFace copied={view.copied} />
-          <span className="slot-copy-fill" ref={fillRef} aria-hidden="true">
-            <CopyFace copied={view.copied} />
+          <ButtonFace label={view.label} />
+          <span className="slot-copy-fill" ref={fillRef} hidden={!view.counting} aria-hidden="true">
+            <ButtonFace label={view.label} />
           </span>
         </span>
       </button>

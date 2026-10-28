@@ -583,6 +583,15 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DE
     }
   }, [])
 
+  useEffect(() => {
+    const control = rootRef.current?.querySelector('button.slot-copy')
+    if (!control) return undefined
+    // iOS Safari applies :active only when the control has a touch listener.
+    const keepPress = () => {}
+    control.addEventListener('touchstart', keepPress, { passive: true })
+    return () => control.removeEventListener('touchstart', keepPress)
+  }, [])
+
   async function onCopy() {
     const model = modelRef.current
     if (!model || (model.phase !== 'counting' && model.phase !== 'holding')) return

@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { cssDurationMs } from '../hex-color-picker/model.js'
 import {
   COPIED_MS,
@@ -25,6 +25,10 @@ import {
   unitEase,
 } from './model.js'
 import './SlotCode.css'
+
+const TIP_DELAY_MS = 400
+const TIP_WARM_MS = 600
+let tipWarmUntil = 0
 
 const INITIAL_VIEW = {
   busy: false,
@@ -158,10 +162,10 @@ function setFlap(flap, fromGlyph, toGlyph, phase) {
   botShade.style.opacity = (0.2 * Math.sin((bottom * Math.PI) / 180)).toFixed(3)
 }
 
-function RefreshIcon({ active }) {
+function SlotIcon({ name, active, children }) {
   return (
     <svg
-      data-icon="create"
+      data-icon={name}
       className={active ? 'is-on' : undefined}
       viewBox="0 0 24 24"
       fill="none"
@@ -171,27 +175,7 @@ function RefreshIcon({ active }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
-      <path d="M21 3v6h-6" />
-    </svg>
-  )
-}
-
-function CopyIcon({ active }) {
-  return (
-    <svg
-      data-icon="copy"
-      className={active ? 'is-on' : undefined}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="9" y="9" width="13" height="13" rx="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      {children}
     </svg>
   )
 }
@@ -200,19 +184,17 @@ function ButtonFace({ label }) {
   return (
     <span className="slot-copy-face">
       <span className="slot-copy-icons">
-        <RefreshIcon active={label === 'create'} />
-        <CopyIcon active={label !== 'create'} />
-      </span>
-      <span className="slot-copy-label">
-        <span className={label === 'create' ? 'is-on' : undefined} data-label="create">
-          Create code
-        </span>
-        <span className={label === 'copy' ? 'is-on' : undefined} data-label="copy">
-          Copy code
-        </span>
-        <span className={label === 'copied' ? 'is-on' : undefined} data-label="copied">
-          Copied
-        </span>
+        <SlotIcon name="create" active={label === 'create'}>
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+          <path d="M21 3v6h-6" />
+        </SlotIcon>
+        <SlotIcon name="copy" active={label === 'copy'}>
+          <rect x="9" y="9" width="13" height="13" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </SlotIcon>
+        <SlotIcon name="check" active={label === 'copied'}>
+          <path d="M20 6 9 17l-5-5" />
+        </SlotIcon>
       </span>
     </span>
   )
@@ -239,24 +221,39 @@ function Flap({ kind }) {
   )
 }
 
-function labelName(label) {
-  if (label === 'copied') return 'Copied'
+function actionName(label) {
+  if (label === 'copied') return 'Code copied'
   if (label === 'copy') return 'Copy code'
   return 'Create code'
 }
 
+function readTokenMs(name, fallback) {
+  const value = cssDurationMs(getComputedStyle(document.documentElement).getPropertyValue(name))
+  return value > 0 ? value : fallback
+}
+
+function readPx(name, fallback) {
+  const amount = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name))
+  return Number.isFinite(amount) && amount > 0 ? amount : fallback
+}
+
 export const SLOT_CODE_DESCRIPTION =
-  'Six split-flap reels rest on HELLO!. Create code spins a 6-digit code drawn from crypto.getRandomValues. This is a demo, not a one-time password. The button fill is the countdown. Smooth is the default and the graphite fill grows left to right across the selected duration. Retro jumps from empty to full across 3 seconds. When time runs out, the reels flip back to HELLO!. The button does not show a percent or a seconds count.'
+  'Six split-flap reels rest on HELLO!. The round button spins a 6-digit code drawn from crypto.getRandomValues. This is a demo, not a one-time password. The button fill is the countdown. Smooth is the default and the graphite fill grows left to right across the selected duration. Retro jumps from empty to full across 3 seconds. When time runs out, the reels flip back to HELLO!. The button does not show a percent or a seconds count.'
 
 export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DEFAULT }) {
   const rootRef = useRef(null)
   const fillRef = useRef(null)
+  const buttonRef = useRef(null)
+  const tipRef = useRef(null)
+  const tipTimer = useRef(0)
+  const tipOpenRef = useRef(false)
   const modelRef = useRef(null)
   const aliveRef = useRef(true)
   const fillStyleRef = useRef(fillStyle)
   const countdownRef = useRef(countdownSeconds)
   const timeId = useId()
   const [view, setView] = useState(INITIAL_VIEW)
+  const [tipOpen, setTipOpen] = useState(false)
 
   if (modelRef.current == null) {
     modelRef.current = createModel()
@@ -289,6 +286,45 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DE
       setFlap(current, pose.a, pose.b, pose.phase)
     })
     if (fillRef.current) fillRef.current.style.clipPath = model.clip
+  }
+
+  function showTip() {
+    window.clearTimeout(tipTimer.current)
+    const open = () => {
+      if (!aliveRef.current) return
+      tipOpenRef.current = true
+      setTipOpen(true)
+    }
+    if (performance.now() < tipWarmUntil) open()
+    else tipTimer.current = window.setTimeout(open, readTokenMs('--duration-expression-sm', TIP_DELAY_MS))
+  }
+
+  function hideTip() {
+    window.clearTimeout(tipTimer.current)
+    if (tipOpenRef.current) tipWarmUntil = performance.now() + readTokenMs('--duration-expression-md', TIP_WARM_MS)
+    tipOpenRef.current = false
+    setTipOpen(false)
+  }
+
+  function onPointerEnter(event) {
+    if (event.pointerType !== 'mouse') return
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    showTip()
+  }
+
+  function onPointerLeave(event) {
+    if (event.currentTarget.matches(':focus-visible')) return
+    hideTip()
+  }
+
+  function onTipFocus(event) {
+    if (event.currentTarget.matches(':focus-visible')) showTip()
+  }
+
+  function onTipKeyDown(event) {
+    if (event.key !== 'Escape' || !tipOpenRef.current) return
+    event.stopPropagation()
+    hideTip()
   }
 
   useLayoutEffect(() => {
@@ -583,8 +619,36 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DE
     }
   }, [])
 
+  useEffect(() => () => window.clearTimeout(tipTimer.current), [])
+
+  useLayoutEffect(() => {
+    if (!tipOpen) return undefined
+    const place = () => {
+      const anchor = buttonRef.current
+      const tip = tipRef.current
+      if (!anchor || !tip) return
+      const box = anchor.getBoundingClientRect()
+      const tipBox = tip.getBoundingClientRect()
+      const gap = readPx('--space-2', 8)
+      tip.style.left = `${box.left + box.width / 2 - tipBox.width / 2}px`
+      tip.style.top = `${box.top - tipBox.height - gap}px`
+    }
+    place()
+    let frame = window.requestAnimationFrame(function track() {
+      place()
+      frame = window.requestAnimationFrame(track)
+    })
+    window.addEventListener('scroll', place, true)
+    window.addEventListener('resize', place)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', place, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [tipOpen, view.label])
+
   useEffect(() => {
-    const control = rootRef.current?.querySelector('button.slot-copy')
+    const control = buttonRef.current
     if (!control) return undefined
     // iOS Safari applies :active only when the control has a touch listener.
     const keepPress = () => {}
@@ -643,16 +707,22 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DE
         {view.status}
       </div>
       <button
+        ref={buttonRef}
         type="button"
         className="slot-copy"
-        aria-label={labelName(view.label)}
+        aria-label={actionName(view.label)}
         aria-describedby={timeId}
         aria-disabled={view.busy ? 'true' : 'false'}
         onClick={onActivate}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
+        onFocus={onTipFocus}
+        onBlur={hideTip}
+        onKeyDown={onTipKeyDown}
       >
         <span className="slot-copy-visual">
           <ButtonFace label={view.label} />
-          <span className="slot-copy-fill" ref={fillRef} aria-hidden="true">
+          <span className="slot-copy-fill" ref={fillRef} hidden={!view.counting} aria-hidden="true">
             <ButtonFace label={view.label} />
           </span>
         </span>
@@ -660,6 +730,12 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DE
       <span className="slot-code-sr" id={timeId}>
         {view.description}
       </span>
+      {createPortal(
+        <span ref={tipRef} className={tipOpen ? 'slot-copy-tip is-on' : 'slot-copy-tip'} role="tooltip" aria-hidden="true">
+          {actionName(view.label)}
+        </span>,
+        document.body,
+      )}
     </section>
   )
 }

@@ -6,6 +6,8 @@ body {
   margin: var(--space-0);
   font: var(--body-md);
   letter-spacing: var(--body-md-letter-spacing);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background: var(--color-background-canvas);
   color: var(--color-text-primary);
   transition:

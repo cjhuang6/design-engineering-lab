@@ -11,22 +11,26 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 
 import {
+  FILL_EMPTY,
+  MOTION_FALLBACK,
+  REST_WORD,
   RETRO_HOLD_MS,
   RETRO_MS,
   clampCountdown,
   cycleDurationMs,
-  flapPlan,
+  idleDelayMs,
   makeSchedule,
-  mod10,
   percentAt,
-  reelLockMs,
+  reelMotion,
+  restSequence,
   retroClip,
   smoothClip,
   unbiasedBelow,
 } from "../../src/components/slot-code/model.js";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
-const LAST_LOCK = reelLockMs(5);
+const SPIN_END = reelMotion(5, MOTION_FALLBACK, "spin").end;
+const RETURN_END = reelMotion(5, MOTION_FALLBACK, "return").end;
 
 let SlotCode;
 
@@ -103,28 +107,34 @@ test("retro schedules stay inside the step, jump, and stall rules", () => {
   assert.equal(percentAt(fallback, RETRO_MS), 100);
 });
 
-test("each reel's flips vary around 72ms and still lock on its deadline", () => {
-  const period = Math.max(55, 1150 / 16);
-  assert.ok(Math.abs(period - 71.875) < 1e-9);
-  for (let reel = 0; reel < 6; reel += 1) {
-    const lock = reelLockMs(reel);
-    assert.equal(lock, 1400 + reel * 150);
-    for (let from = 0; from < 10; from += 1) {
-      for (let to = 0; to < 10; to += 1) {
-        const plan = flapPlan(from, to, lock);
-        assert.ok(Math.abs(plan.delay + plan.n * plan.per - lock) < 1e-6, `${from}->${to} reel ${reel}`);
-        assert.equal(mod10(plan.n), mod10(to - from));
-        assert.ok(plan.per <= period * 1.25 + 1e-9);
-        assert.ok(plan.per > 0);
-        assert.equal(plan.phase === undefined || plan.phase <= 1, true);
-      }
-    }
-  }
+test("ease-out spins land left to right and the return flips through preceding letters", () => {
+  const first = reelMotion(0, MOTION_FALLBACK, "spin");
+  const last = reelMotion(5, MOTION_FALLBACK, "spin");
+  assert.equal(first.end, 550);
+  assert.equal(last.end, 800);
+  assert.ok(last.end > first.end);
+  const gaps = first.times.slice(1).map((time, index) => time - first.times[index]);
+  assert.ok(gaps.every((gap, index) => index === 0 || gap > gaps[index - 1] + 1e-9));
+  assert.equal(first.times[0], 0);
+  assert.equal(first.times.at(-1), first.end);
+  const back = reelMotion(5, MOTION_FALLBACK, "return");
+  assert.equal(back.flips, 3);
+  assert.equal(back.delay, 700);
+  assert.equal(back.end, 1300);
+  assert.deepEqual(restSequence("H"), ["F", "G", "H"]);
+  assert.deepEqual(restSequence("L"), ["J", "K", "L"]);
+  assert.deepEqual(restSequence("!"), ["Y", "Z", "!"]);
+  assert.deepEqual(REST_WORD, ["H", "E", "L", "L", "O", "!"]);
   assert.equal(cycleDurationMs("retro", 30), RETRO_MS);
-  assert.equal(cycleDurationMs("smooth", 5), 5000);
+  assert.equal(cycleDurationMs("smooth", 30), 30000);
   assert.equal(cycleDurationMs("smooth", 2), 3000);
   assert.equal(cycleDurationMs("smooth", 40), 30000);
   assert.equal(clampCountdown(5.2), 5);
+  assert.equal(clampCountdown(Number.NaN), 30);
+  const early = idleDelayMs(() => 0);
+  const late = idleDelayMs((span) => span - 1);
+  assert.equal(early, 2500);
+  assert.equal(late, 5000);
 });
 
 function installClock() {
@@ -236,87 +246,124 @@ function reelPose(index) {
 
 function visibleLabels() {
   return [...document.querySelectorAll(".slot-copy-face")].map((face) => {
-    const shown = [...face.querySelectorAll(".slot-copy-label span")].find((node) => !node.hidden);
+    const shown = [...face.querySelectorAll("[data-label]")].find((node) => node.classList.contains("is-on"));
     return shown.textContent;
   });
 }
 
-test("reels lock on time, retro fill completes at 3s, and the live region speaks once", async () => {
+function settledGlyphs() {
+  return [...document.querySelectorAll(".slot-reel")].map((_, index) => reelPose(index).digit);
+}
+
+function buttonSignature() {
+  const control = button();
+  const nodes = [control, ...control.querySelectorAll("*")];
+  return {
+    label: control.getAttribute("aria-label"),
+    disabled: control.getAttribute("aria-disabled"),
+    labels: visibleLabels(),
+    icons: [...control.querySelectorAll("svg")]
+      .filter((icon) => icon.classList.contains("is-on"))
+      .map((icon) => icon.getAttribute("data-icon")),
+    fillHidden: fill().hasAttribute("hidden"),
+    clip: fill().style.clipPath,
+    fillOpacity: fill().style.opacity,
+    fillFilter: fill().style.filter,
+    fillVisibility: fill().style.visibility,
+    effects: nodes
+      .filter((node) => node.style.opacity || node.style.filter || node.style.transform)
+      .map((node) => `${node.style.opacity}|${node.style.filter}|${node.style.transform}`),
+  };
+}
+
+async function createCode() {
+  await act(async () => {
+    button().click();
+  });
+}
+
+test("create code lands left to right, retro fill completes at 3s, then the reels return to HELLO!", async () => {
   const clock = installClock();
   const random = installRandom([1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2], 0x51c0de);
   const scheduleRng = makeRng(0x51c0de);
   const expected = makeSchedule(RETRO_MS, (span) => unbiasedBelow(span, scheduleRng));
+  const firstLock = reelMotion(0, MOTION_FALLBACK, "spin").end;
   globalThis.__showcaseReducedMotion = false;
   const view = await mount({ fillStyle: "retro" });
   try {
-    await clock.flush();
-    assert.equal(button().getAttribute("aria-disabled"), "true");
-    assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(button().getAttribute("aria-disabled"), "false");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
     assert.equal(document.querySelector(".slot-reels").getAttribute("aria-hidden"), "true");
     assert.equal(live().textContent, "");
-    assert.equal(description().getAttribute("aria-live"), null);
-    assert.equal(description().textContent, "Generating a new code");
+    assert.equal(description().textContent, "");
+    assert.equal(fill().hasAttribute("hidden"), true);
+    assert.equal(fill().style.clipPath, FILL_EMPTY);
 
-    clock.set(1399);
+    await createCode();
+    assert.equal(button().getAttribute("aria-disabled"), "true");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.equal(description().textContent, "Generating a new code");
+    assert.equal(description().getAttribute("aria-live"), null);
+
+    clock.set(firstLock - 1);
     await clock.flush();
     assert.equal(reelPose(0).flipping, true);
 
-    clock.set(1400);
+    clock.set(firstLock);
     await clock.flush();
     assert.deepEqual(reelPose(0), { digit: "1", flipping: false, transform: " " });
 
-    clock.set(LAST_LOCK - 1);
+    clock.set(SPIN_END - 1);
     await clock.flush();
     assert.equal(reelPose(5).flipping, true);
 
-    clock.set(LAST_LOCK);
+    clock.set(SPIN_END);
     await clock.flush();
-    assert.deepEqual(
-      [...document.querySelectorAll(".slot-reel")].map((_, index) => reelPose(index).digit),
-      ["1", "2", "3", "4", "5", "6"],
-    );
-    assert.equal([...document.querySelectorAll(".slot-reel")].every((_, index) => !reelPose(index).flipping), true);
+    assert.deepEqual(settledGlyphs(), ["1", "2", "3", "4", "5", "6"]);
+    assert.equal(settledGlyphs().every((_, index) => !reelPose(index).flipping), true);
     assert.equal(fill().style.clipPath, retroClip(0));
+    assert.equal(fill().hasAttribute("hidden"), false);
     assert.equal(button().getAttribute("aria-disabled"), "false");
-    assert.equal(document.querySelector(".slot-reels").hasAttribute("aria-hidden"), false);
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
     assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
     assert.equal(description().textContent, "Code expires in 3 seconds");
     assert.equal(status().textContent, "");
 
-    clock.set(LAST_LOCK + 150);
+    clock.set(SPIN_END + 150);
     await clock.flush();
     assert.notEqual(fill().style.clipPath, retroClip(0));
     assert.equal(percentAt(expected, 150) > 0, true);
     assert.equal(fill().style.clipPath, retroClip(percentAt(expected, 150)));
 
-    clock.set(LAST_LOCK + 500);
-    await clock.flush();
-    assert.equal(description().textContent, "Code expires in 3 seconds");
-    clock.set(LAST_LOCK + 1000);
+    clock.set(SPIN_END + 1000);
     await clock.flush();
     assert.equal(description().textContent, "Code expires in 2 seconds");
     assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
 
-    clock.set(LAST_LOCK + RETRO_MS);
+    clock.set(SPIN_END + RETRO_MS);
     await clock.flush();
     assert.equal(fill().style.clipPath, retroClip(100));
     assert.equal(button().getAttribute("aria-disabled"), "false");
-    assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
 
-    clock.set(LAST_LOCK + RETRO_MS + RETRO_HOLD_MS - 1);
+    clock.set(SPIN_END + RETRO_MS + RETRO_HOLD_MS - 1);
     await clock.flush();
-    assert.equal(button().getAttribute("aria-disabled"), "false");
-    assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
 
-    clock.set(LAST_LOCK + RETRO_MS + RETRO_HOLD_MS);
+    clock.set(SPIN_END + RETRO_MS + RETRO_HOLD_MS);
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.equal(fill().hasAttribute("hidden"), true);
+    assert.equal(fill().style.clipPath, FILL_EMPTY);
     assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
-    assert.equal(document.querySelector(".slot-reels").getAttribute("aria-hidden"), "true");
 
-    clock.set(LAST_LOCK + RETRO_MS + RETRO_HOLD_MS + LAST_LOCK);
+    clock.set(SPIN_END + RETRO_MS + RETRO_HOLD_MS + RETURN_END);
     await clock.flush();
-    assert.equal(live().textContent, "New code: 7 8 9 0 1 2");
+    assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(button().getAttribute("aria-disabled"), "false");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.equal(live().textContent, "Code expired. Create code.");
   } finally {
     await view.unmount();
     clock.restore();
@@ -324,35 +371,38 @@ test("reels lock on time, retro fill completes at 3s, and the live region speaks
   }
 });
 
-test("smooth fill drains in a straight line and the long countdown hints once", async () => {
+test("smooth fill grows left to right and the long countdown hints once", async () => {
   const clock = installClock();
   const random = installRandom([4, 4, 4, 4, 4, 4], 2);
   globalThis.__showcaseReducedMotion = false;
   const view = await mount({ fillStyle: "smooth", countdownSeconds: 6 });
   try {
+    await createCode();
+    clock.set(SPIN_END);
     await clock.flush();
-    clock.set(LAST_LOCK);
-    await clock.flush();
-    assert.equal(fill().style.clipPath, smoothClip(1));
+    assert.equal(fill().style.clipPath, smoothClip(0));
+    assert.equal(fill().hasAttribute("hidden"), false);
     assert.equal(description().textContent, "Code expires in 6 seconds");
     assert.equal(status().textContent, "");
 
-    clock.set(LAST_LOCK + 1000);
+    clock.set(SPIN_END + 1000);
     await clock.flush();
     assert.equal(status().textContent, "Code expires in 5 seconds");
     assert.equal(description().textContent, "Code expires in 5 seconds");
-    assert.equal(fill().style.clipPath, smoothClip(5000 / 6000));
+    assert.equal(fill().style.clipPath, smoothClip(1000 / 6000));
 
-    clock.set(LAST_LOCK + 3000);
+    clock.set(SPIN_END + 3000);
     await clock.flush();
     assert.equal(fill().style.clipPath, smoothClip(0.5));
     assert.equal(description().textContent, "Code expires in 3 seconds");
     assert.equal(status().textContent, "Code expires in 5 seconds");
     assert.equal(live().textContent, "New code: 4 4 4 4 4 4");
 
-    clock.set(LAST_LOCK + 6000);
+    clock.set(SPIN_END + 6000);
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
+    assert.equal(fill().hasAttribute("hidden"), true);
+    assert.equal(fill().style.clipPath, FILL_EMPTY);
     assert.equal(live().textContent, "New code: 4 4 4 4 4 4");
   } finally {
     await view.unmount();
@@ -366,7 +416,14 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   const random = installRandom([1, 2, 3, 4, 5, 6], 3);
   const css = await readFile("src/components/slot-code/SlotCode.css", "utf8");
   assert.match(css, /\.slot-copy-label > span \{[^}]*grid-area:\s*1 \/ 1;/);
-  assert.match(css, /\.slot-copy-label > span\[hidden\] \{[^}]*display:\s*block;[^}]*visibility:\s*hidden;/);
+  assert.match(css, /\.slot-copy-icons > svg,/);
+  assert.equal(css.includes("!important"), false);
+  assert.match(css, /\.slot-copy-fill\[hidden\] \{[^}]*display:\s*none;/);
+  assert.match(css, /filter:\s*blur\(var\(--space-1\)\);/);
+  assert.match(css, /opacity var\(--duration-normal\) var\(--ease-enter\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition:\s*opacity var\(--duration-fast\) linear;/s);
+  assert.match(css, /button\.slot-copy:focus \{[^}]*outline:\s*none;/);
+  assert.match(css, /button\.slot-copy:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);
   assert.match(css, /\.slot-code \{[^}]*gap:\s*var\(--space-4\);/);
   assert.match(css, /button\.slot-copy \{[^}]*min-height:\s*var\(--size-control-sm\);[^}]*font:\s*var\(--label-sm\);/);
   assert.match(css, /\.slot-copy-visual \{[^}]*min-height:\s*var\(--size-control-sm\);/);
@@ -386,15 +443,17 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   globalThis.__showcaseReducedMotion = false;
   const view = await mount();
   try {
-    await clock.flush();
-    const spinningWidth = button().offsetWidth;
-    assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
+    const restingWidth = button().offsetWidth;
+    assert.deepEqual(visibleLabels(), ["Create code", "Create code"]);
     assert.equal(/\d|%|second/i.test(button().textContent), false);
+    await createCode();
+    assert.equal(button().offsetWidth, restingWidth);
+    assert.deepEqual(visibleLabels(), ["Create code", "Create code"]);
 
-    clock.set(LAST_LOCK);
+    clock.set(SPIN_END);
     await clock.flush();
-    assert.equal(fill().style.clipPath, smoothClip(1));
-    assert.equal(button().offsetWidth, spinningWidth);
+    assert.equal(fill().style.clipPath, smoothClip(0));
+    assert.equal(button().offsetWidth, restingWidth);
     assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
     assert.equal(button().getAttribute("aria-label"), "Copy code");
     assert.equal(/\d|%/.test(button().textContent), false);
@@ -403,16 +462,17 @@ test("the copy button keeps one width, never shows a count, and writes the code"
       button().click();
     });
     assert.deepEqual(written, ["123456"]);
-    assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.equal(button().getAttribute("aria-label"), "Copied");
     assert.deepEqual(visibleLabels(), ["Copied", "Copied"]);
-    assert.equal(button().offsetWidth, spinningWidth);
-    assert.equal(status().textContent, "Copied");
+    assert.equal(button().offsetWidth, restingWidth);
+    assert.equal(live().textContent, "Copied");
     assert.equal(/\d|%/.test(button().textContent), false);
 
-    clock.set(LAST_LOCK + 1200);
+    clock.set(SPIN_END + 1200);
     await clock.flush();
     assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
-    assert.equal(button().offsetWidth, spinningWidth);
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.equal(button().offsetWidth, restingWidth);
   } finally {
     navigator.clipboard = originalClipboard;
     await view.unmount();
@@ -421,14 +481,21 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   }
 });
 
-test("reduced motion crossfades with opacity and does not rotate the flaps", async () => {
+test("reduced motion crossfades the spin and the return, and does not breathe", async () => {
   const clock = installClock();
   const random = installRandom([9, 8, 7, 6, 5, 4], 4);
   globalThis.__showcaseReducedMotion = true;
-  const view = await mount();
+  const view = await mount({ countdownSeconds: 3 });
   try {
+    clock.set(20000);
     await clock.flush();
-    clock.set(100);
+    assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(settledGlyphs().every((_, index) => !reelPose(index).flipping), true);
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+
+    clock.set(20000);
+    await createCode();
+    clock.set(20100);
     await clock.flush();
     const transforms = [...document.querySelectorAll(".slot-leaf")].map((leaf) => leaf.style.transform);
     assert.equal(transforms.every((value) => !value.includes("rotate")), true);
@@ -436,14 +503,34 @@ test("reduced motion crossfades with opacity and does not rotate the flaps", asy
     assert.equal(Number(incoming.style.opacity) > 0, true);
     assert.equal(Number(incoming.style.opacity) < 1, true);
 
-    clock.set(200);
+    clock.set(20200);
     await clock.flush();
     assert.equal(live().textContent, "New code: 9 8 7 6 5 4");
     assert.equal(button().getAttribute("aria-disabled"), "false");
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
     assert.equal(
       [...document.querySelectorAll(".slot-leaf")].every((leaf) => !leaf.style.transform.includes("rotate")),
       true,
     );
+
+    clock.set(20200 + 3000);
+    await clock.flush();
+    clock.set(20200 + 3000 + 100);
+    await clock.flush();
+    const returning = document.querySelector(".slot-flap-next");
+    assert.equal(Number(returning.style.opacity) > 0, true);
+    assert.equal(Number(returning.style.opacity) < 1, true);
+    assert.equal(
+      [...document.querySelectorAll(".slot-leaf")].every((leaf) => !leaf.style.transform.includes("rotate")),
+      true,
+    );
+
+    clock.set(20200 + 3000 + 200);
+    await clock.flush();
+    assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.equal(button().getAttribute("aria-disabled"), "false");
+    assert.equal(live().textContent, "Code expired. Create code.");
   } finally {
     globalThis.__showcaseReducedMotion = false;
     await view.unmount();
@@ -459,9 +546,11 @@ test("hiding the tab pauses the clock, and unmount cancels the frame", async () 
   const view = await mount();
   try {
     await clock.flush();
-    clock.set(1000);
+    await createCode();
+    clock.set(100);
     await clock.flush();
     assert.equal(live().textContent, "");
+    assert.equal(button().getAttribute("aria-disabled"), "true");
 
     document.visibilityState = "hidden";
     document.dispatchEvent(new window.Event("visibilitychange"));
@@ -523,22 +612,25 @@ test("a full fill covers the copy button border box", async () => {
   assert.equal(visual.includes("border-style"), false);
   const borderBox = 181.5;
   assert.equal(coveredWidth(borderBox, border, inset), borderBox);
-  assert.equal(smoothClip(1), "inset(0 0 0 0.000%)");
+  assert.equal(smoothClip(0), FILL_EMPTY);
+  assert.equal(smoothClip(1), "inset(0 0% 0 0)");
+  assert.equal(retroClip(0), FILL_EMPTY);
   assert.equal(retroClip(100), "inset(0 0% 0 0)");
   const smoothEdges = smoothClip(1).slice(6, -1).split(/\s+/);
   const retroEdges = retroClip(100).slice(6, -1).split(/\s+/);
-  assert.equal(smoothEdges[1], "0");
+  assert.equal(smoothEdges[1], "0%");
   assert.equal(retroEdges[1], "0%");
+  assert.ok(smoothClip(0.25).includes("75.000%"));
 
   const clock = installClock();
   const random = installRandom([1, 2, 3, 4, 5, 6], 11);
   globalThis.__showcaseReducedMotion = false;
   const view = await mount({ fillStyle: "smooth" });
   try {
+    await createCode();
+    clock.set(SPIN_END + 1000);
     await clock.flush();
-    clock.set(LAST_LOCK);
-    await clock.flush();
-    assert.equal(fill().style.clipPath, smoothClip(1));
+    assert.equal(fill().hasAttribute("hidden"), false);
     const buttonBox = button().getBoundingClientRect();
     const fillBox = fill().getBoundingClientRect();
     const visualBox = document.querySelector(".slot-copy-visual").getBoundingClientRect();
@@ -550,6 +642,87 @@ test("a full fill covers the copy button border box", async () => {
     assert.equal(faces[0].parentElement, document.querySelector(".slot-copy-visual"));
     assert.equal(faces[1].parentElement, fill());
     assert.equal(fill().parentElement, document.querySelector(".slot-copy-visual"));
+  } finally {
+    await view.unmount();
+    clock.restore();
+    random.restore();
+  }
+});
+
+test("three create-expire cycles restore the exact first-load button", async () => {
+  const clock = installClock();
+  const digits = Array.from({ length: 80 }, (_, index) => (index % 9) + 1);
+  const random = installRandom(digits, 0x0c0de);
+  globalThis.__showcaseReducedMotion = false;
+  const view = await mount({ countdownSeconds: 3 });
+  try {
+    button().focus();
+    assert.equal(document.activeElement, button());
+    const first = buttonSignature();
+    assert.equal(first.label, "Create code");
+    assert.equal(first.disabled, "false");
+    assert.deepEqual(first.labels, ["Create code", "Create code"]);
+    assert.deepEqual(first.icons, ["create", "create"]);
+    assert.equal(first.fillHidden, true);
+    assert.equal(first.clip, FILL_EMPTY);
+    assert.deepEqual(first.effects, []);
+    assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+    let time = 0;
+    for (let cycle = 0; cycle < 3; cycle += 1) {
+      await createCode();
+      assert.equal(document.activeElement, button());
+      time += SPIN_END;
+      clock.set(time);
+      await clock.flush();
+      assert.equal(button().getAttribute("aria-label"), "Copy code");
+      assert.equal(fill().hasAttribute("hidden"), false);
+      time += 3000;
+      clock.set(time);
+      await clock.flush();
+      time += RETURN_END;
+      clock.set(time);
+      await clock.flush();
+      assert.deepEqual(buttonSignature(), first);
+      assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+      assert.equal(live().textContent, "Code expired. Create code.");
+      assert.equal(document.activeElement, button());
+    }
+  } finally {
+    await view.unmount();
+    clock.restore();
+    random.restore();
+  }
+});
+
+test("a resting reel breathes once and lands on the same letter", async () => {
+  const clock = installClock();
+  const twin = makeRng(0xbeef);
+  const delay = idleDelayMs((span) => unbiasedBelow(span, twin));
+  const reel = unbiasedBelow(6, twin);
+  const random = installRandom([], 0xbeef);
+  globalThis.__showcaseReducedMotion = false;
+  const view = await mount();
+  try {
+    await clock.flush();
+    clock.set(delay - 1);
+    await clock.flush();
+    assert.equal(settledGlyphs().every((_, index) => !reelPose(index).flipping), true);
+    clock.set(delay);
+    await clock.flush();
+    clock.set(delay + MOTION_FALLBACK.expressionSm / 2);
+    await clock.flush();
+    assert.equal(reelPose(reel).flipping, true);
+    assert.equal(
+      settledGlyphs().every((glyph, index) => (index === reel ? true : !reelPose(index).flipping)),
+      true,
+    );
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.equal(live().textContent, "");
+    clock.set(delay + MOTION_FALLBACK.expressionSm);
+    await clock.flush();
+    assert.deepEqual(settledGlyphs(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(reelPose(reel).flipping, false);
+    assert.equal(button().getAttribute("aria-disabled"), "false");
   } finally {
     await view.unmount();
     clock.restore();

@@ -1,16 +1,106 @@
 export const REEL_COUNT = 6
-export const LOCK_BASE_MS = 1400
-export const LOCK_STAGGER_MS = 150
-export const FLIP_SPEED = 16
+export const REST_WORD = ['H', 'E', 'L', 'L', 'O', '!']
+export const REST_FLIPS = 3
+export const SPIN_FLIPS_BASE = 9
+export const EASE_OUT_POWER = 1.9
 export const RETRO_MS = 3000
 export const RETRO_HOLD_MS = 120
 export const COPIED_MS = 1200
 export const COUNTDOWN_MIN = 3
 export const COUNTDOWN_MAX = 30
-export const COUNTDOWN_DEFAULT = 5
+export const COUNTDOWN_DEFAULT = 30
+export const IDLE_MIN_MS = 2500
+export const IDLE_MAX_MS = 5000
+export const FILL_EMPTY = 'inset(0 100% 0 0)'
+export const MOTION_FALLBACK = {
+  fast: 100,
+  normal: 200,
+  expressionSm: 400,
+  expressionMd: 600,
+}
+
+const GLYPH_ORDER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!'
 
 export function mod10(value) {
   return ((value % 10) + 10) % 10
+}
+
+export function motionFromCss(readMs) {
+  const pick = (name, fallback) => {
+    const value = readMs(name)
+    return value > 0 ? value : fallback
+  }
+  return {
+    fast: pick('--duration-fast', MOTION_FALLBACK.fast),
+    normal: pick('--duration-normal', MOTION_FALLBACK.normal),
+    expressionSm: pick('--duration-expression-sm', MOTION_FALLBACK.expressionSm),
+    expressionMd: pick('--duration-expression-md', MOTION_FALLBACK.expressionMd),
+  }
+}
+
+export function easeOutUnit(amount) {
+  const unit = Math.min(1, Math.max(0, amount))
+  return unit ** EASE_OUT_POWER
+}
+
+export function reelMotion(index, motion, kind) {
+  if (kind === 'return') {
+    const per = motion.normal
+    const stagger = (motion.normal * 7) / 10
+    const delay = index * stagger
+    const times = Array.from({ length: REST_FLIPS + 1 }, (_, step) => step * per)
+    return { delay, times, flips: REST_FLIPS, end: delay + REST_FLIPS * per }
+  }
+  const stagger = motion.fast / 2
+  const duration = motion.expressionMd - stagger + index * stagger
+  const flips = SPIN_FLIPS_BASE + index
+  const times = Array.from({ length: flips + 1 }, (_, step) => duration * easeOutUnit(step / flips))
+  return { delay: 0, times, flips, end: duration }
+}
+
+export function precedingGlyph(glyph, stepsBack) {
+  const index = GLYPH_ORDER.indexOf(glyph)
+  if (index < 0) return glyph
+  const size = GLYPH_ORDER.length
+  return GLYPH_ORDER[(index - stepsBack + size) % size]
+}
+
+export function restSequence(glyph) {
+  const sequence = []
+  for (let back = REST_FLIPS - 1; back > 0; back -= 1) sequence.push(precedingGlyph(glyph, back))
+  sequence.push(glyph)
+  return sequence
+}
+
+export function spinRun(from, to, index, motion, nextDigit) {
+  const plan = reelMotion(index, motion, 'spin')
+  const sequence = []
+  for (let step = 0; step < plan.flips - 1; step += 1) sequence.push(nextDigit())
+  sequence.push(to)
+  return { delay: plan.delay, times: plan.times, glyphs: [from, ...sequence] }
+}
+
+export function returnRun(from, index, motion) {
+  const plan = reelMotion(index, motion, 'return')
+  return { delay: plan.delay, times: plan.times, glyphs: [from, ...restSequence(REST_WORD[index])] }
+}
+
+export function poseAt(elapsed, run) {
+  const into = elapsed - run.delay
+  const start = run.glyphs[0]
+  const landed = run.glyphs[run.glyphs.length - 1]
+  if (into < 0) return { a: start, b: start, phase: 0, done: false }
+  const end = run.times[run.times.length - 1]
+  if (into >= end) return { a: landed, b: landed, phase: 0, done: true }
+  let step = 0
+  while (into >= run.times[step + 1]) step += 1
+  const span = run.times[step + 1] - run.times[step]
+  const phase = span > 0 ? (into - run.times[step]) / span : 1
+  return { a: run.glyphs[step], b: run.glyphs[step + 1], phase, done: false }
+}
+
+export function idleDelayMs(nextBelow) {
+  return IDLE_MIN_MS + nextBelow(IDLE_MAX_MS - IDLE_MIN_MS + 1)
 }
 
 export function clampCountdown(seconds) {
@@ -24,41 +114,18 @@ export function cycleDurationMs(fillStyle, countdownSeconds) {
   return clampCountdown(countdownSeconds) * 1000
 }
 
-export function reelLockMs(index) {
-  return LOCK_BASE_MS + index * LOCK_STAGGER_MS
-}
-
 // Demo only. Digits come from crypto.getRandomValues, not from a one-time password.
 export function randomDigits(nextByte) {
   const digits = []
   while (digits.length < REEL_COUNT) {
     const value = nextByte()
-    if (value < 250) digits.push(value % 10)
+    if (value < 250) digits.push(String(value % 10))
   }
   return digits
 }
 
 export function spokenCode(digits) {
   return digits.join(' ')
-}
-
-export function flapPlan(current, finalDigit, durMs, speed = FLIP_SPEED) {
-  const period = Math.max(55, 1150 / speed)
-  const need = mod10(finalDigit - current)
-  let count = Math.floor(durMs / (period * 0.8))
-  while (mod10(count) !== need) count -= 1
-  if (count < 1) count += 10
-  const per = Math.min(period * 1.25, durMs / count)
-  return {
-    n: count,
-    per,
-    delay: Math.max(0, durMs - count * per),
-    lockAt: durMs,
-  }
-}
-
-export function plansFor(current, next, speed = FLIP_SPEED) {
-  return next.map((digit, index) => flapPlan(current[index], digit, reelLockMs(index), speed))
 }
 
 export function unbiasedBelow(span, nextUint32) {
@@ -166,8 +233,12 @@ export function retroClip(percent) {
   return `inset(0 ${100 - percent}% 0 0)`
 }
 
-export function smoothClip(remaining) {
-  return `inset(0 0 0 ${((1 - remaining) * 100).toFixed(3)}%)`
+export function smoothClip(progress) {
+  const clamped = Math.min(1, Math.max(0, progress))
+  if (clamped <= 0) return FILL_EMPTY
+  const right = (1 - clamped) * 100
+  if (right <= 0) return 'inset(0 0% 0 0)'
+  return `inset(0 ${right.toFixed(3)}% 0 0)`
 }
 
 export function expiryText(seconds) {

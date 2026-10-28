@@ -183,15 +183,15 @@ function BlockHarness() {
   return block.controls;
 }
 
-test("the security code block starts on Smooth at 5 seconds, and reset returns there", async () => {
+test("the security code block starts on Smooth at 30 seconds, and reset returns there", async () => {
   const view = await mount(createElement(BlockHarness));
   try {
     const slider = document.querySelector(".showcase-slider");
     const input = slider.querySelector("input");
     assert.equal(option("smooth").getAttribute("aria-checked"), "true");
     assert.equal(input.hasAttribute("disabled"), false);
-    assert.equal(input.value, "5");
-    assert.equal(input.getAttribute("aria-valuetext"), "5 seconds");
+    assert.equal(input.value, "30");
+    assert.equal(input.getAttribute("aria-valuetext"), "30 seconds");
     const smoothHeight = slider.offsetHeight;
 
     await act(async () => {
@@ -206,10 +206,54 @@ test("the security code block starts on Smooth at 5 seconds, and reset returns t
     const restored = document.querySelector(".showcase-slider");
     assert.equal(option("smooth").getAttribute("aria-checked"), "true");
     assert.equal(restored.querySelector("input").hasAttribute("disabled"), false);
-    assert.equal(restored.textContent.includes("5s"), true);
-    assert.equal(restored.querySelector("input").getAttribute("aria-valuetext"), "5 seconds");
+    assert.equal(restored.textContent.includes("30s"), true);
+    assert.equal(restored.querySelector("input").getAttribute("aria-valuetext"), "30 seconds");
     assert.equal(restored.offsetHeight, smoothHeight);
   } finally {
+    await view.unmount();
+  }
+});
+
+function BlockWithCode() {
+  const block = useSlotCodeBlock();
+  return createElement("div", null, block.content, block.controls);
+}
+
+test("reset returns a running security code to HELLO! and the 30 second default", async () => {
+  const originalFrame = window.requestAnimationFrame;
+  const originalCancel = window.cancelAnimationFrame;
+  window.requestAnimationFrame = () => 1;
+  window.cancelAnimationFrame = () => {};
+  const view = await mount(createElement(BlockWithCode));
+  try {
+    const reels = () =>
+      [...document.querySelectorAll(".slot-flap-current .slot-static.slot-half-top span")].map((node) => node.textContent);
+    assert.deepEqual(reels(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(document.querySelector("button.slot-copy").getAttribute("aria-label"), "Create code");
+    await act(async () => {
+      document.querySelector("button.slot-copy").click();
+    });
+    assert.equal(document.querySelector("button.slot-copy").getAttribute("aria-disabled"), "true");
+    const input = document.querySelector(".showcase-slider input");
+    await act(async () => {
+      input.value = "12";
+      input.dispatchEvent(new window.Event("input", { bubbles: true }));
+      input.dispatchEvent(new window.Event("change", { bubbles: true }));
+    });
+    await act(async () => {
+      option("retro").dispatchEvent(new window.MouseEvent("pointerdown", { bubbles: true, cancelable: true, button: 0 }));
+    });
+    await act(async () => {
+      document.querySelector(".showcase-reset").click();
+    });
+    assert.deepEqual(reels(), ["H", "E", "L", "L", "O", "!"]);
+    assert.equal(document.querySelector("button.slot-copy").getAttribute("aria-label"), "Create code");
+    assert.equal(document.querySelector("button.slot-copy").getAttribute("aria-disabled"), "false");
+    assert.equal(document.querySelector(".showcase-slider input").value, "30");
+    assert.equal(option("smooth").getAttribute("aria-checked"), "true");
+  } finally {
+    window.requestAnimationFrame = originalFrame;
+    window.cancelAnimationFrame = originalCancel;
     await view.unmount();
   }
 });

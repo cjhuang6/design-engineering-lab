@@ -58,17 +58,19 @@ export function useSlotCodeBlock() {
   const entry = showcaseBlock('slot-code')
   const [fillStyle, setFillStyle] = useState('smooth')
   const [countdown, setCountdown] = useState(COUNTDOWN_DEFAULT)
+  const [generation, setGeneration] = useState(0)
 
   function reset() {
     setFillStyle('smooth')
     setCountdown(COUNTDOWN_DEFAULT)
+    setGeneration((value) => value + 1)
   }
 
   return {
     id: entry.id,
     name: entry.name,
     description: SLOT_CODE_DESCRIPTION,
-    content: <SlotCode fillStyle={fillStyle} countdownSeconds={countdown} />,
+    content: <SlotCode key={generation} fillStyle={fillStyle} countdownSeconds={countdown} />,
     controls: (
       <SlotCodeControls
         fillStyle={fillStyle}

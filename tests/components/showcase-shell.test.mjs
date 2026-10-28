@@ -473,22 +473,23 @@ test("below the breakpoint the feed is one column", async () => {
   }
 });
 
-test("an open phone pins the card and only the controls list scrolls", async () => {
+test("an open phone pins the title and scrolls the panel body to the last control", async () => {
   const previous = rememberViewport();
   window.innerWidth = 390;
   window.innerHeight = 844;
   const view = await mount([
     {
       ...sampleBlock(),
+      description: "A long description that has to scroll with the controls.",
       controls: createElement(
         "div",
-        { className: "hex-picker-controls" },
-        createElement("div", { className: "hex-picker-controls-head" }, createElement("h4", null, "Controls")),
+        { className: "showcase-controls", style: { height: "800px" } },
+        createElement("div", { className: "showcase-controls-head" }, createElement("h4", null, "Controls")),
         createElement(
           "div",
           { "data-showcase-scroll": "" },
-          createElement("div", { className: "hex-picker-slider" }, "Offset"),
-          createElement("div", { style: { height: "800px" } }, "Tall controls"),
+          createElement("div", { className: "showcase-slider" }, "Countdown"),
+          createElement("button", { type: "button", className: "last-control" }, "Last control"),
         ),
       ),
     },
@@ -499,7 +500,12 @@ test("an open phone pins the card and only the controls list scrolls", async () 
     const layer = document.querySelector(".showcase-layer");
     const card = document.querySelector(".showcase-card[data-open]");
     const panel = document.querySelector(".showcase-panel");
-    const list = layer.querySelector("[data-showcase-scroll]");
+    const scroller = layer.querySelector("[data-showcase-panel-scroll]");
+    const head = panel.querySelector(".showcase-panel-head");
+    const title = panel.querySelector("h2");
+    const close = panel.querySelector('[aria-label="Close"]');
+    const note = panel.querySelector(".note");
+    const last = scroller.querySelector(".last-control");
     const frame = mobileFrame({ width: 390, height: 844 }, WIDE);
     assert.equal(layer.getAttribute("data-mode"), "mobile");
     assert.equal(card.style.width, `${frame.card.w}px`);
@@ -509,33 +515,70 @@ test("an open phone pins the card and only the controls list scrolls", async () 
     assert.equal(panel.style.height, `${frame.panel.h}px`);
     assert.equal(panel.style.width, card.style.width);
     assert.equal(layer.scrollTop, 0);
+    assert.equal(document.activeElement, title);
+    assert.equal(title.tabIndex < 0, true);
+    assert.equal(scroller.contains(head), false);
+    assert.equal(scroller.contains(title), false);
+    assert.equal(scroller.contains(close), false);
+    assert.equal(scroller.contains(note), true);
+    assert.equal(scroller.contains(last), true);
+    const sequence = [];
+    const walk = (node) => {
+      for (const child of node.childNodes) {
+        if (child.nodeType !== 1) continue;
+        const label = child.getAttribute?.("aria-label");
+        if (child.tagName === "H2") sequence.push("title");
+        else if (label === "Close") sequence.push("close");
+        else if (child.classList.contains("note")) sequence.push("text");
+        else if (child.classList.contains("last-control")) sequence.push("last");
+        walk(child);
+      }
+    };
+    walk(panel);
+    assert.deepEqual(sequence, ["title", "close", "text", "last"]);
+    scroller.style.height = "180px";
+    const controls = scroller.querySelector(".showcase-controls");
+    assert.ok(controls.offsetHeight > scroller.clientHeight);
+    assert.equal(controls.contains(last), true);
+    assert.ok(scroller.scrollHeight > scroller.clientHeight + 1);
+    const maxScroll = scroller.scrollHeight - scroller.clientHeight;
 
     const before = {
       cardTop: card.getBoundingClientRect().top,
       cardHeight: card.getBoundingClientRect().height,
       panelTop: panel.getBoundingClientRect().top,
       panelHeight: panel.getBoundingClientRect().height,
+      headTop: head.getBoundingClientRect().top,
     };
-    list.scrollTop = 240;
-    list.dispatchEvent(new window.Event("scroll", { bubbles: true }));
+    scroller.scrollTop = maxScroll;
+    scroller.dispatchEvent(new window.Event("scroll", { bubbles: true }));
+    assert.equal(scroller.scrollTop, maxScroll);
+    assert.equal(panel.hasAttribute("data-scrolled"), true);
     assert.equal(card.getBoundingClientRect().top, before.cardTop);
     assert.equal(card.getBoundingClientRect().height, before.cardHeight);
     assert.equal(panel.getBoundingClientRect().top, before.panelTop);
     assert.equal(panel.getBoundingClientRect().height, before.panelHeight);
+    assert.equal(head.getBoundingClientRect().top, before.headTop);
     assert.equal(card.style.top, `${frame.card.y}px`);
     assert.equal(panel.style.top, `${frame.panel.y}px`);
     assert.equal(layer.scrollTop, 0);
+    assert.equal(window.scrollY, 0);
+
+    scroller.scrollTop = 0;
+    scroller.dispatchEvent(new window.Event("scroll", { bubbles: true }));
+    assert.equal(panel.hasAttribute("data-scrolled"), false);
 
     const onStage = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
     document.querySelector(".showcase-stage").dispatchEvent(onStage);
     assert.equal(onStage.defaultPrevented, true);
 
-    const onList = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
-    list.dispatchEvent(onList);
-    assert.equal(onList.defaultPrevented, false);
+    scroller.scrollTop = 40;
+    const onScroller = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
+    scroller.dispatchEvent(onScroller);
+    assert.equal(onScroller.defaultPrevented, false);
 
     const onSlider = new window.Event("touchmove", { bubbles: true, cancelable: true, touches: [{}] });
-    layer.querySelector(".hex-picker-slider").dispatchEvent(onSlider);
+    layer.querySelector(".showcase-slider").dispatchEvent(onSlider);
     assert.equal(onSlider.defaultPrevented, false);
   } finally {
     await view.unmount();
@@ -902,7 +945,30 @@ test("mobile shell rules use the breakpoint token, dvh, and safe-area insets", a
   assert.match(css, /env\(safe-area-inset-top\)/);
   assert.match(css, /env\(safe-area-inset-bottom\)/);
   assert.match(css, /html\.showcase-scroll-lock body \{[^}]*position:\s*fixed;/);
-  assert.match(css, /\[data-showcase-scroll\] \{[^}]*overflow-y:\s*auto;/);
+  assert.match(css, /\.showcase-panel-body \{[^}]*gap:\s*var\(--space-2\);[^}]*overflow:\s*auto;[^}]*padding:\s*var\(--space-6\);/);
+  assert.match(css, /\.showcase-panel-scroll \{[^}]*gap:\s*var\(--space-6\);/);
+  const mobileScroll = css.match(
+    /\.showcase-layer\[data-mode='mobile'\] \.showcase-panel-scroll \{([^}]*)\}/,
+  )[1];
+  assert.match(mobileScroll, /overflow-y:\s*auto/);
+  assert.match(mobileScroll, /overscroll-behavior:\s*contain/);
+  assert.match(mobileScroll, /touch-action:\s*pan-y/);
+  assert.match(mobileScroll, /padding-bottom:\s*max\(var\(--space-5\), env\(safe-area-inset-bottom\)\)/);
+  assert.match(mobileScroll, /scroll-padding-top:\s*var\(--space-5\)/);
+  assert.match(mobileScroll, /scroll-padding-bottom:\s*max\(var\(--space-5\), env\(safe-area-inset-bottom\)\)/);
+  const fade = css.match(
+    /\.showcase-layer\[data-mode='mobile'\] \.showcase-panel\[data-scrolled\] \.showcase-panel-head::after \{([^}]*)\}/,
+  )[1];
+  assert.match(fade, /height:\s*var\(--space-5\)/);
+  assert.match(fade, /background-color:\s*var\(--color-surface-subtle\)/);
+  assert.match(fade, /mask-image:\s*linear-gradient\(to bottom, var\(--color-base-black\), transparent\)/);
+  assert.match(
+    css,
+    /\.showcase-layer\[data-mode='mobile'\] \.showcase-panel-head \{[^}]*position:\s*relative;[^}]*flex:\s*none;[^}]*background-color:\s*var\(--color-surface-subtle\);/,
+  );
+  assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \[data-showcase-scroll\] \{[^}]*overflow:\s*visible;/);
+  assert.match(source, /data-showcase-panel-scroll/);
+  assert.match(source, /function markPanelScrolled/);
   assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \.hex-picker-slider \{[^}]*flex:\s*none;/);
   assert.match(css, /@media \(hover: none\) \{[^}]*\.showcase-actions \{[^}]*opacity:\s*var\(--opacity-full\);/);
   assert.match(source, /\[slotCode, hex\]/);

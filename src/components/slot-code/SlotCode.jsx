@@ -643,7 +643,7 @@ export function SlotCode({ fillStyle = 'smooth', countdownSeconds = COUNTDOWN_DE
       >
         <span className="slot-copy-visual">
           <ButtonFace label={view.label} />
-          <span className="slot-copy-fill" ref={fillRef} hidden={!view.counting} aria-hidden="true">
+          <span className="slot-copy-fill" ref={fillRef} aria-hidden="true">
             <ButtonFace label={view.label} />
           </span>
         </span>

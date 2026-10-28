@@ -188,6 +188,7 @@ button.slot-copy[aria-disabled='true'] {
   gap: var(--space-1);
   padding-inline: var(--control-padding-inline-sm);
   white-space: nowrap;
+  will-change: opacity;
 }
 
 .slot-copy-fill {
@@ -198,10 +199,7 @@ button.slot-copy[aria-disabled='true'] {
   background: color-mix(in srgb, var(--color-base-black) 78%, var(--color-base-white));
   color: var(--color-base-white);
   clip-path: inset(0 100% 0 0);
-}
-
-.slot-copy-fill[hidden] {
-  display: none;
+  will-change: clip-path, opacity;
 }
 
 [data-theme='dark'] .slot-copy-fill {
@@ -238,7 +236,8 @@ button.slot-copy[aria-disabled='true'] {
 .slot-copy-label > span {
   grid-area: 1 / 1;
   opacity: 0;
-  /* A blur or scale layer is rasterized, then dropped when the fade ends. WebKit paints that layer with looser glyph advances and snaps to the crisp advances in one frame. */
+  /* Stay on a layer for the life of the control. WebKit otherwise promotes the text for the opacity fade and demotes it at the end, which snaps the glyph advances. */
+  will-change: opacity;
   transition: opacity var(--duration-normal) var(--ease-enter);
 }
 
@@ -253,6 +252,16 @@ button.slot-copy[aria-disabled='true'] {
     transition: opacity var(--duration-fast) linear;
   }
 }
+
+/* Uncomment this block if WebKit still snaps the letters. It drops the fade in Safari only. */
+/*
+@supports (font: -apple-system-body) {
+  .slot-copy-icons > svg,
+  .slot-copy-label > span {
+    transition: none;
+  }
+}
+*/
 
 .slot-code-sr {
   position: absolute;

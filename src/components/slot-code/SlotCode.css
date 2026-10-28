@@ -260,7 +260,7 @@ button.slot-copy[aria-disabled='true'] {
 .slot-copy-icons > svg.is-on {
   opacity: 1;
   transform: scale(1);
-  filter: blur(0px);
+  filter: blur(0);
 }
 
 .slot-copy-tip {

@@ -448,7 +448,7 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   );
   assert.match(
     liveCss,
-    /\.slot-copy-icons > svg\.is-on \{[^}]*opacity:\s*1;[^}]*transform:\s*scale\(1\);[^}]*filter:\s*blur\(0px\);/,
+    /\.slot-copy-icons > svg\.is-on \{[^}]*opacity:\s*1;[^}]*transform:\s*scale\(1\);[^}]*filter:\s*blur\(0\);/,
   );
   assert.equal(
     /button\.slot-copy\[aria-disabled='true'\]\s*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(liveCss),
@@ -694,7 +694,7 @@ test("pressing the copy button scales the visual to 0.97 and the release returns
   const reducedInactive = applied(css, { safari: true, reduced: true, on: false }, iconSelector);
   assert.equal(activeIcon.get("opacity"), "1");
   assert.equal(activeIcon.get("transform"), "scale(1)");
-  assert.equal(activeIcon.get("filter"), "blur(0px)");
+  assert.equal(activeIcon.get("filter"), "blur(0)");
   assert.equal(activeIcon.get("will-change"), "opacity, transform, filter");
   assert.equal(
     activeIcon.get("transition"),
@@ -702,7 +702,7 @@ test("pressing the copy button scales the visual to 0.97 and the release returns
   );
   assert.equal(safariIcon.get("transition"), activeIcon.get("transition"));
   assert.equal(safariIcon.get("transform"), "scale(1)");
-  assert.equal(safariIcon.get("filter"), "blur(0px)");
+  assert.equal(safariIcon.get("filter"), "blur(0)");
   assert.equal(inactiveIcon.get("opacity"), "0");
   assert.equal(inactiveIcon.get("transform"), "scale(0.25)");
   assert.equal(inactiveIcon.get("filter"), "blur(var(--space-1))");

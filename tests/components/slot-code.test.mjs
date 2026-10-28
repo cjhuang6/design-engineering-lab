@@ -418,14 +418,21 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   assert.match(css, /\.slot-copy-label > span \{[^}]*grid-area:\s*1 \/ 1;/);
   assert.match(css, /\.slot-copy-icons > svg,/);
   assert.match(css, /\.slot-copy-icons,\s*\.slot-copy-label \{[^}]*justify-items:\s*start;/);
-  assert.equal(css.includes("scale("), false);
-  assert.equal(css.includes("filter:"), false);
+  const liveCss = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const fadeRule = liveCss.match(/\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{([^}]*)\}/);
+  assert.ok(fadeRule);
+  assert.equal(fadeRule[1].includes("scale("), false);
+  assert.equal(fadeRule[1].includes("filter:"), false);
+  assert.equal(liveCss.includes("filter:"), false);
   assert.match(
     css,
     /\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{[^}]*transition:\s*opacity var\(--duration-normal\) var\(--ease-enter\);/,
   );
   assert.match(css, /\.slot-copy-icons > svg\.is-on,\s*\.slot-copy-label > span\.is-on \{\s*opacity:\s*1;\s*\}/);
-  assert.equal(/\[aria-disabled='true'\][^{]*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(css), false);
+  assert.equal(
+    /button\.slot-copy\[aria-disabled='true'\]\s*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(liveCss),
+    false,
+  );
   assert.equal(css.includes("!important"), false);
   assert.equal(css.includes(".slot-copy-fill[hidden]"), false);
   assert.equal(css.includes("display: none"), false);
@@ -435,7 +442,10 @@ test("the copy button keeps one width, never shows a count, and writes the code"
     css,
     /\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{[^}]*will-change:\s*opacity;/,
   );
-  assert.match(css, /@supports \(font: -apple-system-body\) \{\s*\.slot-copy-icons > svg,/);
+  assert.match(
+    liveCss,
+    /@supports \(font: -apple-system-body\) \{\s*\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{\s*transition:\s*none;/,
+  );
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition:\s*opacity var\(--duration-fast\) linear;/s);
   assert.match(css, /button\.slot-copy:focus \{[^}]*outline:\s*none;/);
   assert.match(css, /button\.slot-copy:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);
@@ -490,6 +500,198 @@ test("the copy button keeps one width, never shows a count, and writes the code"
     assert.equal(button().offsetWidth, restingWidth);
   } finally {
     navigator.clipboard = originalClipboard;
+    await view.unmount();
+    clock.restore();
+    random.restore();
+  }
+});
+
+function stripCssComments(css) {
+  return css.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
+function scanCss(css) {
+  const rules = [];
+  let index = 0;
+  while (index < css.length) {
+    const open = css.indexOf("{", index);
+    if (open === -1) break;
+    const prelude = css.slice(index, open).trim();
+    let depth = 1;
+    let cursor = open + 1;
+    while (cursor < css.length && depth > 0) {
+      if (css[cursor] === "{") depth += 1;
+      else if (css[cursor] === "}") depth -= 1;
+      cursor += 1;
+    }
+    const inner = css.slice(open + 1, cursor - 1);
+    if (prelude.startsWith("@")) {
+      for (const rule of scanCss(inner)) {
+        rules.push({ ...rule, conditions: [prelude, ...rule.conditions] });
+      }
+    } else if (prelude) {
+      rules.push({ prelude, body: inner, conditions: [] });
+    }
+    index = cursor;
+  }
+  return rules;
+}
+
+function selectorList(prelude) {
+  const parts = [];
+  let current = "";
+  let depth = 0;
+  for (const char of prelude) {
+    if (char === "(") depth += 1;
+    else if (char === ")") depth = Math.max(0, depth - 1);
+    else if (char === "," && depth === 0) {
+      parts.push(current.trim());
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
+function compounds(selector) {
+  return selector.split(/\s*>\s*|\s+/).filter(Boolean);
+}
+
+function conditionOn(condition, env) {
+  if (condition.startsWith("@media")) {
+    if (condition.includes("prefers-reduced-motion")) return env.reduced === true;
+    if (condition.includes("pointer: coarse")) return env.coarse === true;
+    if (condition.includes("hover: hover")) return env.fineHover === true;
+    return false;
+  }
+  if (condition.startsWith("@supports")) return condition.includes("-apple-system-body") && env.safari === true;
+  return false;
+}
+
+function visualSelector(selector, env) {
+  const parts = compounds(selector);
+  const subject = parts.at(-1) ?? "";
+  if (!subject.includes(".slot-copy-visual")) return false;
+  const ancestor = parts.slice(0, -1).join(" ");
+  if (ancestor.includes("[data-theme='dark']") && env.dark !== true) return false;
+  if (ancestor.includes(":hover") && env.hover !== true) return false;
+  if (ancestor.includes(":active") && env.pressed !== true) return false;
+  if (ancestor.includes(":focus")) return false;
+  const requiresEnabled = ancestor.includes(":not([aria-disabled='true'])");
+  if (requiresEnabled && env.disabled === true) return false;
+  if (ancestor.includes("[aria-disabled='true']") && !requiresEnabled && env.disabled !== true) return false;
+  return true;
+}
+
+function labelSelector(selector, env) {
+  const parts = compounds(selector);
+  const subject = parts.at(-1) ?? "";
+  const ancestor = parts.slice(0, -1).join(" ");
+  if (!subject.startsWith("span") && !subject.startsWith("svg")) return false;
+  if (!ancestor.includes("slot-copy-label") && !ancestor.includes("slot-copy-icons")) return false;
+  if (ancestor.includes("[data-theme='dark']") && env.dark !== true) return false;
+  return true;
+}
+
+function declarations(body) {
+  const map = new Map();
+  for (const part of body.split(";")) {
+    const splitAt = part.indexOf(":");
+    if (splitAt === -1) continue;
+    const name = part.slice(0, splitAt).trim();
+    const value = part.slice(splitAt + 1).trim().replace(/\s+/g, " ");
+    if (name) map.set(name, value);
+  }
+  return map;
+}
+
+function applied(css, env, matchSelector) {
+  const decls = new Map();
+  for (const rule of scanCss(stripCssComments(css))) {
+    if (!rule.conditions.every((condition) => conditionOn(condition, env))) continue;
+    if (!selectorList(rule.prelude).some((selector) => matchSelector(selector, env))) continue;
+    for (const [name, value] of declarations(rule.body)) decls.set(name, value);
+  }
+  return decls;
+}
+
+test("pressing the copy button scales the visual to 0.97 and the release returns it to 1", async () => {
+  const css = await readFile("src/components/slot-code/SlotCode.css", "utf8");
+  const source = await readFile("src/components/slot-code/SlotCode.jsx", "utf8");
+  const live = stripCssComments(css);
+  const rest = { pressed: false, disabled: false, reduced: false, safari: false, dark: false };
+  const resting = applied(css, rest, visualSelector);
+  const pressed = applied(css, { ...rest, pressed: true }, visualSelector);
+  const released = applied(css, rest, visualSelector);
+  const disabledPress = applied(css, { ...rest, pressed: true, disabled: true }, visualSelector);
+  const reducedPress = applied(css, { ...rest, pressed: true, reduced: true }, visualSelector);
+  const darkPress = applied(css, { ...rest, pressed: true, dark: true }, visualSelector);
+
+  assert.equal(resting.get("transform"), "scale(1)");
+  assert.equal(resting.get("transform-origin"), "center");
+  assert.equal(resting.get("will-change"), "transform");
+  assert.match(resting.get("transition"), /transform var\(--duration-normal\) var\(--ease-enter\)/);
+  assert.equal(pressed.get("transform"), "scale(0.97)");
+  assert.match(pressed.get("transition"), /transform var\(--duration-fast\) var\(--ease-standard\)/);
+  assert.equal(released.get("transform"), "scale(1)");
+  assert.equal(disabledPress.get("transform"), "scale(1)");
+  assert.equal(reducedPress.get("transform"), "scale(1)");
+  assert.equal(darkPress.get("transform"), "scale(0.97)");
+
+  const scaled = scanCss(live).filter((rule) => rule.body.includes("scale(0.97)"));
+  assert.equal(scaled.length, 1);
+  assert.equal(/aria-label|data-label/.test(scaled[0].prelude), false);
+  assert.equal(
+    selectorList(scaled[0].prelude).every((selector) => (compounds(selector).at(-1) ?? "").includes(".slot-copy-visual")),
+    true,
+  );
+
+  const hit = scanCss(live).find(
+    (rule) => rule.prelude.includes("::before") && rule.conditions.some((condition) => condition.includes("pointer: coarse")),
+  );
+  assert.ok(hit);
+  assert.equal(hit.body.includes("scale"), false);
+  assert.match(hit.body, /transform:\s*translateY\(-50%\)/);
+  assert.match(hit.body, /height:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\)/);
+  assert.match(live, /button\.slot-copy \{[^}]*touch-action:\s*manipulation;/);
+
+  const chromeLabel = applied(css, { safari: false, reduced: false }, labelSelector);
+  const safariLabel = applied(css, { safari: true, reduced: false }, labelSelector);
+  const chromeReduced = applied(css, { safari: false, reduced: true }, labelSelector);
+  const safariReduced = applied(css, { safari: true, reduced: true }, labelSelector);
+  assert.equal(chromeLabel.get("transition"), "opacity var(--duration-normal) var(--ease-enter)");
+  assert.equal(chromeLabel.get("will-change"), "opacity");
+  assert.equal(safariLabel.get("transition"), "none");
+  assert.equal(safariLabel.get("will-change"), "opacity");
+  assert.equal(chromeReduced.get("transition"), "opacity var(--duration-fast) linear");
+  assert.equal(safariReduced.get("transition"), "none");
+  assert.match(live, /\.slot-copy-fill \{[^}]*clip-path:\s*inset\(0 100% 0 0\);[^}]*will-change:\s*clip-path, opacity;/);
+  assert.match(source, /addEventListener\(\s*['"]touchstart['"],\s*\w+,\s*\{\s*passive:\s*true\s*\}\s*\)/);
+
+  const clock = installClock();
+  const random = installRandom([1, 2, 3, 4, 5, 6], 3);
+  globalThis.__showcaseReducedMotion = false;
+  const view = await mount();
+  try {
+    const control = button();
+    assert.equal(control.classList.contains("slot-copy"), true);
+    assert.equal(control.getAttribute("aria-label"), "Create code");
+    assert.equal(control.getAttribute("aria-disabled"), "false");
+    assert.equal((control._listeners.get("touchstart") ?? []).length, 1);
+    control.dispatchEvent(new window.Event("touchstart"));
+
+    await createCode();
+    assert.equal(control.getAttribute("aria-label"), "Create code");
+    assert.equal(control.getAttribute("aria-disabled"), "true");
+
+    clock.set(SPIN_END);
+    await clock.flush();
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.equal(button().getAttribute("aria-disabled"), "false");
+    assert.equal(button().classList.contains("slot-copy"), true);
+  } finally {
     await view.unmount();
     clock.restore();
     random.restore();

@@ -126,6 +126,7 @@ button.slot-copy {
   font: var(--label-sm);
   letter-spacing: var(--label-sm-letter-spacing);
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .slot-copy-visual {
@@ -138,7 +139,13 @@ button.slot-copy {
   border-radius: inherit;
   background: var(--color-surface-primary);
   box-shadow: inset 0 0 0 var(--border-width-1) color-mix(in srgb, var(--color-base-black) 18%, var(--color-base-white));
-  transition: background-color var(--duration-normal) var(--ease-standard);
+  /* Stay on a transform layer for the life of the control. A press that promotes the letters and then drops them snaps the glyph advances in WebKit. */
+  transform: scale(1);
+  transform-origin: center;
+  will-change: transform;
+  transition:
+    background-color var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-enter);
 }
 
 [data-theme='dark'] .slot-copy-visual {
@@ -171,6 +178,10 @@ button.slot-copy:active {
 
 button.slot-copy:not([aria-disabled='true']):active .slot-copy-visual {
   background: var(--color-surface-secondary);
+  transform: scale(0.97);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
 
 button.slot-copy[aria-disabled='true'] {
@@ -251,17 +262,19 @@ button.slot-copy[aria-disabled='true'] {
   .slot-copy-label > span {
     transition: opacity var(--duration-fast) linear;
   }
+
+  button.slot-copy:not([aria-disabled='true']):active .slot-copy-visual {
+    transform: scale(1);
+  }
 }
 
-/* Uncomment this block if WebKit still snaps the letters. It drops the fade in Safari only. */
-/*
+/* WebKit snaps glyph advances after an opacity fade. Skip that fade in Safari. */
 @supports (font: -apple-system-body) {
   .slot-copy-icons > svg,
   .slot-copy-label > span {
     transition: none;
   }
 }
-*/
 
 .slot-code-sr {
   position: absolute;

@@ -244,11 +244,33 @@ function reelPose(index) {
   };
 }
 
-function visibleLabels() {
-  return [...document.querySelectorAll(".slot-copy-face")].map((face) => {
-    const shown = [...face.querySelectorAll("[data-label]")].find((node) => node.classList.contains("is-on"));
-    return shown.textContent;
-  });
+function faceIcons() {
+  return [...document.querySelectorAll(".slot-copy-face")].map((face) =>
+    [...face.querySelectorAll("[data-icon]")].map((icon) => ({
+      name: icon.getAttribute("data-icon"),
+      on: icon.classList.contains("is-on"),
+      opacity: icon.style.opacity,
+      transform: icon.style.transform,
+      filter: icon.style.filter,
+    })),
+  );
+}
+
+function assertIcons(name) {
+  const faces = faceIcons();
+  assert.equal(faces.length, 2);
+  for (const icons of faces) {
+    assert.deepEqual(
+      icons.map((icon) => icon.name),
+      ["create", "copy", "check"],
+    );
+    for (const icon of icons) {
+      assert.equal(icon.opacity || "", "");
+      assert.equal(icon.transform || "", "");
+      assert.equal(icon.filter || "", "");
+      assert.equal(icon.on, icon.name === name);
+    }
+  }
 }
 
 function settledGlyphs() {
@@ -261,11 +283,8 @@ function buttonSignature() {
   return {
     label: control.getAttribute("aria-label"),
     disabled: control.getAttribute("aria-disabled"),
-    labels: visibleLabels(),
-    icons: [...control.querySelectorAll("svg")]
-      .filter((icon) => icon.classList.contains("is-on"))
-      .map((icon) => icon.getAttribute("data-icon")),
-    fillHidden: !fill().hasAttribute("hidden") && fill().style.clipPath === FILL_EMPTY,
+    icons: faceIcons().map((icons) => icons.map((icon) => `${icon.name}:${icon.on ? "on" : "off"}`).join(",")),
+    fillHidden: fill().hasAttribute("hidden") && fill().style.clipPath === FILL_EMPTY,
     clip: fill().style.clipPath,
     fillOpacity: fill().style.opacity,
     fillFilter: fill().style.filter,
@@ -297,7 +316,7 @@ test("create code lands left to right, retro fill completes at 3s, then the reel
     assert.equal(document.querySelector(".slot-reels").getAttribute("aria-hidden"), "true");
     assert.equal(live().textContent, "");
     assert.equal(description().textContent, "");
-    assert.equal(fill().hasAttribute("hidden"), false);
+    assert.equal(fill().hasAttribute("hidden"), true);
     assert.equal(fill().style.clipPath, FILL_EMPTY);
 
     await createCode();
@@ -354,7 +373,7 @@ test("create code lands left to right, retro fill completes at 3s, then the reel
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
     assert.equal(button().getAttribute("aria-label"), "Create code");
-    assert.equal(fill().hasAttribute("hidden"), false);
+    assert.equal(fill().hasAttribute("hidden"), true);
     assert.equal(fill().style.clipPath, FILL_EMPTY);
     assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
 
@@ -401,7 +420,7 @@ test("smooth fill grows left to right and the long countdown hints once", async 
     clock.set(SPIN_END + 6000);
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
-    assert.equal(fill().hasAttribute("hidden"), false);
+    assert.equal(fill().hasAttribute("hidden"), true);
     assert.equal(fill().style.clipPath, FILL_EMPTY);
     assert.equal(live().textContent, "New code: 4 4 4 4 4 4");
   } finally {
@@ -415,48 +434,47 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   const clock = installClock();
   const random = installRandom([1, 2, 3, 4, 5, 6], 3);
   const css = await readFile("src/components/slot-code/SlotCode.css", "utf8");
-  assert.match(css, /\.slot-copy-label > span \{[^}]*grid-area:\s*1 \/ 1;/);
-  assert.match(css, /\.slot-copy-icons > svg,/);
-  assert.match(css, /\.slot-copy-icons,\s*\.slot-copy-label \{[^}]*justify-items:\s*start;/);
   const liveCss = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  const fadeRule = liveCss.match(/\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{([^}]*)\}/);
-  assert.ok(fadeRule);
-  assert.equal(fadeRule[1].includes("scale("), false);
-  assert.equal(fadeRule[1].includes("filter:"), false);
-  assert.equal(liveCss.includes("filter:"), false);
+  assert.equal(css.includes("slot-copy-label"), false);
+  assert.equal(css.includes("-apple-system-body"), false);
+  assert.match(liveCss, /\.slot-copy-icons > svg \{[^}]*grid-area:\s*1 \/ 1;/);
+  assert.match(liveCss, /\.slot-copy-icons > svg \{[^}]*opacity:\s*0;/);
+  assert.match(liveCss, /\.slot-copy-icons > svg \{[^}]*transform:\s*scale\(0\.25\);/);
+  assert.match(liveCss, /\.slot-copy-icons > svg \{[^}]*filter:\s*blur\(var\(--space-1\)\);/);
+  assert.match(liveCss, /\.slot-copy-icons > svg \{[^}]*will-change:\s*opacity, transform, filter;/);
   assert.match(
-    css,
-    /\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{[^}]*transition:\s*opacity var\(--duration-normal\) var\(--ease-enter\);/,
+    liveCss,
+    /\.slot-copy-icons > svg \{[^}]*transition:\s*opacity var\(--duration-normal\) var\(--ease-enter\), transform var\(--duration-normal\) var\(--ease-enter\), filter var\(--duration-normal\) var\(--ease-enter\);/,
   );
-  assert.match(css, /\.slot-copy-icons > svg\.is-on,\s*\.slot-copy-label > span\.is-on \{\s*opacity:\s*1;\s*\}/);
+  assert.match(
+    liveCss,
+    /\.slot-copy-icons > svg\.is-on \{[^}]*opacity:\s*1;[^}]*transform:\s*scale\(1\);[^}]*filter:\s*blur\(0px\);/,
+  );
   assert.equal(
     /button\.slot-copy\[aria-disabled='true'\]\s*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(liveCss),
     false,
   );
   assert.equal(css.includes("!important"), false);
-  assert.equal(css.includes(".slot-copy-fill[hidden]"), false);
-  assert.equal(css.includes("display: none"), false);
-  assert.match(css, /\.slot-copy-face \{[^}]*will-change:\s*opacity;/);
+  assert.match(liveCss, /\.slot-copy-fill\[hidden\]\s*\{[^}]*display:\s*none;/);
   assert.match(css, /\.slot-copy-fill \{[^}]*will-change:\s*clip-path, opacity;/);
-  assert.match(
-    css,
-    /\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{[^}]*will-change:\s*opacity;/,
-  );
-  assert.match(
-    liveCss,
-    /@supports \(font: -apple-system-body\) \{\s*\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{\s*transition:\s*none;/,
-  );
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition:\s*opacity var\(--duration-fast\) linear;/s);
   assert.match(css, /button\.slot-copy:focus \{[^}]*outline:\s*none;/);
   assert.match(css, /button\.slot-copy:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);
   assert.match(css, /\.slot-code \{[^}]*gap:\s*var\(--space-4\);/);
-  assert.match(css, /button\.slot-copy \{[^}]*min-height:\s*var\(--size-control-sm\);[^}]*font:\s*var\(--label-sm\);/);
-  assert.match(css, /\.slot-copy-visual \{[^}]*min-height:\s*var\(--size-control-sm\);/);
+  assert.match(css, /button\.slot-copy \{[^}]*min-height:\s*var\(--size-control-sm\);/);
+  assert.match(css, /\.slot-copy-visual \{[^}]*width:\s*var\(--size-control-sm\);[^}]*height:\s*var\(--size-control-sm\);/);
   assert.match(css, /\.slot-copy svg \{[^}]*width:\s*calc\(var\(--size-icon-sm\) - var\(--border-width-2\)\);/);
   assert.match(
     css,
-    /@media \(pointer: coarse\) \{\s*button\.slot-copy::before \{[^}]*height:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\);/,
+    /@media \(pointer: coarse\) \{\s*button\.slot-copy::before \{[^}]*width:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\);[^}]*height:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\);/,
   );
+  assert.match(css, /\.slot-copy-tip \{[^}]*position:\s*fixed;/);
+  assert.match(css, /\.slot-copy-tip \{[^}]*z-index:\s*var\(--z-tooltip\);/);
+  assert.match(css, /\.slot-copy-tip \{[^}]*background:\s*var\(--color-text-primary\);/);
+  assert.match(css, /\.slot-copy-tip \{[^}]*color:\s*var\(--color-text-inverse\);/);
+  assert.match(css, /\.slot-copy-tip \{[^}]*border-radius:\s*var\(--radius-md\);/);
+  assert.match(css, /\.slot-copy-tip \{[^}]*box-shadow:\s*var\(--shadow-md\);/);
+  assert.match(css, /\.slot-copy-tip \{[^}]*transition:\s*opacity var\(--duration-fast\) var\(--ease-standard\);/);
   const written = [];
   const originalClipboard = navigator.clipboard;
   navigator.clipboard = {
@@ -469,34 +487,44 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   const view = await mount();
   try {
     const restingWidth = button().offsetWidth;
-    assert.deepEqual(visibleLabels(), ["Create code", "Create code"]);
+    const tip = document.querySelector(".slot-copy-tip");
+    assert.equal(tip.getAttribute("role"), "tooltip");
+    assert.equal(tip.getAttribute("aria-hidden"), "true");
+    assert.equal(tip.parentElement, document.body);
+    assert.equal(button().contains(tip), false);
+    assert.equal(tip.textContent, "Create code");
+    assert.equal(button().getAttribute("aria-describedby"), description().id);
+    assertIcons("create");
     assert.equal(/\d|%|second/i.test(button().textContent), false);
     await createCode();
     assert.equal(button().offsetWidth, restingWidth);
-    assert.deepEqual(visibleLabels(), ["Create code", "Create code"]);
+    assertIcons("create");
 
     clock.set(SPIN_END);
     await clock.flush();
     assert.equal(fill().style.clipPath, smoothClip(0));
     assert.equal(button().offsetWidth, restingWidth);
-    assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
+    assertIcons("copy");
     assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.equal(tip.textContent, "Copy code");
     assert.equal(/\d|%/.test(button().textContent), false);
 
     await act(async () => {
       button().click();
     });
     assert.deepEqual(written, ["123456"]);
-    assert.equal(button().getAttribute("aria-label"), "Copied");
-    assert.deepEqual(visibleLabels(), ["Copied", "Copied"]);
+    assert.equal(button().getAttribute("aria-label"), "Code copied");
+    assertIcons("check");
+    assert.equal(tip.textContent, "Code copied");
     assert.equal(button().offsetWidth, restingWidth);
     assert.equal(live().textContent, "Copied");
     assert.equal(/\d|%/.test(button().textContent), false);
 
     clock.set(SPIN_END + 1200);
     await clock.flush();
-    assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
+    assertIcons("copy");
     assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.equal(tip.textContent, "Copy code");
     assert.equal(button().offsetWidth, restingWidth);
   } finally {
     navigator.clipboard = originalClipboard;
@@ -585,14 +613,15 @@ function visualSelector(selector, env) {
   return true;
 }
 
-function labelSelector(selector, env) {
+function iconSelector(selector, env) {
   const parts = compounds(selector);
   const subject = parts.at(-1) ?? "";
   const ancestor = parts.slice(0, -1).join(" ");
-  if (!subject.startsWith("span") && !subject.startsWith("svg")) return false;
-  if (!ancestor.includes("slot-copy-label") && !ancestor.includes("slot-copy-icons")) return false;
+  if (!subject.startsWith("svg")) return false;
+  if (!ancestor.includes("slot-copy-icons")) return false;
   if (ancestor.includes("[data-theme='dark']") && env.dark !== true) return false;
-  return true;
+  if (env.on === true) return true;
+  return !subject.includes(".is-on");
 }
 
 function declarations(body) {
@@ -653,20 +682,38 @@ test("pressing the copy button scales the visual to 0.97 and the release returns
   );
   assert.ok(hit);
   assert.equal(hit.body.includes("scale"), false);
-  assert.match(hit.body, /transform:\s*translateY\(-50%\)/);
+  assert.match(hit.body, /transform:\s*translate\(-50%, -50%\)/);
+  assert.match(hit.body, /width:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\)/);
   assert.match(hit.body, /height:\s*calc\(var\(--size-control-md\) \+ var\(--space-1\)\)/);
   assert.match(live, /button\.slot-copy \{[^}]*touch-action:\s*manipulation;/);
 
-  const chromeLabel = applied(css, { safari: false, reduced: false }, labelSelector);
-  const safariLabel = applied(css, { safari: true, reduced: false }, labelSelector);
-  const chromeReduced = applied(css, { safari: false, reduced: true }, labelSelector);
-  const safariReduced = applied(css, { safari: true, reduced: true }, labelSelector);
-  assert.equal(chromeLabel.get("transition"), "opacity var(--duration-normal) var(--ease-enter)");
-  assert.equal(chromeLabel.get("will-change"), "opacity");
-  assert.equal(safariLabel.get("transition"), "none");
-  assert.equal(safariLabel.get("will-change"), "opacity");
-  assert.equal(chromeReduced.get("transition"), "opacity var(--duration-fast) linear");
-  assert.equal(safariReduced.get("transition"), "none");
+  const activeIcon = applied(css, { safari: false, reduced: false, on: true }, iconSelector);
+  const safariIcon = applied(css, { safari: true, reduced: false, on: true }, iconSelector);
+  const inactiveIcon = applied(css, { safari: false, reduced: false, on: false }, iconSelector);
+  const reducedActive = applied(css, { safari: false, reduced: true, on: true }, iconSelector);
+  const reducedInactive = applied(css, { safari: true, reduced: true, on: false }, iconSelector);
+  assert.equal(activeIcon.get("opacity"), "1");
+  assert.equal(activeIcon.get("transform"), "scale(1)");
+  assert.equal(activeIcon.get("filter"), "blur(0px)");
+  assert.equal(activeIcon.get("will-change"), "opacity, transform, filter");
+  assert.equal(
+    activeIcon.get("transition"),
+    "opacity var(--duration-normal) var(--ease-enter), transform var(--duration-normal) var(--ease-enter), filter var(--duration-normal) var(--ease-enter)",
+  );
+  assert.equal(safariIcon.get("transition"), activeIcon.get("transition"));
+  assert.equal(safariIcon.get("transform"), "scale(1)");
+  assert.equal(safariIcon.get("filter"), "blur(0px)");
+  assert.equal(inactiveIcon.get("opacity"), "0");
+  assert.equal(inactiveIcon.get("transform"), "scale(0.25)");
+  assert.equal(inactiveIcon.get("filter"), "blur(var(--space-1))");
+  assert.equal(reducedActive.get("opacity"), "1");
+  assert.equal(reducedActive.get("transform"), "none");
+  assert.equal(reducedActive.get("filter"), "none");
+  assert.equal(reducedActive.get("transition"), "opacity var(--duration-fast) linear");
+  assert.equal(reducedActive.get("will-change"), "opacity, transform, filter");
+  assert.equal(reducedInactive.get("opacity"), "0");
+  assert.equal(reducedInactive.get("transform"), "none");
+  assert.equal(reducedInactive.get("filter"), "none");
   assert.match(live, /\.slot-copy-fill \{[^}]*clip-path:\s*inset\(0 100% 0 0\);[^}]*will-change:\s*clip-path, opacity;/);
   assert.match(source, /addEventListener\(\s*['"]touchstart['"],\s*\w+,\s*\{\s*passive:\s*true\s*\}\s*\)/);
 
@@ -699,14 +746,7 @@ test("pressing the copy button scales the visual to 0.97 and the release returns
 });
 
 function crossfadeTargets() {
-  return [...document.querySelectorAll(".slot-copy-face")].map((face) =>
-    [...face.querySelectorAll("svg, [data-label]")]
-      .map((node) => {
-        const name = node.getAttribute("data-icon") || node.getAttribute("data-label");
-        return `${name}:${node.classList.contains("is-on") ? "on" : "off"}`;
-      })
-      .join(","),
-  );
+  return faceIcons().map((icons) => icons.map((icon) => `${icon.name}:${icon.on ? "on" : "off"}`).join(","));
 }
 
 test("Create code does not retarget the crossfade when only the disabled state changes", async () => {
@@ -722,10 +762,7 @@ test("Create code does not retarget the crossfade when only the disabled state c
   const view = await mount({ fillStyle: "smooth", countdownSeconds: 3 });
   try {
     const resting = crossfadeTargets();
-    assert.deepEqual(resting, [
-      "create:on,copy:off,create:on,copy:off,copied:off",
-      "create:on,copy:off,create:on,copy:off,copied:off",
-    ]);
+    assert.deepEqual(resting, ["create:on,copy:off,check:off", "create:on,copy:off,check:off"]);
 
     await createCode();
     const spinning = crossfadeTargets();
@@ -743,7 +780,7 @@ test("Create code does not retarget the crossfade when only the disabled state c
       button().click();
     });
     const copied = crossfadeTargets();
-    assert.equal(button().getAttribute("aria-label"), "Copied");
+    assert.equal(button().getAttribute("aria-label"), "Code copied");
     assert.notDeepEqual(copied, copying);
 
     clock.set(SPIN_END + 1200);
@@ -939,10 +976,16 @@ test("a full fill covers the copy button border box", async () => {
   }
 });
 
-test("three create-expire cycles restore the exact first-load button", async () => {
+test("three create, copy, and expire cycles restore the exact first-load button", async () => {
   const clock = installClock();
-  const digits = Array.from({ length: 80 }, (_, index) => (index % 9) + 1);
+  const digits = Array.from({ length: 400 }, (_, index) => (index % 9) + 1);
   const random = installRandom(digits, 0x0c0de);
+  const originalClipboard = navigator.clipboard;
+  navigator.clipboard = {
+    writeText() {
+      return Promise.resolve();
+    },
+  };
   globalThis.__showcaseReducedMotion = false;
   const view = await mount({ countdownSeconds: 3 });
   try {
@@ -951,8 +994,8 @@ test("three create-expire cycles restore the exact first-load button", async () 
     const first = buttonSignature();
     assert.equal(first.label, "Create code");
     assert.equal(first.disabled, "false");
-    assert.deepEqual(first.labels, ["Create code", "Create code"]);
-    assert.deepEqual(first.icons, ["create", "create"]);
+    assert.deepEqual(first.icons, ["create:on,copy:off,check:off", "create:on,copy:off,check:off"]);
+    assertIcons("create");
     assert.equal(first.fillHidden, true);
     assert.equal(first.clip, FILL_EMPTY);
     assert.deepEqual(first.effects, []);
@@ -961,15 +1004,41 @@ test("three create-expire cycles restore the exact first-load button", async () 
     for (let cycle = 0; cycle < 3; cycle += 1) {
       await createCode();
       assert.equal(document.activeElement, button());
+      assert.equal(button().getAttribute("aria-disabled"), "true");
+      assert.equal(button().getAttribute("aria-label"), "Create code");
+      assertIcons("create");
       time += SPIN_END;
       clock.set(time);
       await clock.flush();
+      const landed = time;
       assert.equal(button().getAttribute("aria-label"), "Copy code");
+      assert.equal(button().getAttribute("aria-disabled"), "false");
+      assertIcons("copy");
       assert.equal(fill().hasAttribute("hidden"), false);
-      time += 3000;
+
+      await act(async () => {
+        button().click();
+      });
+      assert.equal(button().getAttribute("aria-label"), "Code copied");
+      assertIcons("check");
+      assert.equal(live().textContent, "Copied");
+
+      time = landed + 1200;
       clock.set(time);
       await clock.flush();
-      time += RETURN_END;
+      assert.equal(button().getAttribute("aria-label"), "Copy code");
+      assertIcons("copy");
+
+      time = landed + 3000;
+      clock.set(time);
+      await clock.flush();
+      assert.equal(fill().style.clipPath, FILL_EMPTY);
+      assert.equal(fill().hasAttribute("hidden"), true);
+      assert.equal(button().getAttribute("aria-disabled"), "true");
+      assert.equal(button().getAttribute("aria-label"), "Create code");
+      assertIcons("create");
+
+      time = landed + 3000 + RETURN_END;
       clock.set(time);
       await clock.flush();
       assert.deepEqual(buttonSignature(), first);
@@ -977,7 +1046,26 @@ test("three create-expire cycles restore the exact first-load button", async () 
       assert.equal(live().textContent, "Code expired. Create code.");
       assert.equal(document.activeElement, button());
     }
+
+    await createCode();
+    time += SPIN_END;
+    clock.set(time);
+    await clock.flush();
+    await act(async () => {
+      button().click();
+    });
+    assert.equal(button().getAttribute("aria-label"), "Code copied");
+    assertIcons("check");
+    time += 3000;
+    clock.set(time);
+    await clock.flush();
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.equal(button().getAttribute("aria-disabled"), "true");
+    assertIcons("create");
+    assert.equal(fill().style.clipPath, FILL_EMPTY);
+    assert.equal(fill().hasAttribute("hidden"), true);
   } finally {
+    navigator.clipboard = originalClipboard;
     await view.unmount();
     clock.restore();
     random.restore();

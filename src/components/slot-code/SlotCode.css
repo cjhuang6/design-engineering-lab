@@ -123,8 +123,6 @@ button.slot-copy {
   border-radius: var(--radius-full);
   background: transparent;
   color: var(--color-text-primary);
-  font: var(--label-sm);
-  letter-spacing: var(--label-sm-letter-spacing);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -134,12 +132,14 @@ button.slot-copy {
   display: flex;
   align-items: stretch;
   overflow: hidden;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
   min-height: var(--size-control-sm);
   border-width: var(--border-width-0);
   border-radius: inherit;
   background: var(--color-surface-primary);
   box-shadow: inset 0 0 0 var(--border-width-1) color-mix(in srgb, var(--color-base-black) 18%, var(--color-base-white));
-  /* Stay on a transform layer for the life of the control. A press that promotes the letters and then drops them snaps the glyph advances in WebKit. */
+  /* Stay on a transform layer for the life of the control so the press does not promote it and drop it. */
   transform: scale(1);
   transform-origin: center;
   will-change: transform;
@@ -195,22 +195,27 @@ button.slot-copy[aria-disabled='true'] {
 
 .slot-copy-face {
   display: flex;
+  flex: 1;
   align-items: center;
-  gap: var(--space-1);
-  padding-inline: var(--control-padding-inline-sm);
-  white-space: nowrap;
-  will-change: opacity;
+  justify-content: center;
+  padding-inline: var(--space-0);
 }
 
 .slot-copy-fill {
   position: absolute;
   inset: 0;
   display: flex;
+  justify-content: center;
   pointer-events: none;
   background: color-mix(in srgb, var(--color-base-black) 78%, var(--color-base-white));
   color: var(--color-base-white);
   clip-path: inset(0 100% 0 0);
   will-change: clip-path, opacity;
+}
+
+/* An author display beats the user agent's [hidden] rule, and display: none keeps the white icon from painting when the countdown is idle. */
+.slot-copy-fill[hidden] {
+  display: none;
 }
 
 [data-theme='dark'] .slot-copy-fill {
@@ -228,50 +233,70 @@ button.slot-copy[aria-disabled='true'] {
   button.slot-copy::before {
     content: '';
     position: absolute;
-    left: var(--space-0);
-    right: var(--space-0);
+    left: 50%;
     top: 50%;
+    width: calc(var(--size-control-md) + var(--space-1));
     height: calc(var(--size-control-md) + var(--space-1));
-    transform: translateY(-50%);
+    transform: translate(-50%, -50%);
   }
 }
 
-.slot-copy-icons,
-.slot-copy-label {
+.slot-copy-icons {
   display: inline-grid;
-  justify-items: start;
+  justify-items: center;
   align-items: center;
 }
 
-.slot-copy-icons > svg,
-.slot-copy-label > span {
+.slot-copy-icons > svg {
   grid-area: 1 / 1;
   opacity: 0;
-  /* Stay on a layer for the life of the control. WebKit otherwise promotes the text for the opacity fade and demotes it at the end, which snaps the glyph advances. */
-  will-change: opacity;
-  transition: opacity var(--duration-normal) var(--ease-enter);
+  transform: scale(0.25);
+  filter: blur(var(--space-1));
+  /* Stay composited for the life of the control. WebKit otherwise promotes the icon for the swap and drops it when the swap ends. */
+  will-change: opacity, transform, filter;
+  transition: opacity var(--duration-normal) var(--ease-enter), transform var(--duration-normal) var(--ease-enter), filter var(--duration-normal) var(--ease-enter);
 }
 
-.slot-copy-icons > svg.is-on,
-.slot-copy-label > span.is-on {
+.slot-copy-icons > svg.is-on {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0px);
+}
+
+.slot-copy-tip {
+  position: fixed;
+  z-index: var(--z-tooltip);
+  margin: var(--space-0);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+  font: var(--label-sm);
+  letter-spacing: var(--label-sm-letter-spacing);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.slot-copy-tip.is-on {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .slot-copy-icons > svg,
-  .slot-copy-label > span {
+  .slot-copy-icons > svg.is-on {
+    transform: none;
+    filter: none;
     transition: opacity var(--duration-fast) linear;
   }
 
   button.slot-copy:not([aria-disabled='true']):active .slot-copy-visual {
     transform: scale(1);
   }
-}
 
-/* WebKit snaps glyph advances after an opacity fade. Skip that fade in Safari. */
-@supports (font: -apple-system-body) {
-  .slot-copy-icons > svg,
-  .slot-copy-label > span {
+  .slot-copy-tip {
     transition: none;
   }
 }

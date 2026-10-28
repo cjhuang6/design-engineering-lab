@@ -265,7 +265,7 @@ function buttonSignature() {
     icons: [...control.querySelectorAll("svg")]
       .filter((icon) => icon.classList.contains("is-on"))
       .map((icon) => icon.getAttribute("data-icon")),
-    fillHidden: fill().hasAttribute("hidden"),
+    fillHidden: !fill().hasAttribute("hidden") && fill().style.clipPath === FILL_EMPTY,
     clip: fill().style.clipPath,
     fillOpacity: fill().style.opacity,
     fillFilter: fill().style.filter,
@@ -297,7 +297,7 @@ test("create code lands left to right, retro fill completes at 3s, then the reel
     assert.equal(document.querySelector(".slot-reels").getAttribute("aria-hidden"), "true");
     assert.equal(live().textContent, "");
     assert.equal(description().textContent, "");
-    assert.equal(fill().hasAttribute("hidden"), true);
+    assert.equal(fill().hasAttribute("hidden"), false);
     assert.equal(fill().style.clipPath, FILL_EMPTY);
 
     await createCode();
@@ -354,7 +354,7 @@ test("create code lands left to right, retro fill completes at 3s, then the reel
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
     assert.equal(button().getAttribute("aria-label"), "Create code");
-    assert.equal(fill().hasAttribute("hidden"), true);
+    assert.equal(fill().hasAttribute("hidden"), false);
     assert.equal(fill().style.clipPath, FILL_EMPTY);
     assert.equal(live().textContent, "New code: 1 2 3 4 5 6");
 
@@ -401,7 +401,7 @@ test("smooth fill grows left to right and the long countdown hints once", async 
     clock.set(SPIN_END + 6000);
     await clock.flush();
     assert.equal(button().getAttribute("aria-disabled"), "true");
-    assert.equal(fill().hasAttribute("hidden"), true);
+    assert.equal(fill().hasAttribute("hidden"), false);
     assert.equal(fill().style.clipPath, FILL_EMPTY);
     assert.equal(live().textContent, "New code: 4 4 4 4 4 4");
   } finally {
@@ -427,7 +427,15 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   assert.match(css, /\.slot-copy-icons > svg\.is-on,\s*\.slot-copy-label > span\.is-on \{\s*opacity:\s*1;\s*\}/);
   assert.equal(/\[aria-disabled='true'\][^{]*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(css), false);
   assert.equal(css.includes("!important"), false);
-  assert.match(css, /\.slot-copy-fill\[hidden\] \{[^}]*display:\s*none;/);
+  assert.equal(css.includes(".slot-copy-fill[hidden]"), false);
+  assert.equal(css.includes("display: none"), false);
+  assert.match(css, /\.slot-copy-face \{[^}]*will-change:\s*opacity;/);
+  assert.match(css, /\.slot-copy-fill \{[^}]*will-change:\s*clip-path, opacity;/);
+  assert.match(
+    css,
+    /\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{[^}]*will-change:\s*opacity;/,
+  );
+  assert.match(css, /@supports \(font: -apple-system-body\) \{\s*\.slot-copy-icons > svg,/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition:\s*opacity var\(--duration-fast\) linear;/s);
   assert.match(css, /button\.slot-copy:focus \{[^}]*outline:\s*none;/);
   assert.match(css, /button\.slot-copy:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);

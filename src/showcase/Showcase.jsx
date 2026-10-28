@@ -151,6 +151,16 @@ function tabbables(root) {
   })
 }
 
+function markPanelScrolled(event) {
+  const scroller = event.currentTarget
+  const panel = scroller?.closest?.('.showcase-panel')
+  if (!panel) return
+  const scrolled = scroller.scrollTop > 0
+  if (panel.hasAttribute('data-scrolled') === scrolled) return
+  if (scrolled) panel.setAttribute('data-scrolled', '')
+  else panel.removeAttribute('data-scrolled')
+}
+
 function MaximizeIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -607,8 +617,8 @@ export function Showcase({ blocks: blocksProp }) {
       if (event.touches && event.touches.length > 1) return
       const target = event.target
       if (target && typeof target.closest === 'function') {
-        const list = target.closest('[data-showcase-scroll]')
-        if (list && list.scrollHeight > list.clientHeight + 1) return
+        const scroller = target.closest('[data-showcase-panel-scroll]')
+        if (scroller && scroller.scrollHeight > scroller.clientHeight + 1) return
         if (target.closest('.hex-picker-slider, .showcase-slider')) return
       }
       event.preventDefault()
@@ -695,20 +705,20 @@ export function Showcase({ blocks: blocksProp }) {
                 <Card block={active} open cardRef={cardRef} fitRef={fitRef} />
                 <div className="showcase-panel" ref={panelRef}>
                   <div className="showcase-panel-body">
-                    <div className="showcase-panel-copy">
-                      <div className="showcase-panel-head">
-                        <h2 id={titleId} tabIndex={-1} ref={titleRef}>
-                          {active.name}
-                        </h2>
-                        <button type="button" className="showcase-icon" aria-label="Close" onClick={requestClose}>
-                          <CloseIcon />
-                        </button>
-                      </div>
+                    <div className="showcase-panel-head">
+                      <h2 id={titleId} tabIndex={-1} ref={titleRef}>
+                        {active.name}
+                      </h2>
+                      <button type="button" className="showcase-icon" aria-label="Close" onClick={requestClose}>
+                        <CloseIcon />
+                      </button>
+                    </div>
+                    <div className="showcase-panel-scroll" data-showcase-panel-scroll="" onScroll={markPanelScrolled}>
                       <p id={descId} className="note">
                         {active.description}
                       </p>
+                      {active.controls}
                     </div>
-                    {active.controls}
                   </div>
                 </div>
               </div>

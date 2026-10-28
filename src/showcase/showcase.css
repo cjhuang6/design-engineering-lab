@@ -332,17 +332,17 @@ html.showcase-scroll-lock body {
 .showcase-panel-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-2);
   height: 100%;
   min-height: var(--space-0);
   overflow: auto;
   padding: var(--space-6);
 }
 
-.showcase-panel-copy {
+.showcase-panel-scroll {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-6);
   min-width: var(--space-0);
 }
 
@@ -406,20 +406,54 @@ html[data-showcase-feed] .showcase-actions {
 
 .showcase-layer[data-mode='mobile'] .showcase-panel-body {
   overflow: hidden;
-  gap: var(--space-4);
-  padding-top: var(--space-5);
-  padding-inline: var(--space-5);
-  padding-bottom: var(--space-0);
+  gap: var(--space-0);
+  padding: var(--space-0);
 }
 
-.showcase-layer[data-mode='mobile'] .showcase-panel-copy {
+.showcase-layer[data-mode='mobile'] .showcase-panel-head {
+  position: relative;
+  z-index: var(--z-raised);
+  flex: none;
+  background-color: var(--color-surface-subtle);
+  padding-top: var(--space-5);
+  padding-inline: var(--space-5);
+  padding-bottom: var(--space-2);
+}
+
+.showcase-layer[data-mode='mobile'] .showcase-panel[data-scrolled] .showcase-panel-head::after {
+  content: '';
+  position: absolute;
+  left: var(--space-0);
+  right: var(--space-0);
+  top: 100%;
+  height: var(--space-5);
+  pointer-events: none;
+  background-color: var(--color-surface-subtle);
+  mask-image: linear-gradient(to bottom, var(--color-base-black), transparent);
+}
+
+.showcase-layer[data-mode='mobile'] .showcase-panel-scroll {
+  flex: 1 1 auto;
+  min-height: var(--space-0);
+  gap: var(--space-4);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding-inline: var(--space-5);
+  padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  scroll-padding-top: var(--space-5);
+  scroll-padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+.showcase-layer[data-mode='mobile'] .showcase-panel-scroll > * {
   flex: none;
 }
 
 .showcase-layer[data-mode='mobile'] .hex-picker-controls,
 .showcase-layer[data-mode='mobile'] .showcase-controls {
-  flex: 1 1 auto;
-  min-height: var(--space-0);
+  flex: none;
 }
 
 .showcase-layer[data-mode='mobile'] .hex-picker-controls-head,
@@ -428,13 +462,10 @@ html[data-showcase-feed] .showcase-actions {
 }
 
 .showcase-layer[data-mode='mobile'] [data-showcase-scroll] {
-  flex: 1 1 auto;
-  min-height: var(--space-0);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  padding-bottom: var(--space-5);
-  -webkit-overflow-scrolling: touch;
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  padding-bottom: var(--space-0);
 }
 
 .showcase-layer[data-mode='mobile'] .hex-picker-slider {

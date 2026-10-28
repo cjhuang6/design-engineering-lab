@@ -417,6 +417,10 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   const css = await readFile("src/components/slot-code/SlotCode.css", "utf8");
   assert.match(css, /\.slot-copy-label > span \{[^}]*grid-area:\s*1 \/ 1;/);
   assert.match(css, /\.slot-copy-icons > svg,/);
+  assert.match(css, /\.slot-copy-icons,\s*\.slot-copy-label \{[^}]*justify-items:\s*start;/);
+  assert.match(css, /\.slot-copy-icons > svg \{[^}]*transform-origin:\s*right center;/);
+  assert.match(css, /\.slot-copy-label > span \{[^}]*transform-origin:\s*left center;/);
+  assert.equal(/\[aria-disabled='true'\][^{]*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(css), false);
   assert.equal(css.includes("!important"), false);
   assert.match(css, /\.slot-copy-fill\[hidden\] \{[^}]*display:\s*none;/);
   assert.match(css, /filter:\s*blur\(var\(--space-1\)\);/);
@@ -473,6 +477,79 @@ test("the copy button keeps one width, never shows a count, and writes the code"
     assert.deepEqual(visibleLabels(), ["Copy code", "Copy code"]);
     assert.equal(button().getAttribute("aria-label"), "Copy code");
     assert.equal(button().offsetWidth, restingWidth);
+  } finally {
+    navigator.clipboard = originalClipboard;
+    await view.unmount();
+    clock.restore();
+    random.restore();
+  }
+});
+
+function crossfadeTargets() {
+  return [...document.querySelectorAll(".slot-copy-face")].map((face) =>
+    [...face.querySelectorAll("svg, [data-label]")]
+      .map((node) => {
+        const name = node.getAttribute("data-icon") || node.getAttribute("data-label");
+        return `${name}:${node.classList.contains("is-on") ? "on" : "off"}`;
+      })
+      .join(","),
+  );
+}
+
+test("Create code does not retarget the crossfade when only the disabled state changes", async () => {
+  const clock = installClock();
+  const random = installRandom([3, 3, 3, 3, 3, 3], 9);
+  const originalClipboard = navigator.clipboard;
+  navigator.clipboard = {
+    writeText() {
+      return Promise.resolve();
+    },
+  };
+  globalThis.__showcaseReducedMotion = false;
+  const view = await mount({ fillStyle: "smooth", countdownSeconds: 3 });
+  try {
+    const resting = crossfadeTargets();
+    assert.deepEqual(resting, [
+      "create:on,copy:off,create:on,copy:off,copied:off",
+      "create:on,copy:off,create:on,copy:off,copied:off",
+    ]);
+
+    await createCode();
+    const spinning = crossfadeTargets();
+    assert.equal(button().getAttribute("aria-disabled"), "true");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.deepEqual(spinning, resting);
+
+    clock.set(SPIN_END);
+    await clock.flush();
+    const copying = crossfadeTargets();
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.notDeepEqual(copying, resting);
+
+    await act(async () => {
+      button().click();
+    });
+    const copied = crossfadeTargets();
+    assert.equal(button().getAttribute("aria-label"), "Copied");
+    assert.notDeepEqual(copied, copying);
+
+    clock.set(SPIN_END + 1200);
+    await clock.flush();
+    assert.equal(button().getAttribute("aria-label"), "Copy code");
+    assert.deepEqual(crossfadeTargets(), copying);
+
+    clock.set(SPIN_END + 3000);
+    await clock.flush();
+    assert.equal(button().getAttribute("aria-disabled"), "true");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.deepEqual(crossfadeTargets(), resting);
+
+    clock.set(SPIN_END + 3000 + RETURN_END);
+    await clock.flush();
+    assert.equal(button().getAttribute("aria-disabled"), "false");
+    assert.equal(button().getAttribute("aria-label"), "Create code");
+    assert.deepEqual(crossfadeTargets(), resting);
+    assert.deepEqual(crossfadeTargets(), spinning);
   } finally {
     navigator.clipboard = originalClipboard;
     await view.unmount();

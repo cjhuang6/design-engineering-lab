@@ -238,34 +238,18 @@ button.slot-copy[aria-disabled='true'] {
 .slot-copy-label > span {
   grid-area: 1 / 1;
   opacity: 0;
-  filter: blur(var(--space-1));
-  transform: scale(0.94);
-  transition:
-    opacity var(--duration-normal) var(--ease-enter),
-    filter var(--duration-normal) var(--ease-enter),
-    transform var(--duration-normal) var(--ease-enter);
-}
-
-.slot-copy-icons > svg {
-  transform-origin: right center;
-}
-
-.slot-copy-label > span {
-  transform-origin: left center;
+  /* A blur or scale layer is rasterized, then dropped when the fade ends. WebKit paints that layer with looser glyph advances and snaps to the crisp advances in one frame. */
+  transition: opacity var(--duration-normal) var(--ease-enter);
 }
 
 .slot-copy-icons > svg.is-on,
 .slot-copy-label > span.is-on {
   opacity: 1;
-  filter: none;
-  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .slot-copy-icons > svg,
   .slot-copy-label > span {
-    filter: none;
-    transform: none;
     transition: opacity var(--duration-fast) linear;
   }
 }

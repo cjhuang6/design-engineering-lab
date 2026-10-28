@@ -418,13 +418,16 @@ test("the copy button keeps one width, never shows a count, and writes the code"
   assert.match(css, /\.slot-copy-label > span \{[^}]*grid-area:\s*1 \/ 1;/);
   assert.match(css, /\.slot-copy-icons > svg,/);
   assert.match(css, /\.slot-copy-icons,\s*\.slot-copy-label \{[^}]*justify-items:\s*start;/);
-  assert.match(css, /\.slot-copy-icons > svg \{[^}]*transform-origin:\s*right center;/);
-  assert.match(css, /\.slot-copy-label > span \{[^}]*transform-origin:\s*left center;/);
+  assert.equal(css.includes("scale("), false);
+  assert.equal(css.includes("filter:"), false);
+  assert.match(
+    css,
+    /\.slot-copy-icons > svg,\s*\.slot-copy-label > span \{[^}]*transition:\s*opacity var\(--duration-normal\) var\(--ease-enter\);/,
+  );
+  assert.match(css, /\.slot-copy-icons > svg\.is-on,\s*\.slot-copy-label > span\.is-on \{\s*opacity:\s*1;\s*\}/);
   assert.equal(/\[aria-disabled='true'\][^{]*\{[^}]*(gap|font-weight|transform|padding|scale)/.test(css), false);
   assert.equal(css.includes("!important"), false);
   assert.match(css, /\.slot-copy-fill\[hidden\] \{[^}]*display:\s*none;/);
-  assert.match(css, /filter:\s*blur\(var\(--space-1\)\);/);
-  assert.match(css, /opacity var\(--duration-normal\) var\(--ease-enter\)/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^}]*transition:\s*opacity var\(--duration-fast\) linear;/s);
   assert.match(css, /button\.slot-copy:focus \{[^}]*outline:\s*none;/);
   assert.match(css, /button\.slot-copy:focus-visible \{[^}]*outline:\s*var\(--border-focus\);/);

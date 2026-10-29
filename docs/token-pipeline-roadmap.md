@@ -279,7 +279,7 @@ Two different ids show up in this work. The **Figma style id** (a string like th
 
 **Approved (CJ, 2026-10-22),** matching PR #15 and #16:
 
-- Prefix `type-` plus 6 lowercase hex characters, chosen once. `prim-` and `sem-` stay as they are. An id is unique across the whole file. `plan-primitives.ts` already records ids that sit on non-primitive tokens so a `prim-` id cannot copy one (`foreignIds`). A `type-` id must not equal any existing id.
+- Prefix `type-` plus 6 lowercase hex characters, chosen once. `prim-` and `sem-` stay as they are. An id is unique across the whole file. `plan-primitives.ts` already records ids that sit on non-primitive tokens so a `prim-` id cannot copy one (`idsOnNonPrimitiveTokens`). A `type-` id must not equal any existing id.
 - The sync matches shared plugin data `com.cjhuang.camellia` / `id` first.
 - Text styles have never been synced, so there is no legacy private name tag to migrate. If an untagged local style already has the approved name, adopt it and write the shared id. That is the same name-adoption primitive sync uses.
 - After the id is stored, renaming the JSON path renames that same Text Style. A rename that would collide with a different style's name fails the plan. The sync still never deletes a style.

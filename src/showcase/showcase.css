@@ -286,7 +286,7 @@ button.showcase-icon:focus-visible {
   padding-left: env(safe-area-inset-left);
 }
 
-/* overflow:hidden does not stop iOS Safari rubber-banding. The body is pinned at the saved scroll offset. */
+/* overflow:hidden does not stop iOS Safari rubber-banding. */
 html.showcase-scroll-lock {
   overflow: hidden;
   overscroll-behavior: none;

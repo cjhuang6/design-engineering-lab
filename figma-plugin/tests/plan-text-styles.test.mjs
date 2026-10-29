@@ -23,13 +23,8 @@ const get = (name) => {
   return style;
 };
 
-/** A deep copy of the canonical tokens, so a test can break one value. */
 const cloneTokens = () => structuredClone(tokens);
 
-/**
- * Approved Text Styles. The last three numbers are font size, pixel line height,
- * and letter spacing as a percent (`-0.02em` is `-2`).
- */
 const EXPECTED = [
   ["Camellia/Display/LG", "display/lg", "font/family/sans", "Geist", "font/weight/semibold", "SemiBold", 48, 52, -2],
   ["Camellia/Display/SM", "display/sm", "font/family/sans", "Geist", "font/weight/semibold", "SemiBold", 40, 44, -2],

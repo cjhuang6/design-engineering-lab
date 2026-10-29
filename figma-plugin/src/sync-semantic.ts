@@ -1,10 +1,3 @@
-// Make the Figma "Semantic" collection match the plan. Variables are matched
-// by shared plugin data and updated in place (same variable ID). A file
-// synced before ids existed is adopted by its legacy private `token` tag.
-// Nothing is ever deleted. Aliases point at primitives, found by the
-// primitive's permanent id when that variable is already tagged, and by
-// visible name until then. This file does not write to primitives.
-
 import {
   PRIMITIVE_SHARED_ID_KEY,
   PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
@@ -12,7 +5,7 @@ import {
 import {
   SEMANTIC_SHARED_ID_KEY,
   SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE,
-  SEMANTIC_TOKEN_PLUGIN_DATA_KEY,
+  LEGACY_SEMANTIC_TOKEN_PLUGIN_DATA_KEY,
 } from "./plan-semantic.ts";
 import type { PlannedSemanticVariable, SemanticPlan } from "./plan-semantic.ts";
 
@@ -345,8 +338,6 @@ function createCollectionWithModes(plan: SemanticPlan): VariableCollection {
   return collection;
 }
 
-// Documented throw from VariableCollection.addMode when the file's plan cannot
-// add a mode. Leave the collection in place; this plugin does not call remove().
 function addModeOrExplain(
   collection: VariableCollection,
   name: string,
@@ -355,6 +346,7 @@ function addModeOrExplain(
   try {
     collection.addMode(name);
   } catch (error) {
+    // external: Figma's VariableCollection.addMode throws when the file's plan limits the mode count.
     const message = error instanceof Error ? error.message : String(error);
     if (/in addMode: Limited to \d+ modes only/.test(message)) {
       throw new Error(
@@ -445,7 +437,7 @@ function sharedId(variable: Variable): string {
 
 function legacyToken(variable: Variable): string {
   try {
-    return variable.getPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY);
+    return variable.getPluginData(LEGACY_SEMANTIC_TOKEN_PLUGIN_DATA_KEY);
   } catch {
     return "";
   }
@@ -453,9 +445,9 @@ function legacyToken(variable: Variable): string {
 
 function clearLegacyToken(variable: Variable): void {
   try {
-    variable.setPluginData(SEMANTIC_TOKEN_PLUGIN_DATA_KEY, "");
+    variable.setPluginData(LEGACY_SEMANTIC_TOKEN_PLUGIN_DATA_KEY, "");
   } catch {
-    // The connector runtime rejects private plugin data. The shared id is already stored.
+    // The connector runtime rejects private plugin data.
   }
 }
 

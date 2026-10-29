@@ -1,8 +1,3 @@
-// Make the Figma "Primitives" collection match the plan. Variables are
-// matched by shared plugin data and updated in place (same variable ID).
-// A file synced before ids existed is adopted by its visible name.
-// Nothing is ever deleted.
-
 import {
   PRIMITIVE_SHARED_ID_KEY,
   PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,

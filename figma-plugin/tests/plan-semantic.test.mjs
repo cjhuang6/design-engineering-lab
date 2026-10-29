@@ -37,7 +37,6 @@ const SHAPE = ["SHAPE_FILL"];
 const ACCENT = ["SHAPE_FILL", "STROKE_COLOR"];
 const GAP = ["GAP"];
 
-/** The approved Phase 2C scope table: 26 color rows, then 15 spacing rows. */
 const expected = [
   ["color/background/canvas", "COLOR", "color/base/white", "color/base/black", FILL],
   ["color/surface/primary", "COLOR", "color/base/white", "color/primitive/ice/950", FILL],

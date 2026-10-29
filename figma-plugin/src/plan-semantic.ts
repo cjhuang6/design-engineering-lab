@@ -1,6 +1,3 @@
-// DTCG semantic tokens → the rows the Figma "Semantic" collection should contain.
-// No Figma APIs here (types only), so tests can run it in Node.
-
 import { CAMELLIA, camelliaExtensions, collectTokens, figmaTargets, isReference } from "./dtcg.ts";
 import type { DtcgToken, DtcgTree } from "./dtcg.ts";
 import { planPrimitives } from "./plan-primitives.ts";
@@ -8,22 +5,17 @@ import type { PlannedVariable } from "./plan-primitives.ts";
 
 export { CAMELLIA as SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE };
 
-/** Shared plugin-data key for the permanent id. The namespace is `SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE`. */
 export const SEMANTIC_SHARED_ID_KEY = "id";
 
-/** Earlier syncs stored the Figma path under private plugin data `token`. */
-export const SEMANTIC_TOKEN_PLUGIN_DATA_KEY = "token";
+export const LEGACY_SEMANTIC_TOKEN_PLUGIN_DATA_KEY = "token";
 
 const SEMANTIC_ID_PATTERN = /^sem-[0-9a-f]{6}$/;
 
 export interface PlannedSemanticVariable {
   name: string;
-  /** Permanent id from the token JSON. Light and Dark share it. */
   id: string;
   type: "COLOR" | "FLOAT";
-  /** Primitive variable name for each Semantic mode (`Light`, `Dark`, …). */
   aliases: Record<string, string>;
-  /** Permanent id of the primitive each mode aliases. Same keys as `aliases`. */
   aliasIds: Record<string, string>;
   scopes: VariableScope[];
   webSyntax: string;
@@ -43,7 +35,6 @@ const SHAPE: VariableScope[] = ["SHAPE_FILL"];
 const SHAPE_AND_STROKE: VariableScope[] = ["SHAPE_FILL", "STROKE_COLOR"];
 const GAP: VariableScope[] = ["GAP"];
 
-/** Approved per-row scopes. A color name missing from this table fails the plan. */
 const COLOR_SCOPES: Record<string, VariableScope[]> = {
   "color/background/canvas": FRAME_AND_SHAPE,
   "color/surface/primary": FRAME_AND_SHAPE,
@@ -74,8 +65,7 @@ const COLOR_SCOPES: Record<string, VariableScope[]> = {
 };
 
 /**
- * Composite `theme.{mode}.border.{subtle,default,strong,focus}` tokens.
- * Figma has no variable type for color + width + style, so 2C creates no row.
+ * Figma has no variable type for color + width + style.
  */
 const DEFERRED_BORDER_LEAVES = new Set(["subtle", "default", "strong", "focus"]);
 
@@ -272,7 +262,6 @@ function scopesFor(name: string, type: "COLOR" | "FLOAT"): VariableScope[] {
   return scopes;
 }
 
-// A renamed path is not in the table. It keeps the scopes of the group it still belongs to.
 const COLOR_SCOPE_FAMILIES: { prefix: string; scopes: VariableScope[] }[] = [
   { prefix: "color/action/primary-text", scopes: TEXT },
   { prefix: "color/action/link", scopes: TEXT },

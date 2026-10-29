@@ -6,7 +6,6 @@ import type { DtcgToken, DtcgTree } from "./dtcg.ts";
 
 export { CAMELLIA as PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE };
 
-/** Shared plugin-data key for the permanent id. The namespace is `PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE`. */
 export const PRIMITIVE_SHARED_ID_KEY = "id";
 
 const PRIMITIVE_ID_PATTERN = /^prim-[0-9a-f]{6}$/;
@@ -15,7 +14,6 @@ export type PlannedValue = RGBA | number | string | MotionEasing;
 
 export interface PlannedVariable {
   name: string;
-  /** Permanent id from the token JSON. */
   id: string;
   type: VariableResolvedDataType;
   value: PlannedValue;
@@ -85,7 +83,7 @@ const startsWith = (path: string[], prefix: string[]) =>
 
 export function planPrimitives(tree: DtcgTree): PrimitivesPlan {
   const variables: PlannedVariable[] = [];
-  const idOwners = foreignIds(tree);
+  const idOwners = idsOnNonPrimitiveTokens(tree);
 
   for (const token of collectTokens(tree)) {
     const rule = RULES.find((r) => startsWith(token.path, r.prefix));
@@ -207,8 +205,7 @@ function claimPrimitiveId(idOwners: Map<string, string>, name: string, id: strin
   idOwners.set(id, name);
 }
 
-/** Ids on every node that is not itself a primitive token, so a prim- id cannot copy a sem- id. */
-function foreignIds(tree: DtcgTree): Map<string, string> {
+function idsOnNonPrimitiveTokens(tree: DtcgTree): Map<string, string> {
   const owners = new Map<string, string>();
   walk(tree, [], owners);
   return owners;

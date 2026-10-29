@@ -1,6 +1,3 @@
-// DTCG typography tokens → the Figma Text Styles.
-// No Figma APIs here, so tests can run it in Node.
-
 import { CAMELLIA, camelliaExtensions, collectTokens, isReference } from "./dtcg.ts";
 import type { DtcgToken, DtcgTree } from "./dtcg.ts";
 import { planPrimitives } from "./plan-primitives.ts";
@@ -8,19 +5,12 @@ import type { PlannedVariable } from "./plan-primitives.ts";
 
 export { CAMELLIA as TEXT_STYLE_SHARED_PLUGIN_DATA_NAMESPACE };
 
-/** Shared plugin-data key for the permanent id. The namespace is `TEXT_STYLE_SHARED_PLUGIN_DATA_NAMESPACE`. */
 export const TEXT_STYLE_SHARED_ID_KEY = "id";
 
 const TEXT_STYLE_ID_PATTERN = /^type-[0-9a-f]{6}$/;
 
-/** Groups whose leaves are Text Styles. A typography token anywhere else fails the plan. */
 const TEXT_STYLE_GROUPS = ["display", "heading", "body", "label", "code"];
 
-/**
- * Style name `loadFontAsync` asks for. Keyed by the weight variable's number,
- * so renaming `font/weight/semibold` does not change the name the font is asked for.
- * 400 Regular, 500 Medium, 600 SemiBold.
- */
 const FONT_STYLE_BY_WEIGHT: Record<number, string> = {
   400: "Regular",
   500: "Medium",
@@ -38,27 +28,16 @@ export interface PlannedPercent {
 }
 
 export interface PlannedTextStyle {
-  /** Figma style name, for example `Camellia/Display/LG`. */
   name: string;
-  /** Permanent id from the token JSON. */
   id: string;
-  /** Primitives variable `fontFamily` binds to, for example `font/family/sans`. */
   fontFamilyVariable: string;
-  /** Permanent id of that variable. */
   fontFamilyId: string;
-  /** Family name that variable holds, for example `Geist`. The CSS fallback list is not included. */
   fontFamilyName: string;
-  /** Primitives variable `fontWeight` binds to, for example `font/weight/semibold`. */
   fontWeightVariable: string;
-  /** Permanent id of that variable. */
   fontWeightId: string;
-  /** Style name to ask the font for when loading it: `Regular`, `Medium`, or `SemiBold`. */
   fontStyle: string;
-  /** Font size in pixels. */
   fontSize: number;
-  /** Line height in pixels, from `lineHeightPx`. */
   lineHeight: PlannedPixels;
-  /** Letter spacing as a percent of the font size. `-0.02em` is `-2`. */
   letterSpacing: PlannedPercent;
 }
 
@@ -71,13 +50,15 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const round = (n: number) => Number(n.toFixed(6));
 
+const EM_RATIO_TO_FIGMA_PERCENT = 100;
+
 export function planTextStyles(tree: DtcgTree): TextStylePlan {
   const primitives = new Map(
     planPrimitives(tree).variables.map((variable) => [variable.name, variable]),
   );
   const tokens = collectTokens(tree);
   const byPath = new Map(tokens.map((token) => [token.path.join("/"), token]));
-  const idOwners = foreignIds(tree);
+  const idOwners = idsOnNonTextStyleTokens(tree);
   const styleNames = new Map<string, string>();
   const styles: PlannedTextStyle[] = [];
 
@@ -258,7 +239,7 @@ function letterSpacingOf(token: DtcgToken, byPath: Map<string, DtcgToken>): Plan
       `plan-text-styles: ${where} tracking token ${name} must use em, got ${JSON.stringify(tracking.camellia.unit)}`,
     );
   }
-  return { unit: "PERCENT", value: round(tracking.value * 100) };
+  return { unit: "PERCENT", value: round(tracking.value * EM_RATIO_TO_FIGMA_PERCENT) };
 }
 
 function composite(token: DtcgToken): Record<string, unknown> {
@@ -268,8 +249,7 @@ function composite(token: DtcgToken): Record<string, unknown> {
   return token.value;
 }
 
-/** Ids on every node that is not itself a Text Style, so a type- id cannot copy a prim- or sem- id. */
-function foreignIds(tree: DtcgTree): Map<string, string> {
+function idsOnNonTextStyleTokens(tree: DtcgTree): Map<string, string> {
   const owners = new Map<string, string>();
   walk(tree, [], undefined, owners);
   return owners;

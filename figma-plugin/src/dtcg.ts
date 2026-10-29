@@ -16,7 +16,6 @@ export const CAMELLIA = "com.cjhuang.camellia";
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** Camellia's `$extensions` object on a token or group. Empty when absent. */
 export function camelliaExtensions(node: Record<string, unknown>): Record<string, unknown> {
   const extensions = isObject(node.$extensions) ? node.$extensions : {};
   const camellia = extensions[CAMELLIA];

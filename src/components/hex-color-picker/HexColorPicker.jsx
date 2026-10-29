@@ -141,7 +141,7 @@ export function HexColorPicker({
     if (keyboard) {
       node?.focus({ preventScroll: true })
     } else if (node) {
-      // Safari paints :focus-visible for a scripted focus(), so a tap must not move focus.
+      // Safari paints :focus-visible for a scripted focus().
       const active = node.ownerDocument?.activeElement
       if (active && gridRef.current?.contains(active)) active.blur()
     }

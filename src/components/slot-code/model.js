@@ -114,7 +114,6 @@ export function cycleDurationMs(fillStyle, countdownSeconds) {
   return clampCountdown(countdownSeconds) * 1000
 }
 
-// Demo only. Digits come from crypto.getRandomValues, not from a one-time password.
 export function randomDigits(nextByte) {
   const digits = []
   while (digits.length < REEL_COUNT) {

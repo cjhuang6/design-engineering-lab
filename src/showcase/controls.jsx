@@ -24,7 +24,7 @@ export function SegmentedControl({ label, value, options, onChange }) {
     const node = optionNode(next)
     if (keyboard) node?.focus({ preventScroll: true })
     else if (group) {
-      // Safari paints :focus-visible for a scripted focus(), so a pointer pick must not move focus.
+      // Safari paints :focus-visible for a scripted focus().
       const active = group.ownerDocument?.activeElement
       if (active && group.contains(active)) active.blur()
     }

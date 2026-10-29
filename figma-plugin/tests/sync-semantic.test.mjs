@@ -23,38 +23,6 @@ const primitivesPlan = planPrimitives(tokens);
 const semanticPlan = planSemantic(tokens);
 const primitiveCollectionName = figmaTargets(tokens).primitiveCollection;
 
-/**
- * Stand-in for the Figma variables calls both syncs make.
- *
- * Documented behavior this fake follows:
- * - createVariableAlias returns { type: "VARIABLE_ALIAS", id }
- *   https://developers.figma.com/docs/plugins/api/VariableAlias/
- * - valuesByMode stores that alias and does not resolve it
- *   https://developers.figma.com/docs/plugins/api/Variable/ (valuesByMode)
- * - getPluginData returns "" when the key is absent, and setPluginData(key, "")
- *   removes the key (PluginDataMixin in @figma/plugin-typings)
- * - getSharedPluginData / setSharedPluginData behave the same way, keyed by
- *   namespace then key. An empty value removes the entry
- *   https://developers.figma.com/docs/plugins/api/properties/figma-setsharedplugindata/
- * - addMode returns the new mode id. When modeLimit is set, it throws
- *   "in addMode: Limited to N modes only"
- *   https://developers.figma.com/docs/plugins/api/VariableCollection/ (addMode)
- *   A real file's pricing tier is not known here, so the limit is opt-in.
- *
- * Not re-confirmed in the Camellia file (copied from the primitives fake and
- * from Figma's variable guide, https://github.com/figma/mcp-server-guide/blob/main/skills/figma-use/references/variable-patterns.md):
- * - A new collection starts as one mode named "Mode 1". addMode appends, and
- *   defaultModeId stays on that first mode. The authoring example renames
- *   modes[0] and then calls addMode
- *   (https://developers.figma.com/docs/plugins/working-with-variables/).
- * - A new variable's scopes start as ["ALL_SCOPES"].
- * - Numbers are stored with Math.fround, as in sync-primitives.test.mjs.
- *
- * Not modeled: alias resolution, the mode picker, variableIds, extended
- * collections, and the 100 kB plugin-data cap. Tests assign valuesByMode
- * directly to stand in for a value Figma already stored; the real property
- * is readonly.
- */
 function createFakeFigma() {
   let nextId = 1;
   const collections = [];
@@ -949,8 +917,7 @@ test("an error on one variable is reported without stopping the others", async (
   assert.equal(focus.getPluginData("token"), "");
 });
 
-// mulberry32, Tommy Ettinger, public domain. Master seed is fixed.
-// A failure prints `seed <n>`. Replay that draw with CAMELLIA_SYNC_SEED=<n>.
+// mulberry32, Tommy Ettinger, public domain.
 const MASTER_SEED = 0x2c5eed01;
 const seedForDraw = (draw) => (MASTER_SEED + Math.imul(draw, 0x9e3779b9)) >>> 0;
 

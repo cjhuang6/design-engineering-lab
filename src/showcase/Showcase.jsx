@@ -113,7 +113,7 @@ function markFeed(mobile) {
   else document.documentElement.removeAttribute('data-showcase-feed')
 }
 
-// iOS Safari rubber-bands a page that only sets overflow:hidden. Pin the body at the saved scroll offset.
+// iOS Safari rubber-bands a page that only sets overflow:hidden.
 function lockPageScroll(lockRef) {
   if (lockRef.current != null) return
   const y = window.scrollY || window.pageYOffset || 0
@@ -134,7 +134,7 @@ function unlockPageScroll(lockRef) {
   document.body.style.top = ''
   document.body.style.paddingRight = ''
   // Chrome ignores scrollTo until it has laid out the body without position:fixed,
-  // then scroll anchoring shifts the restored offset unless it stays off through that pass.
+  // then scroll anchoring shifts the restored offset.
   void root.offsetHeight
   window.scrollTo(0, y)
   requestAnimationFrame(() => {
@@ -352,7 +352,6 @@ export function Showcase({ blocks: blocksProp }) {
       ? { columns: 1, scale: 1, padding: tokens.space4 }
       : feedColumnPlan(available, gap, widest, { padding: tokens.space6, tightPadding: tokens.space4 })
     const track = plan.columns > 0 ? (available - gap * (plan.columns - 1)) / plan.columns : available
-    // Reading these back can normalize 0 to 0px, so a string compare never settles.
     grid.style.gridTemplateColumns = `repeat(${plan.columns}, minmax(0, 1fr))`
     for (const item of measured) {
       const tight = !mobile && plan.padding < tokens.space6 - 0.5
@@ -593,8 +592,6 @@ export function Showcase({ blocks: blocksProp }) {
       }
       Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(() => {
         if (cancelled) return
-        // Leave the finished fill in place. Cancelling here restores the open-state
-        // inline styles and paints the expanded card for one frame before unmount.
         setSession((current) => (current && current.phase === 'closing' ? null : current))
       })
     }

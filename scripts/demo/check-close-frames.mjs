@@ -67,9 +67,7 @@ try {
     try {
       list = await fetch(`http://127.0.0.1:${port}/json/list`).then((response) => response.json())
       if (list.some((item) => item.type === 'page' && item.webSocketDebuggerUrl)) break
-    } catch {
-      // Chrome is still starting.
-    }
+    } catch {}
     await delay(100)
   }
   const pageInfo = list?.find((item) => item.type === 'page' && item.webSocketDebuggerUrl)

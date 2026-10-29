@@ -31,10 +31,6 @@ const DEFAULT_FONTS = [
   ["Geist Mono", "SemiBold"],
 ];
 
-/**
- * A stand-in for the Text Style and variable calls syncTextStyles makes.
- * These tests run against this fake. They do not prove Figma behavior.
- */
 function createFakeFigma({ fonts = DEFAULT_FONTS, binding = "keep" } = {}) {
   let nextId = 1;
   const collections = [];

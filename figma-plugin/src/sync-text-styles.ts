@@ -1,10 +1,3 @@
-// Make Figma Text Styles match the plan. Styles are matched by the
-// permanent id in shared plugin data and updated in place (same style ID).
-// An untagged style whose name is already the planned name is adopted once.
-// Nothing is ever deleted. fontFamily and fontWeight bind to the primitive
-// font variables, found by their prim- ids. If Figma does not keep that
-// binding, the plain font name stays.
-
 import {
   PRIMITIVE_SHARED_ID_KEY,
   PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,
@@ -301,9 +294,7 @@ function fontDifferences(
   const weightBound = weightAlias === weight.id;
   if (familyBound && weightBound) return [];
 
-  // Once the type- id is stored and the plain font matches, a missing binding
-  // is the fallback. Figma may drop setBoundVariable on a text style, and
-  // retrying it would report an update on every run.
+  // Figma may drop setBoundVariable on a text style.
   const plainOk =
     style.fontName.family === planned.fontFamilyName && style.fontName.style === planned.fontStyle;
   const settled = plainOk && sharedId(style) === planned.id;
@@ -355,7 +346,7 @@ function bindFont(style: TextStyle, field: "fontFamily" | "fontWeight", variable
   try {
     style.setBoundVariable(field, variable);
   } catch {
-    // Figma rejected the binding. fontName already holds the plain family and style.
+    // Figma rejected the binding.
   }
 }
 

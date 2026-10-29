@@ -139,7 +139,6 @@ button.slot-copy {
   border-radius: inherit;
   background: var(--color-surface-primary);
   box-shadow: inset 0 0 0 var(--border-width-1) color-mix(in srgb, var(--color-base-black) 18%, var(--color-base-white));
-  /* Stay on a transform layer for the life of the control so the press does not promote it and drop it. */
   transform: scale(1);
   transform-origin: center;
   will-change: transform;
@@ -213,7 +212,7 @@ button.slot-copy[aria-disabled='true'] {
   will-change: clip-path, opacity;
 }
 
-/* An author display beats the user agent's [hidden] rule, and display: none keeps the white icon from painting when the countdown is idle. */
+/* An author display beats the user agent's [hidden] rule. */
 .slot-copy-fill[hidden] {
   display: none;
 }
@@ -252,7 +251,7 @@ button.slot-copy[aria-disabled='true'] {
   opacity: 0;
   transform: scale(0.25);
   filter: blur(var(--space-1));
-  /* Stay composited for the life of the control. WebKit otherwise promotes the icon for the swap and drops it when the swap ends. */
+  /* WebKit promotes the icon for the swap and drops it when the swap ends. */
   will-change: opacity, transform, filter;
   transition: opacity var(--duration-normal) var(--ease-enter), transform var(--duration-normal) var(--ease-enter), filter var(--duration-normal) var(--ease-enter);
 }

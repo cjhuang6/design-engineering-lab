@@ -352,6 +352,7 @@ export function Showcase({ blocks: blocksProp }) {
       ? { columns: 1, scale: 1, padding: tokens.space4 }
       : feedColumnPlan(available, gap, widest, { padding: tokens.space6, tightPadding: tokens.space4 })
     const track = plan.columns > 0 ? (available - gap * (plan.columns - 1)) / plan.columns : available
+    // external: browsers read inline style 0 back as 0px, so the settle loop compares normalized values.
     grid.style.gridTemplateColumns = `repeat(${plan.columns}, minmax(0, 1fr))`
     for (const item of measured) {
       const tight = !mobile && plan.padding < tokens.space6 - 0.5
@@ -592,7 +593,9 @@ export function Showcase({ blocks: blocksProp }) {
       }
       Promise.all(animations.map((animation) => animation.finished.catch(() => {}))).then(() => {
         if (cancelled) return
-        setSession((current) => (current && current.phase === 'closing' ? null : current))
+        const keepFinishedFillOnClose = (current) =>
+          current && current.phase === 'closing' ? null : current
+        setSession(keepFinishedFillOnClose)
       })
     }
 

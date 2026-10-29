@@ -346,6 +346,7 @@ function addModeOrExplain(
   try {
     collection.addMode(name);
   } catch (error) {
+    // external: Figma's VariableCollection.addMode throws when the file's plan limits the mode count.
     const message = error instanceof Error ? error.message : String(error);
     if (/in addMode: Limited to \d+ modes only/.test(message)) {
       throw new Error(

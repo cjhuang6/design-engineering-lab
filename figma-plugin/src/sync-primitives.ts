@@ -1,5 +1,3 @@
-// Make the Figma "Primitives" collection match the plan. Variables are
-
 import {
   PRIMITIVE_SHARED_ID_KEY,
   PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE,

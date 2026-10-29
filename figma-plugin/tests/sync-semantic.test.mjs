@@ -23,6 +23,7 @@ const primitivesPlan = planPrimitives(tokens);
 const semanticPlan = planSemantic(tokens);
 const primitiveCollectionName = figmaTargets(tokens).primitiveCollection;
 
+// external: Figma createVariableAlias returns { type: "VARIABLE_ALIAS", id } (https://developers.figma.com/docs/plugins/api/VariableAlias/); valuesByMode stores that alias and does not resolve it (https://developers.figma.com/docs/plugins/api/Variable/); getPluginData returns "" when the key is absent and setPluginData(key, "") removes the key; getSharedPluginData and setSharedPluginData do the same by namespace and key, and an empty value removes the entry (https://developers.figma.com/docs/plugins/api/properties/figma-setsharedplugindata/); addMode returns the new mode id and throws "in addMode: Limited to N modes only" at the mode limit (https://developers.figma.com/docs/plugins/api/VariableCollection/); a new collection starts as one mode named "Mode 1", addMode appends, defaultModeId stays on the first mode, and a new variable's scopes start as ["ALL_SCOPES"] (https://developers.figma.com/docs/plugins/working-with-variables/).
 function createFakeFigma() {
   let nextId = 1;
   const collections = [];

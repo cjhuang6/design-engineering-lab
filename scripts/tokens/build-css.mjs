@@ -399,6 +399,7 @@ const ROOT_SECTIONS = [
   { title: "Blur", groups: ["blur"] },
   { title: "Frost materials", groups: ["frost"] },
   { title: "Motion", groups: ["duration", "ease"] },
+  { title: "Scale", groups: ["scale"] },
   { title: "Breakpoints", groups: ["breakpoint"] },
   { title: "Sizing", groups: ["size"] },
   { title: "Z-index", groups: ["z"] },

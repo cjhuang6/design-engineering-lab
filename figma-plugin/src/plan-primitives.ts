@@ -76,6 +76,7 @@ export const EXCLUDED: { prefix: string[]; reason: string }[] = [
   { prefix: ["expression"], reason: "Paint Styles (2F)" },
   { prefix: ["z"], reason: "CSS only; Figma has no z-index" },
   { prefix: ["border", "style"], reason: "CSS only; no Figma variable type" },
+  { prefix: ["scale"], reason: "CSS only; Figma has no transform scale" },
 ];
 
 const startsWith = (path: string[], prefix: string[]) =>

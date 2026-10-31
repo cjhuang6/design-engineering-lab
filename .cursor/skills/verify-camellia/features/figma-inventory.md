@@ -20,7 +20,7 @@ Preconditions:
 - `npm run figma:build` succeeded on the revision under test.
 - The console is open: Plugins → Development → `Show/Hide console`.
 
-- **Run inventory.** Choose `Inventory (read-only)`. The console starts with `Camellia Figma Sync — read-only inventory`, then lists each collection, e.g. `Collection "Primitives": 110 variables, modes: Value`, then the variable and style counts. The toast reads `Camellia Sync ready · N collections, N variables, N text, N effect, N paint styles`.
+- **Run inventory.** Choose `Inventory (read-only)`. The console starts with `Camellia Figma Sync — read-only inventory`, then lists each collection, e.g. `Collection "Primitives": 118 variables, modes: Value`, then the variable and style counts. The toast reads `Camellia Sync ready · N collections, N variables, N text, N effect, N paint styles`.
 - **Read-only.** Choose Edit → Undo. There's nothing from the plugin to undo.
 - **Repeatable.** Run it again. The console output is identical.
 

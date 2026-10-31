@@ -146,7 +146,7 @@ test("typography composites and tracking do not become new variables", () => {
       prefix,
     );
   }
-  assert.equal(primitives.variables.length, 110);
+  assert.equal(primitives.variables.length, 118);
 });
 
 test("line height follows lineHeightPx, not the unitless ratio", () => {

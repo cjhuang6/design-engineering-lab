@@ -46,6 +46,7 @@ const expected = [
   ["color/text/primary", "COLOR", "color/primitive/ice/900", "color/primitive/ice/50", TEXT],
   ["color/text/secondary", "COLOR", "color/primitive/ice/600", "color/primitive/ice/300", TEXT],
   ["color/text/tertiary", "COLOR", "color/primitive/ice/500", "color/primitive/ice/400", TEXT],
+  ["color/text/placeholder", "COLOR", "color/primitive/ice/600", "color/primitive/ice/400", TEXT],
   ["color/text/inverse", "COLOR", "color/base/white", "color/primitive/ice/950", TEXT],
   ["color/icon/primary", "COLOR", "color/primitive/ice/800", "color/primitive/ice/100", SHAPE],
   ["color/icon/secondary", "COLOR", "color/primitive/ice/600", "color/primitive/ice/300", SHAPE],
@@ -58,7 +59,7 @@ const expected = [
   ["color/action/primary-text", "COLOR", "color/base/white", "color/primitive/ice/950", TEXT],
   ["color/action/link", "COLOR", "color/primitive/blue/700", "color/primitive/blue/300", TEXT],
   ["color/action/link-hover", "COLOR", "color/primitive/blue/800", "color/primitive/blue/200", TEXT],
-  ["color/focus", "COLOR", "color/primitive/blue/500", "color/primitive/blue/400", STROKE],
+  ["color/focus", "COLOR", "color/primitive/ice/950", "color/primitive/ice/50", STROKE],
   ["color/functional/accent", "COLOR", "color/primitive/green/500", "color/primitive/green/400", ACCENT],
   ["color/functional/surface", "COLOR", "color/primitive/green/50", "color/primitive/alpha/green-400/12", FILL],
   ["color/expression/pink", "COLOR", "color/primitive/pink/400", "color/primitive/pink/400", FILL],
@@ -86,9 +87,9 @@ test("targets the Semantic collection with Light then Dark", () => {
   assert.deepEqual(plan.modeNames, ["Light", "Dark"]);
 });
 
-test("plans 26 color aliases and 15 spacing aliases, with unique names", () => {
-  assert.equal(plan.variables.length, 41);
-  assert.equal(plan.variables.filter((variable) => variable.type === "COLOR").length, 26);
+test("plans 27 color aliases and 15 spacing aliases, with unique names", () => {
+  assert.equal(plan.variables.length, 42);
+  assert.equal(plan.variables.filter((variable) => variable.type === "COLOR").length, 27);
   assert.equal(plan.variables.filter((variable) => variable.type === "FLOAT").length, 15);
   assert.equal(plan.variables.filter((variable) => variable.name.startsWith("layout/")).length, 9);
   assert.equal(plan.variables.filter((variable) => variable.name.startsWith("control/")).length, 6);
@@ -141,6 +142,13 @@ test("light and dark leaves share one id, including deferred borders", () => {
     assert.match(light, /^sem-[0-9a-f]{6}$/, `border/${leaf}`);
     assert.equal(seen.has(light), false, `border/${leaf} is not a Figma variable`);
   }
+  for (const leaf of ["raised", "control", "control-hover"]) {
+    const light = tokens.theme.light.shadow[leaf].$extensions["com.cjhuang.camellia"].id;
+    const dark = tokens.theme.dark.shadow[leaf].$extensions["com.cjhuang.camellia"].id;
+    assert.equal(light, dark, `shadow/${leaf}`);
+    assert.match(light, /^sem-[0-9a-f]{6}$/, `shadow/${leaf}`);
+    assert.equal(seen.has(light), false, `shadow/${leaf} is not a Figma variable`);
+  }
 });
 
 function nodeAt(root, name) {
@@ -177,7 +185,15 @@ test("every WEB code syntax names a variable that exists in tokens.css", () => {
 });
 
 test("composite border tokens are absent", () => {
-  const deferred = ["border/subtle", "border/default", "border/strong", "border/focus"];
+  const deferred = [
+    "border/subtle",
+    "border/default",
+    "border/strong",
+    "border/focus",
+    "shadow/raised",
+    "shadow/control",
+    "shadow/control-hover",
+  ];
   for (const name of deferred) {
     assert.equal(byName.has(name), false, `${name} is deferred and must not be planned`);
   }

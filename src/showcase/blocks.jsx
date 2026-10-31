@@ -7,6 +7,8 @@ import {
   RADIUS_DEFAULT,
   SCALE_DEFAULT,
 } from '../components/hex-color-picker/HexColorPicker.jsx'
+import { GUIDE_FEEDBACK_DESCRIPTION, GuideFeedback, GuideFeedbackControls } from '../components/guide-feedback/GuideFeedback.jsx'
+import { initialFeedback } from '../components/guide-feedback/model.js'
 import { COUNTDOWN_DEFAULT } from '../components/slot-code/model.js'
 import { SLOT_CODE_DESCRIPTION, SlotCode } from '../components/slot-code/SlotCode.jsx'
 import { showcaseBlock } from './catalog.js'
@@ -51,6 +53,25 @@ export function useHexBlock() {
         onReset={reset}
       />
     ),
+  }
+}
+
+export function useGuideFeedbackBlock() {
+  const entry = showcaseBlock('guide-feedback')
+  const [generation, setGeneration] = useState(0)
+  const [feedback, setFeedback] = useState(initialFeedback)
+
+  function reset() {
+    setFeedback(initialFeedback())
+    setGeneration((value) => value + 1)
+  }
+
+  return {
+    id: entry.id,
+    name: entry.name,
+    description: GUIDE_FEEDBACK_DESCRIPTION,
+    content: <GuideFeedback key={generation} value={feedback} onChange={setFeedback} />,
+    controls: <GuideFeedbackControls onReset={reset} />,
   }
 }
 

@@ -318,10 +318,10 @@ test("shell motion reads tokens, and the card surface is not a placeholder", asy
   );
 });
 
-test("the shipped catalog lists the security code, then the hex color picker", () => {
+test("the shipped catalog lists the security code, the hex color picker, then guide feedback", () => {
   assert.deepEqual(
     SHOWCASE_BLOCKS.map((block) => block.name),
-    ["Security code", "Hex color picker"],
+    ["Security code", "Hex color picker", "Guide feedback"],
   );
 });
 
@@ -971,7 +971,7 @@ test("mobile shell rules use the breakpoint token, dvh, and safe-area insets", a
   assert.match(source, /function markPanelScrolled/);
   assert.match(css, /\.showcase-layer\[data-mode='mobile'\] \.hex-picker-slider \{[^}]*flex:\s*none;/);
   assert.match(css, /@media \(hover: none\) \{[^}]*\.showcase-actions \{[^}]*opacity:\s*var\(--opacity-full\);/);
-  assert.match(source, /\[slotCode, hex\]/);
+  assert.match(source, /\[slotCode, hex, guideFeedback\]/);
   assert.match(source, /titleRef\.current\?\.focus\(\{ preventScroll: true, focusVisible: false \}\)/);
   assert.match(source, /\?\.focus\(\{ preventScroll: true \}\)/);
   const beforeMedia = css.slice(0, css.indexOf("@media"));

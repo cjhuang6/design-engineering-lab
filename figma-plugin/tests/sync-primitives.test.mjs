@@ -108,7 +108,7 @@ const modeId = () => fake.collections[0].modes[0].modeId;
 test("dry run on an empty file reports everything and changes nothing", async () => {
   const report = await sync(true);
   assert.equal(report.collectionCreated, true);
-  assert.equal(report.created.length, 110);
+  assert.equal(report.created.length, 118);
   assert.equal(fake.counts.collectionsCreated, 0);
   assert.equal(fake.counts.variablesCreated, 0);
   assert.equal(fake.counts.sharedPluginDataWrites, 0);
@@ -116,12 +116,12 @@ test("dry run on an empty file reports everything and changes nothing", async ()
 
 test("first sync creates one collection, one Value mode, and every variable", async () => {
   const report = await sync();
-  assert.equal(report.created.length, 110);
+  assert.equal(report.created.length, 118);
   assert.deepEqual(report.errors, []);
   assert.equal(fake.collections.length, 1);
   assert.equal(fake.collections[0].name, "Primitives");
   assert.deepEqual(fake.collections[0].modes.map((m) => m.name), ["Value"]);
-  assert.equal(fake.variables.length, 110);
+  assert.equal(fake.variables.length, 118);
 
   const blue = find("color/primitive/blue/600");
   assert.equal(blue.resolvedType, "COLOR");
@@ -143,9 +143,9 @@ test("second sync is a no-op: nothing created, nothing updated, no writes", asyn
   const report = await sync();
   assert.equal(report.created.length, 0);
   assert.deepEqual(report.updated, []);
-  assert.equal(report.unchanged, 110);
+  assert.equal(report.unchanged, 118);
   assert.equal(fake.counts.collectionsCreated, 1);
-  assert.equal(fake.variables.length, 110);
+  assert.equal(fake.variables.length, 118);
   assert.equal(fake.counts.valueWrites, writesAfterFirstRun);
   assert.equal(fake.counts.sharedPluginDataWrites, pluginWrites);
 });
@@ -162,7 +162,7 @@ test("a changed token updates the same variable in place (same ID)", async () =>
   assert.equal(report.created.length, 0);
   assert.equal(report.updated.length, 1);
   assert.match(report.updated[0], /^feedback\/success \[value\]/);
-  assert.equal(fake.variables.length, 110);
+  assert.equal(fake.variables.length, 118);
   assert.equal(find("feedback/success").id, idBefore);
   assert.equal(find("feedback/success").valuesByMode[modeId()].r, 1);
 });
@@ -197,7 +197,7 @@ test("variables that exist only in Figma are reported, never deleted", async () 
 
   const report = await sync();
   assert.deepEqual(report.notInJson, ["color/primitive/experimental"]);
-  assert.equal(fake.variables.length, 111);
+  assert.equal(fake.variables.length, 119);
 });
 
 test("a type conflict stops the sync before anything changes", async () => {
@@ -234,10 +234,10 @@ test("an error on one variable is reported without stopping the others", async (
   };
 
   const report = await sync();
-  assert.equal(report.created.length, 104);
-  assert.equal(report.errors.length, 6);
+  assert.equal(report.created.length, 111);
+  assert.equal(report.errors.length, 7);
   assert.match(report.errors[0], /^duration\/fast: TIMING is not a supported API/);
-  assert.equal(fake.variables.length, 104);
+  assert.equal(fake.variables.length, 111);
 });
 
 function clearPrimitiveIds() {
@@ -257,7 +257,7 @@ test("dry run reports a name-match migration and writes nothing", async () => {
 
   assert.equal(report.collectionCreated, false);
   assert.deepEqual(report.created, []);
-  assert.equal(report.updated.length, 110);
+  assert.equal(report.updated.length, 118);
   assert.equal(report.unchanged, 0);
   assert.deepEqual(report.notInJson, []);
   assert.deepEqual(report.errors, []);
@@ -281,10 +281,10 @@ test("name-match migration tags ids, creates nothing, and a second run changes n
   const report = await sync();
 
   assert.equal(report.created.length, 0);
-  assert.equal(report.updated.length, 110);
+  assert.equal(report.updated.length, 118);
   assert.deepEqual(report.notInJson, []);
   assert.deepEqual(report.errors, []);
-  assert.equal(fake.variables.length, 110);
+  assert.equal(fake.variables.length, 118);
   assert.equal(fake.counts.variablesCreated, createdBefore);
   for (const variable of fake.variables) {
     assert.equal(ids.get(variable.id), variable.name);
@@ -301,7 +301,7 @@ test("name-match migration tags ids, creates nothing, and a second run changes n
   const again = await sync();
   assert.equal(again.created.length, 0);
   assert.deepEqual(again.updated, []);
-  assert.equal(again.unchanged, 110);
+  assert.equal(again.unchanged, 118);
   assert.equal(fake.counts.valueWrites, valueWrites);
   assert.equal(fake.counts.sharedPluginDataWrites, pluginWrites);
 });
@@ -326,7 +326,7 @@ test("a JSON rename keeps the variable id and matches by the permanent id", asyn
   assert.match(report.updated[0], /^color\/primitive\/blue\/action \[name, code syntax\] \(VariableID:/);
   assert.deepEqual(report.notInJson, []);
   assert.deepEqual(report.errors, []);
-  assert.equal(fake.variables.length, 110);
+  assert.equal(fake.variables.length, 118);
   assert.equal(fake.counts.variablesCreated, createdBefore);
   const after = find("color/primitive/blue/action");
   assert.equal(after.id, idBefore);
@@ -340,7 +340,7 @@ test("a JSON rename keeps the variable id and matches by the permanent id", asyn
   const again = await syncPrimitives(next, { dryRun: false });
   assert.equal(again.created.length, 0);
   assert.deepEqual(again.updated, []);
-  assert.equal(again.unchanged, 110);
+  assert.equal(again.unchanged, 118);
   assert.equal(fake.counts.valueWrites, valueWrites);
   assert.equal(fake.counts.sharedPluginDataWrites, pluginWrites);
 });
@@ -360,8 +360,8 @@ test("renaming the JSON before migration leaves the old variable and creates the
 
   assert.deepEqual(report.created, ["color/primitive/blue/action"]);
   assert.deepEqual(report.notInJson, ["color/primitive/blue/600"]);
-  assert.equal(report.updated.length, 109);
-  assert.equal(fake.variables.length, 111);
+  assert.equal(report.updated.length, 117);
+  assert.equal(fake.variables.length, 119);
   assert.equal(fake.counts.variablesCreated, createdBefore + 1);
   assert.equal(before.id, idBefore);
   assert.equal(before.name, "color/primitive/blue/600");
@@ -383,7 +383,7 @@ test("two variables with the same token id throw before any write", async () => 
   assert.equal(fake.counts.valueWrites, valueWrites);
   assert.equal(fake.counts.sharedPluginDataWrites, pluginWrites);
   assert.deepEqual(original.valuesByMode, valueBefore);
-  assert.equal(fake.variables.length, 111);
+  assert.equal(fake.variables.length, 119);
 });
 
 test("a rename that would take another variable's name throws before any write", async () => {
@@ -404,5 +404,5 @@ test("a rename that would take another variable's name throws before any write",
   assert.equal(fake.counts.valueWrites, valueWrites);
   assert.equal(original.name, "color/primitive/blue/600");
   assert.equal(blocker.name, "color/primitive/blue/action");
-  assert.equal(fake.variables.length, 111);
+  assert.equal(fake.variables.length, 119);
 });

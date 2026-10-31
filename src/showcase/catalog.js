@@ -7,6 +7,10 @@ export const SHOWCASE_BLOCKS = [
     id: 'hex-color-picker',
     name: 'Hex color picker',
   },
+  {
+    id: 'guide-feedback',
+    name: 'Guide feedback',
+  },
 ]
 
 export function showcaseBlock(id) {

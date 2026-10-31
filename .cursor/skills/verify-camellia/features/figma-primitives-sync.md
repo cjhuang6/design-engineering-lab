@@ -1,11 +1,11 @@
 # Figma Primitives sync
 
-CJ makes the Figma `Primitives` collection match the primitive tokens in the token JSON: 110 variables in one `Value` mode, named by token path (e.g. `color/primitive/blue/600`), with scopes, a WEB code syntax of `var(--…)` and descriptions. Each primitive token has a permanent id, so renaming that token in the JSON renames the same Figma variable and a shape bound to it stays bound. A dry run reports what would change without writing anything. The real sync creates missing variables and updates differing ones in place, keeping their IDs. Variables that exist only in Figma are reported, never deleted. On a file synced before these ids existed, the first sync tags the 110 variables and creates none.
+CJ makes the Figma `Primitives` collection match the primitive tokens in the token JSON: 118 variables in one `Value` mode, named by token path (e.g. `color/primitive/blue/600`), with scopes, a WEB code syntax of `var(--…)` and descriptions. Each primitive token has a permanent id, so renaming that token in the JSON renames the same Figma variable and a shape bound to it stays bound. A dry run reports what would change without writing anything. The real sync creates missing variables and updates differing ones in place, keeping their IDs. Variables that exist only in Figma are reported, never deleted. On a file synced before these ids existed, the first sync tags the 110 variables and creates none.
 
 ## Sub-features
 
 - `sync-dry-run` reports Would create, Would update, Unchanged, Not in JSON and Errors, and writes nothing.
-- `sync-create` creates missing variables. On an empty file it creates 110.
+- `sync-create` creates missing variables. On an empty file it creates 118.
 - `sync-idempotent` makes no writes on a second run without JSON changes.
 - `sync-update-in-place` updates a changed token's value under the same variable ID.
 - `sync-binding-survival` keeps a bound layer on the same variable while it shows the new value.
@@ -29,7 +29,7 @@ Preconditions:
 - For binding survival, a layer is bound to a primitive. The established layer is rectangle `61:117`: fill bound to `feedback/success`, corners bound to `radius/xl`.
 
 - **Dry run.** Choose `Sync Primitives — dry run`. The toast reads `Camellia · Primitives (dry run) · Would create N · Would update N · Unchanged N · Not in JSON N · Errors N`. Nothing in the file changes. On the file from 2026-10-13, follow **Permanent ids** below: that dry run creates 0 and updates 110.
-- **Sync.** Choose `Sync Primitives`. The counts match the dry run. On an empty file: `Created 110` and `Errors 0`.
+- **Sync.** Choose `Sync Primitives`. The counts match the dry run. On an empty file: `Created 118` and `Errors 0`.
 - **Idempotency.** Choose `Sync Primitives` again. `Created 0` and `Updated 0`.
 - **Spot checks.** In Local variables:
   - names are grouped by `/`;
@@ -52,7 +52,7 @@ Preconditions:
   5. Rectangle `61:117` is still bound to `feedback/success` and `radius/xl`. The fill is not a loose hex, and the corners are not unbound. A binding stores the variable's id, so staying bound means it is the same variable.
   6. Optional, after step 4. In `tokens/camellia.tokens.json`, rename one primitive by moving the whole object, including `$extensions`, and keep its `id`. Update every semantic `$value` that named the old path, for example `{color.primitive.blue.600}`, to the new path. Change no color and no number. Rebuild with `npm run figma:typecheck` and then `npm run figma:bundle`. Do not run `npm run figma:build` while the name is changed: that command runs the tests, and the tests expect the old name. Choose `Sync Primitives`. The console lists one Updated line for the new name, with `[name, code syntax]` and the same `VariableID` the variable had before the rename. There is no second variable and no leftover under the old name. `Created 0`. The rectangle stays bound. Put the token back, run `npm run figma:build`, and sync again. The old name returns, the `VariableID` is the same, and the rectangle is still bound. `git status` does not list `tokens/camellia.tokens.json`.
 
-If this file has no `Primitives` collection yet, skip the migration: the first real sync creates the 110 with ids already. The dry run then says `Would create 110` and `Would update 0`.
+If this file has no `Primitives` collection yet, skip the migration: the first real sync creates the 118 with ids already. The dry run then says `Would create 118` and `Would update 0`.
 
 ## Gotchas
 

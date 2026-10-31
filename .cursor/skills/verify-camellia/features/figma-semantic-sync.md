@@ -1,11 +1,11 @@
 # Figma Semantic sync
 
-CJ makes the Figma `Semantic` collection match the semantic tokens: 41 variables, with modes `Light` and `Dark` (Light first). Each value is a link to a primitive, not a copied color or number. Each semantic token has a permanent id, so renaming that token in the JSON renames the same Figma variable and a shape bound to it stays bound. A dry run reports what would change and writes nothing. The real sync creates what is missing and updates what differs. A variable that exists only in Figma is listed and left alone. On a file synced before these ids existed, the first sync retags the 41 variables and creates none.
+CJ makes the Figma `Semantic` collection match the semantic tokens: 42 variables, with modes `Light` and `Dark` (Light first). Each value is a link to a primitive, not a copied color or number. Each semantic token has a permanent id, so renaming that token in the JSON renames the same Figma variable and a shape bound to it stays bound. A dry run reports what would change and writes nothing. The real sync creates what is missing and updates what differs. A variable that exists only in Figma is listed and left alone. On a file synced before these ids existed, the first sync retags the 41 variables and creates none.
 
 ## Sub-features
 
 - `semantic-dry-run` reports Would create, Would update, Unchanged, Not in JSON and Errors, and writes nothing.
-- `semantic-create` creates the `Semantic` collection and 41 variables when none exist.
+- `semantic-create` creates the `Semantic` collection and 42 variables when none exist.
 - `semantic-modes` gives that collection exactly `Light` then `Dark`.
 - `semantic-idempotent` makes no changes on a second run.
 - `semantic-alpha` links the dark border and surface colors at translucent primitives.
@@ -37,10 +37,10 @@ Preconditions:
 
 Words used below: a **collection** is the variables table. A **mode** is a column (`Light`, `Dark`). An **alias** is a link to another variable. The cell should show that variable's name, not a pasted hex or a plain number.
 
-- **Inventory.** Choose `Inventory (read-only)`. The console includes `Collection "Primitives": 110 variables, modes: Value`. There is no `Semantic` collection yet. If `Primitives` is missing, run `Sync Primitives` and expect `Created 110` and `Errors 0`, then continue. If `Primitives` is already there from before primitive ids, run the migration in [Figma Primitives sync](./figma-primitives-sync.md) first. That dry run shows `Would create 0` and `Would update 110`. After that migration, `Sync Primitives` shows `Created 0` and `Updated 0`. Semantic sync only reads `Primitives`.
+- **Inventory.** Choose `Inventory (read-only)`. The console includes `Collection "Primitives": 118 variables, modes: Value`. There is no `Semantic` collection yet. If `Primitives` is missing, run `Sync Primitives` and expect `Created 118` and `Errors 0`, then continue. If `Primitives` is already there from before primitive ids, run the migration in [Figma Primitives sync](./figma-primitives-sync.md) first. That dry run shows `Would create 0` and `Would update 110`. After that migration, `Sync Primitives` shows `Created 0` and `Updated 0`. Semantic sync only reads `Primitives`.
 - **Two modes, discovered on the first real sync.** If the toast starts with `Camellia Sync failed:` and the text mentions `addMode` or `Limited to` modes, stop. This file's Figma plan cannot hold both `Light` and `Dark`. Send the toast and the console text. Do not keep retrying. If the error says an empty `Semantic` collection may now exist with only its first mode, you may delete that empty collection yourself. Do not delete a `Semantic` collection that already has variables.
-- **Dry run.** Choose `Sync Semantic — dry run`. The toast is `Camellia · Semantic (dry run) · Would create 41 · Would update 0 · Unchanged 0 · Not in JSON 0 · Errors 0`. The console says `DRY RUN, nothing changed`. Close the variables dialog and reopen it: still no `Semantic` collection, and `Primitives` is unchanged.
-- **Sync.** Choose `Sync Semantic`. The toast has `Created 41` and `Errors 0`. Open Local variables (the variables dialog). Collection `Semantic` exists. Its columns are `Light` then `Dark`, with `Light` first. That is check (a): both modes exist, Light first.
+- **Dry run.** Choose `Sync Semantic — dry run`. The toast is `Camellia · Semantic (dry run) · Would create 42 · Would update 0 · Unchanged 0 · Not in JSON 0 · Errors 0`. The console says `DRY RUN, nothing changed`. Close the variables dialog and reopen it: still no `Semantic` collection, and `Primitives` is unchanged.
+- **Sync.** Choose `Sync Semantic`. The toast has `Created 42` and `Errors 0`. Open Local variables (the variables dialog). Collection `Semantic` exists. Its columns are `Light` then `Dark`, with `Light` first. That is check (a): both modes exist, Light first.
 - **Second run.** Choose `Sync Semantic` again, before you edit anything. The toast has `Created 0` and `Updated 0`. The console does not list Created or Updated.
 - **Spot checks** in Local variables. These are what tests cannot see.
   - `color/action/primary`: Light links to `color/primitive/blue/600`. Dark links to `color/primitive/blue/400`. The cells show those names, not a hex.
@@ -63,7 +63,7 @@ Words used below: a **collection** is the variables table. A **mode** is a colum
   5. Put the `$value` back to `{color.primitive.blue.600}`. Run `npm run figma:build`, then `Sync Semantic`. The original color is back, and the rectangle is still bound.
   6. `git status` does not list `tokens/camellia.tokens.json`.
 - **Figma-only variable.** In `Semantic`, create a color variable by hand named `color/scratch`. Choose `Sync Semantic`. The console lists `color/scratch` under `In Figma but not in JSON (left untouched)`. It still exists. Delete `color/scratch` yourself when you are done. The plugin will not delete it.
-- **Permanent ids, on a file that already has Semantic.** Do this after the steps above, or on the file you already synced with the previous plugin. That file's 41 variables are tagged with their names. This build tags them with a permanent id instead. If this file has no `Semantic` collection yet, skip to the rename steps after the first sync: that sync creates the 41 with ids already, so there is nothing to migrate.
+- **Permanent ids, on a file that already has Semantic.** Do this after the steps above, or on the file you already synced with the previous plugin. That file's 41 variables are tagged with their names. This build tags them with a permanent id instead. If this file has no `Semantic` collection yet, skip to the rename steps after the first sync: that sync creates the 42 with ids already, so there is nothing to migrate.
   1. Choose `Sync Semantic — dry run`. The toast is `Camellia · Semantic (dry run) · Would create 0 · Would update 41 · Unchanged 0 · Not in JSON 0 · Errors 0`. The console lists 41 lines under `Would update`, each like `color/action/primary [token id, legacy token] (VariableID:…)`. Close and reopen Local variables. Nothing was written: the collection is unchanged.
   2. Choose `Sync Semantic`. The toast has `Created 0` and `Updated 41`. Copy the `VariableID` from the `color/action/primary` line.
   3. Choose `Sync Semantic` again. The toast has `Created 0` and `Updated 0`. The console does not list Created or Updated.
@@ -72,7 +72,7 @@ Words used below: a **collection** is the variables table. A **mode** is a colum
   6. Rebuild the plugin without the test suite. From the repository folder run `npm run figma:typecheck` and then `npm run figma:bundle`. Do not run `npm run figma:build` while the token is renamed: that command also runs the tests, and the tests expect the name `color/action/primary`.
   7. Choose `Sync Semantic`. The console lists one Updated line, `color/action/main [name, code syntax] (VariableID:…)`, and that id is the one you copied. There is no second variable and no leftover `color/action/primary`. `Created 0`. Rectangle `61:117` is still bound to that variable. The fill is not a loose hex, and it is not unbound.
   8. Put both objects back to `primary`. Run `npm run figma:build`. Choose `Sync Semantic`. The name is `color/action/primary` again, the `VariableID` is the same, and the rectangle is still bound. Put the rectangle's fill back to `feedback/success`. `git status` does not list `tokens/camellia.tokens.json`.
-- **Primitives untouched.** Inventory still shows `Collection "Primitives": 110 variables, modes: Value`. Spot-check one primitive value you already know. Rectangle `61:117` is still bound to `feedback/success` and `radius/xl`.
+- **Primitives untouched.** Inventory still shows `Collection "Primitives": 118 variables, modes: Value`. Spot-check one primitive value you already know. Rectangle `61:117` is still bound to `feedback/success` and `radius/xl`.
 
 **What to send back**
 

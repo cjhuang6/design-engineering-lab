@@ -182,6 +182,10 @@
   transform-origin: top center;
 }
 
+.showcase-slot .showcase-card-fit:has(.guide-feedback) {
+  width: 100%;
+}
+
 .showcase-card .hex-color-picker {
   position: relative;
   width: fit-content;

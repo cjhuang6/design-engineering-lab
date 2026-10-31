@@ -12,6 +12,13 @@ const VARS = {
   '--breakpoint-sm': '640px',
   '--duration-fast': '100ms',
   '--duration-normal': '200ms',
+  '--duration-slow': '300ms',
+  '--duration-edit': '6000ms',
+  '--size-receipt': '60px',
+  '--ease-expression': 'cubic-bezier(0.22, 1, 0.36, 1)',
+  '--ease-in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
+  '--blur-xs': '3px',
+  '--scale-press': '0.96',
   '--ease-enter': 'cubic-bezier(0.16, 1, 0.3, 1)',
   '--ease-standard': 'cubic-bezier(0.4, 0, 0.2, 1)',
   '--showcase-masonry-row': '1px',
@@ -478,6 +485,10 @@ class Element extends Node {
   setPointerCapture() {}
 
   releasePointerCapture() {}
+
+  attachEvent() {}
+
+  detachEvent() {}
 
   get offsetWidth() {
     if (this.className.includes('showcase-card-fit')) {

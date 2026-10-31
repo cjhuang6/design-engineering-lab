@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useHexBlock, useSlotCodeBlock } from './blocks.jsx'
+import { useGuideFeedbackBlock, useHexBlock, useSlotCodeBlock } from './blocks.jsx'
 import {
   closeMotion,
   expandedFrame,
@@ -246,7 +246,8 @@ function Slot({ block, reserved, onBeforeMeasure, onOpen }) {
 export function Showcase({ blocks: blocksProp }) {
   const hex = useHexBlock()
   const slotCode = useSlotCodeBlock()
-  const blocks = blocksProp ?? [slotCode, hex]
+  const guideFeedback = useGuideFeedbackBlock()
+  const blocks = blocksProp ?? [slotCode, hex, guideFeedback]
   const [session, setSession] = useState(null)
   const pendingClose = useRef(false)
   const returnFocusId = useRef(null)

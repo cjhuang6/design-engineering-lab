@@ -66,6 +66,7 @@
   --color-text-primary: var(--color-primitive-ice-900);
   --color-text-secondary: var(--color-primitive-ice-600);
   --color-text-tertiary: var(--color-primitive-ice-500);
+  --color-text-placeholder: var(--color-primitive-ice-600);
   --color-text-inverse: var(--color-base-white);
   --color-icon-primary: var(--color-primitive-ice-800);
   --color-icon-secondary: var(--color-primitive-ice-600);
@@ -78,7 +79,7 @@
   --color-action-primary-text: var(--color-base-white);
   --color-action-link: var(--color-primitive-blue-700);
   --color-action-link-hover: var(--color-primitive-blue-800);
-  --color-focus: var(--color-primitive-blue-500);
+  --color-focus: var(--color-primitive-ice-950);
   --color-functional-accent: var(--color-primitive-green-500);
   --color-functional-surface: var(--color-primitive-green-50);
   --color-expression-pink: var(--color-primitive-pink-400);
@@ -88,6 +89,9 @@
   --border-default: var(--border-width-1) var(--border-style-solid) var(--color-border-default);
   --border-strong: var(--border-width-1) var(--border-style-solid) var(--color-border-strong);
   --border-focus: var(--border-width-2) var(--border-style-solid) var(--color-focus);
+  --shadow-raised: 0px 0px 0px 1px rgba(8, 17, 31, 0.06), 0px 1px 3px 0px rgba(8, 17, 31, 0.06), 0px 8px 24px -8px rgba(8, 17, 31, 0.1);
+  --shadow-control: 0px 0px 0px 1px rgba(8, 17, 31, 0.08), 0px 1px 2px 0px rgba(8, 17, 31, 0.06);
+  --shadow-control-hover: 0px 0px 0px 1px rgba(8, 17, 31, 0.12), 0px 1px 3px 0px rgba(8, 17, 31, 0.1);
 
   /* Typography */
   --font-family-sans: Geist, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -161,12 +165,14 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 
   /* Border */
   --border-width-0: 0px;
   --border-width-1: 1px;
   --border-width-2: 2px;
+  --border-width-hairline: 0.5px;
   --border-style-solid: solid;
 
   /* Shadows */
@@ -182,6 +188,7 @@
   --opacity-full: 1;
 
   /* Blur */
+  --blur-xs: 3px;
   --blur-sm: 4px;
   --blur-md: 12px;
   --blur-lg: 24px;
@@ -208,10 +215,15 @@
   --duration-expression-sm: 400ms;
   --duration-expression-md: 600ms;
   --duration-expression-lg: 900ms;
+  --duration-edit: 6000ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --ease-expression: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Scale */
+  --scale-press: 0.96;
 
   /* Breakpoints */
   --breakpoint-sm: 640px;
@@ -226,6 +238,9 @@
   --size-control-sm: 32px;
   --size-control-md: 40px;
   --size-control-lg: 48px;
+  --size-control-touch: 44px;
+  --size-receipt: 60px;
+  --size-field: 168px;
   --size-content-sm: 640px;
   --size-content-md: 960px;
   --size-content-lg: 1200px;
@@ -256,6 +271,7 @@
   --color-text-primary: var(--color-primitive-ice-50);
   --color-text-secondary: var(--color-primitive-ice-300);
   --color-text-tertiary: var(--color-primitive-ice-400);
+  --color-text-placeholder: var(--color-primitive-ice-400);
   --color-text-inverse: var(--color-primitive-ice-950);
   --color-icon-primary: var(--color-primitive-ice-100);
   --color-icon-secondary: var(--color-primitive-ice-300);
@@ -268,7 +284,7 @@
   --color-action-primary-text: var(--color-primitive-ice-950);
   --color-action-link: var(--color-primitive-blue-300);
   --color-action-link-hover: var(--color-primitive-blue-200);
-  --color-focus: var(--color-primitive-blue-400);
+  --color-focus: var(--color-primitive-ice-50);
   --color-functional-accent: var(--color-primitive-green-400);
   --color-functional-surface: var(--color-primitive-alpha-green-400-12);
   --color-expression-pink: var(--color-primitive-pink-400);
@@ -278,4 +294,7 @@
   --border-default: var(--border-width-1) var(--border-style-solid) var(--color-border-default);
   --border-strong: var(--border-width-1) var(--border-style-solid) var(--color-border-strong);
   --border-focus: var(--border-width-2) var(--border-style-solid) var(--color-focus);
+  --shadow-raised: 0px 0px 0px 1px rgba(255, 255, 255, 0.09);
+  --shadow-control: 0px 0px 0px 1px rgba(255, 255, 255, 0.09);
+  --shadow-control-hover: 0px 0px 0px 1px rgba(255, 255, 255, 0.14);
 }

@@ -200,7 +200,7 @@ function primitiveNamedInPlan(type) {
   return primitiveName;
 }
 
-test("dry run on an empty semantic collection reports 41 creates and writes nothing", async () => {
+test("dry run on an empty semantic collection reports 42 creates and writes nothing", async () => {
   await seedPrimitives();
   const counts = snapshotCounts();
 
@@ -208,7 +208,7 @@ test("dry run on an empty semantic collection reports 41 creates and writes noth
 
   assert.equal(report.dryRun, true);
   assert.equal(report.collectionCreated, true);
-  assert.equal(report.created.length, 41);
+  assert.equal(report.created.length, 42);
   assert.deepEqual(report.updated, []);
   assert.equal(report.unchanged, 0);
   assert.deepEqual(report.notInJson, []);
@@ -217,11 +217,11 @@ test("dry run on an empty semantic collection reports 41 creates and writes noth
   assert.deepEqual(snapshotCounts(), counts);
 });
 
-test("first sync creates Semantic with Light then Dark and 41 aliases", async () => {
+test("first sync creates Semantic with Light then Dark and 42 aliases", async () => {
   await seedPrimitives();
   const report = await sync();
 
-  assert.equal(report.created.length, 41);
+  assert.equal(report.created.length, 42);
   assert.deepEqual(report.updated, []);
   assert.deepEqual(report.errors, []);
   assert.equal(report.collectionCreated, true);
@@ -233,7 +233,7 @@ test("first sync creates Semantic with Light then Dark and 41 aliases", async ()
     ["Light", "Dark"],
   );
   assert.equal(collection.defaultModeId, collection.modes[0].modeId);
-  assert.equal(semanticVariables().length, 41);
+  assert.equal(semanticVariables().length, 42);
 
   for (const planned of semanticPlan.variables) {
     const variable = findSemantic(planned.name);
@@ -273,16 +273,16 @@ test("first sync creates Semantic with Light then Dark and 41 aliases", async ()
   }
 });
 
-test("private plugin data throwing still creates 41 and a second run changes nothing", async () => {
+test("private plugin data throwing still creates 42 and a second run changes nothing", async () => {
   await seedPrimitives();
   fake.privatePluginData = false;
 
   const report = await sync();
 
-  assert.equal(report.created.length, 41);
+  assert.equal(report.created.length, 42);
   assert.deepEqual(report.updated, []);
   assert.deepEqual(report.errors, []);
-  assert.equal(semanticVariables().length, 41);
+  assert.equal(semanticVariables().length, 42);
   for (const planned of semanticPlan.variables) {
     const variable = findSemantic(planned.name);
     assert.equal(
@@ -296,7 +296,7 @@ test("private plugin data throwing still creates 41 and a second run changes not
   const again = await sync();
   assert.equal(again.created.length, 0);
   assert.deepEqual(again.updated, []);
-  assert.equal(again.unchanged, 41);
+  assert.equal(again.unchanged, 42);
   assert.deepEqual(again.errors, []);
   assert.deepEqual(snapshotCounts(), counts);
 });
@@ -310,7 +310,7 @@ test("second sync creates nothing, updates nothing, and does not write", async (
 
   assert.equal(report.created.length, 0);
   assert.deepEqual(report.updated, []);
-  assert.equal(report.unchanged, 41);
+  assert.equal(report.unchanged, 42);
   assert.deepEqual(report.notInJson, []);
   assert.deepEqual(report.errors, []);
   assert.deepEqual(snapshotCounts(), counts);
@@ -331,7 +331,7 @@ test("changing a token reference updates that column on the same variable id", a
   assert.match(report.updated[0], /^color\/action\/primary \[Light value\] \(VariableID:/);
   const after = findSemantic("color/action/primary");
   assert.equal(after.id, idBefore);
-  assert.equal(semanticVariables().length, 41);
+  assert.equal(semanticVariables().length, 42);
   assert.equal(after.valuesByMode[modeId("Light")].id, findPrimitive("color/primitive/blue/500").id);
   assert.equal(after.valuesByMode[modeId("Dark")].id, findPrimitive("color/primitive/blue/400").id);
 });
@@ -402,7 +402,7 @@ test("a renamed variable is restored in place when its token key matches", async
   assert.match(report.updated[0], /^color\/action\/primary \[name\] \(VariableID:/);
   assert.equal(variable.id, idBefore);
   assert.equal(variable.name, "color/action/primary");
-  assert.equal(semanticVariables().length, 41);
+  assert.equal(semanticVariables().length, 42);
   assert.equal(fake.counts.variablesCreated, countsBeforeCreate);
 });
 
@@ -423,7 +423,7 @@ test("a variable with no token id and a planned name is adopted", async () => {
   assert.equal(variable.id, idBefore);
   assert.equal(variable.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), plannedId);
   assert.equal(variable.getPluginData("token"), "");
-  assert.equal(semanticVariables().length, 41);
+  assert.equal(semanticVariables().length, 42);
   assert.equal(fake.counts.sharedPluginDataWrites, writes + 1);
 });
 
@@ -447,7 +447,7 @@ test("variables that exist only in Figma are reported and kept", async () => {
   assert.equal(emptyKey.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
   assert.equal(otherKey.getPluginData("token"), "made-up");
   assert.equal(otherKey.getSharedPluginData(SEMANTIC_SHARED_PLUGIN_DATA_NAMESPACE, SEMANTIC_SHARED_ID_KEY), "");
-  assert.equal(semanticVariables().length, 43);
+  assert.equal(semanticVariables().length, 44);
 });
 
 function installLegacyNameTags() {
@@ -521,7 +521,7 @@ test("semantic aliases resolve by primitive name before permanent ids are tagged
     variable.setSharedPluginData(PRIMITIVE_SHARED_PLUGIN_DATA_NAMESPACE, PRIMITIVE_SHARED_ID_KEY, "");
   }
   const report = await sync();
-  assert.equal(report.created.length, 41);
+  assert.equal(report.created.length, 42);
   assert.deepEqual(report.errors, []);
   const planned = semanticPlan.variables.find((item) => item.name === "color/action/primary");
   assert.equal(
@@ -570,7 +570,7 @@ test("a renamed primitive stays the semantic alias, resolved by its permanent id
   assert.deepEqual(early.errors, []);
   assert.equal(early.created.length, 0);
   assert.deepEqual(early.updated, []);
-  assert.equal(early.unchanged, 41);
+  assert.equal(early.unchanged, 42);
   assert.equal(findPrimitive("color/primitive/blue/action"), undefined);
   assert.equal(findSemantic("color/action/primary").valuesByMode[modeId("Light")].id, figmaId);
 
@@ -589,7 +589,7 @@ test("a renamed primitive stays the semantic alias, resolved by its permanent id
 
   const again = await sync(false, semantic);
   assert.deepEqual(again.updated, []);
-  assert.equal(again.unchanged, 41);
+  assert.equal(again.unchanged, 42);
   assert.equal(findSemantic("color/action/primary").valuesByMode[modeId("Light")].id, figmaId);
 });
 
@@ -617,7 +617,7 @@ test("a JSON rename keeps the variable id", async () => {
   assert.equal(report.created.length, 0);
   assert.equal(report.updated.length, 1);
   assert.match(report.updated[0], /^color\/action\/main \[name, code syntax\] \(VariableID:/);
-  assert.equal(semanticVariables().length, 41);
+  assert.equal(semanticVariables().length, 42);
   assert.equal(fake.counts.variablesCreated, createdBefore);
   const after = findSemantic("color/action/main");
   assert.equal(after.id, idBefore);
@@ -632,7 +632,7 @@ test("a JSON rename keeps the variable id", async () => {
   const again = await sync(false, plan);
   assert.equal(again.created.length, 0);
   assert.deepEqual(again.updated, []);
-  assert.equal(again.unchanged, 41);
+  assert.equal(again.unchanged, 42);
   assert.deepEqual(snapshotCounts(), counts);
 });
 
@@ -657,7 +657,7 @@ test("renaming the JSON before migration leaves the old variable and creates the
   assert.equal(report.created.length, 1);
   assert.deepEqual(report.created, ["color/action/main"]);
   assert.deepEqual(report.notInJson, ["color/action/primary"]);
-  assert.equal(semanticVariables().length, 42);
+  assert.equal(semanticVariables().length, 43);
   assert.equal(fake.counts.variablesCreated, createdBefore + 1);
   assert.equal(before.id, idBefore);
   assert.equal(before.name, "color/action/primary");
@@ -678,7 +678,7 @@ test("two variables with the same token id throw before any write", async () => 
 
   assert.deepEqual(snapshotCounts(), counts);
   assert.deepEqual(original.valuesByMode, before);
-  assert.equal(semanticVariables().length, 42);
+  assert.equal(semanticVariables().length, 43);
 });
 
 test("two variables with the same token value throw before any write", async () => {
@@ -695,7 +695,7 @@ test("two variables with the same token value throw before any write", async () 
 
   assert.deepEqual(snapshotCounts(), counts);
   assert.deepEqual(original.valuesByMode, before);
-  assert.equal(semanticVariables().length, 42);
+  assert.equal(semanticVariables().length, 43);
 });
 
 test("setting a planned name that another variable already has throws before any write", async () => {
@@ -906,10 +906,10 @@ test("an error on one variable is reported without stopping the others", async (
 
   const report = await sync();
 
-  assert.equal(report.created.length, 40);
+  assert.equal(report.created.length, 41);
   assert.equal(report.errors.length, 1);
   assert.match(report.errors[0], /^color\/action\/primary: boom/);
-  assert.equal(semanticVariables().length, 40);
+  assert.equal(semanticVariables().length, 41);
   assert.equal(findSemantic("color/action/primary"), undefined);
   const focus = findSemantic("color/focus");
   assert.equal(focus.valuesByMode[modeId("Light")].type, "VARIABLE_ALIAS");

@@ -69,6 +69,8 @@ const COLOR_SCOPES: Record<string, VariableScope[]> = {
  */
 const DEFERRED_BORDER_LEAVES = new Set(["subtle", "default", "strong", "focus"]);
 
+const DEFERRED_SHADOW_LEAVES = new Set(["raised", "control", "control-hover"]);
+
 const MODE_INDEPENDENT_GROUPS = ["layout", "control"];
 
 interface Draft {
@@ -150,7 +152,9 @@ function planTheme(
       if (name.length === 0) {
         throw new Error(`plan-semantic: ${token.path.join(".")} has no semantic name`);
       }
-      const deferred = token.type === "border" && isDeferredCompositeBorder(token.path);
+      const deferred =
+        (token.type === "border" && isDeferredCompositeBorder(token.path)) ||
+        (token.type === "shadow" && isDeferredThemeShadow(token.path));
       if (deferred) {
         rememberThemeId(themeIds, idOwners, name, requireSemanticId(token), modeName);
         continue;
@@ -356,6 +360,17 @@ function isDeferredCompositeBorder(path: string[]): boolean {
     path[2] === "border" &&
     leaf !== undefined &&
     DEFERRED_BORDER_LEAVES.has(leaf)
+  );
+}
+
+function isDeferredThemeShadow(path: string[]): boolean {
+  const leaf = path[3];
+  return (
+    path.length === 4 &&
+    path[0] === "theme" &&
+    path[2] === "shadow" &&
+    leaf !== undefined &&
+    DEFERRED_SHADOW_LEAVES.has(leaf)
   );
 }
 

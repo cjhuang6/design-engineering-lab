@@ -1630,18 +1630,6 @@
             "id": "prim-b3c337"
           }
         }
-      },
-      "hairline": {
-        "$type": "dimension",
-        "$value": {
-          "value": 0.5,
-          "unit": "px"
-        },
-        "$extensions": {
-          "com.cjhuang.camellia": {
-            "id": "prim-0f7a5c"
-          }
-        }
       }
     },
     "style": {
@@ -2172,18 +2160,6 @@
           "id": "prim-b12e36"
         }
       }
-    },
-    "edit": {
-      "$type": "duration",
-      "$value": {
-        "value": 6000,
-        "unit": "ms"
-      },
-      "$extensions": {
-        "com.cjhuang.camellia": {
-          "id": "prim-e05a7b"
-        }
-      }
     }
   },
   "ease": {
@@ -2383,41 +2359,17 @@
             "id": "prim-86a7f1"
           }
         }
-      },
-      "touch": {
-        "$type": "dimension",
-        "$value": {
-          "value": 44,
-          "unit": "px"
-        },
-        "$extensions": {
-          "com.cjhuang.camellia": {
-            "id": "prim-91b2d0"
-          }
-        }
       }
     },
-    "receipt": {
+    "touch-target": {
       "$type": "dimension",
       "$value": {
-        "value": 60,
+        "value": 44,
         "unit": "px"
       },
       "$extensions": {
         "com.cjhuang.camellia": {
-          "id": "prim-c7e053"
-        }
-      }
-    },
-    "field": {
-      "$type": "dimension",
-      "$value": {
-        "value": 168,
-        "unit": "px"
-      },
-      "$extensions": {
-        "com.cjhuang.camellia": {
-          "id": "prim-2d8f16"
+          "id": "prim-91b2d0"
         }
       }
     },
@@ -2492,12 +2444,6 @@
     "tooltip": {
       "$type": "number",
       "$value": 600
-    }
-  },
-  "scale": {
-    "press": {
-      "$type": "number",
-      "$value": 0.96
     }
   },
   "layout": {

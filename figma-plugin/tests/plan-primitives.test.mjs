@@ -42,12 +42,12 @@ test("plans the expected number of variables per group", () => {
     "font/weight/": 3,
     "space/": 13,
     "radius/": 7,
-    "border/width/": 4,
+    "border/width/": 3,
     "opacity/": 4,
     "blur/": 5,
-    "size/": 12,
+    "size/": 10,
     "breakpoint/": 4,
-    "duration/": 7,
+    "duration/": 6,
     "ease/": 5,
   };
   for (const [prefix, count] of Object.entries(expected)) {
@@ -55,7 +55,7 @@ test("plans the expected number of variables per group", () => {
   }
   const total = Object.values(expected).reduce((sum, n) => sum + n, 0);
   assert.equal(plan.variables.length, total);
-  assert.equal(total, 118);
+  assert.equal(total, 114);
 });
 
 test("every variable name is unique", () => {
@@ -67,7 +67,7 @@ test("every primitive variable has a unique permanent id", () => {
   assert.equal(PRIMITIVE_SHARED_ID_KEY, "id");
   const ids = plan.variables.map((variable) => variable.id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.equal(ids.length, 118);
+  assert.equal(ids.length, 114);
   const semanticIds = new Set();
   const walk = (node) => {
     if (!node || typeof node !== "object") return;
@@ -93,7 +93,7 @@ test("excluded groups never become Primitives variables", () => {
   const excluded = [
     "theme/", "layout/", "control/",
     "display/", "heading/", "body/", "label/", "code/", "tracking/",
-    "shadow/", "frost/", "expression/", "z/", "border/style/", "scale/",
+    "shadow/", "frost/", "expression/", "z/", "border/style/",
   ];
   for (const prefix of excluded) {
     assert.deepEqual(withPrefix(prefix), [], prefix);

@@ -1,3 +1,10 @@
+.guide-feedback {
+  --feedback-card-receipt-height: 60px;
+  --feedback-card-comment-max-height: 168px;
+  --feedback-card-edit-window: 6000ms;
+  --feedback-card-press-scale: 0.96;
+}
+
 .guide-feedback-block {
   position: relative;
   width: 100%;
@@ -69,7 +76,7 @@
 
 .guide-feedback-segment {
   position: relative;
-  height: var(--size-control-touch);
+  height: var(--size-touch-target);
   overflow: hidden;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-control);
@@ -82,7 +89,7 @@
 }
 
 .guide-feedback-segment:active {
-  transform: scale(var(--scale-press));
+  transform: scale(var(--feedback-card-press-scale));
 }
 
 .guide-feedback-segment.is-lit,
@@ -175,7 +182,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  height: var(--size-control-touch);
+  height: var(--size-touch-target);
   padding-inline: var(--space-3);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-control);
@@ -190,7 +197,7 @@
 }
 
 .guide-feedback-chip:active {
-  transform: scale(var(--scale-press));
+  transform: scale(var(--feedback-card-press-scale));
 }
 
 .guide-feedback-chip[aria-pressed='true'] {
@@ -272,7 +279,7 @@
   max-width: 100%;
   box-sizing: border-box;
   field-sizing: content;
-  max-height: var(--size-field);
+  max-height: var(--feedback-card-comment-max-height);
   overflow-y: auto;
   resize: none;
   padding: var(--space-2);
@@ -361,7 +368,7 @@
 
 .guide-feedback-cancel:active,
 .guide-feedback-send:active {
-  transform: scale(var(--scale-press));
+  transform: scale(var(--feedback-card-press-scale));
 }
 
 .guide-feedback-send,
@@ -392,7 +399,7 @@
   left: 50%;
   top: 50%;
   width: 100%;
-  height: var(--size-control-touch);
+  height: var(--size-touch-target);
   transform: translate(-50%, -50%);
 }
 
@@ -473,19 +480,18 @@
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: var(--size-control-touch);
-  height: var(--size-control-touch);
-  min-height: var(--size-control-touch);
+  width: var(--size-touch-target);
+  height: var(--size-touch-target);
+  min-height: var(--size-touch-target);
   padding: var(--space-0);
 }
 
 .guide-feedback :focus-visible {
   outline: var(--border-focus);
-  outline-offset: var(--space-1);
+  outline-offset: var(--border-width-2);
 }
 
 .guide-feedback-field:focus-visible {
-  outline-offset: var(--space-0);
   border-color: var(--color-action-primary);
 }
 

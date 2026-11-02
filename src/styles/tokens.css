@@ -172,7 +172,6 @@
   --border-width-0: 0px;
   --border-width-1: 1px;
   --border-width-2: 2px;
-  --border-width-hairline: 0.5px;
   --border-style-solid: solid;
 
   /* Shadows */
@@ -215,15 +214,11 @@
   --duration-expression-sm: 400ms;
   --duration-expression-md: 600ms;
   --duration-expression-lg: 900ms;
-  --duration-edit: 6000ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --ease-expression: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-
-  /* Scale */
-  --scale-press: 0.96;
 
   /* Breakpoints */
   --breakpoint-sm: 640px;
@@ -238,9 +233,7 @@
   --size-control-sm: 32px;
   --size-control-md: 40px;
   --size-control-lg: 48px;
-  --size-control-touch: 44px;
-  --size-receipt: 60px;
-  --size-field: 168px;
+  --size-touch-target: 44px;
   --size-content-sm: 640px;
   --size-content-md: 960px;
   --size-content-lg: 1200px;

@@ -249,7 +249,7 @@ test("submit lands on a receipt with the summary, the live sentence, and the rec
     await settleMotion();
     const receipt = document.querySelector(".guide-feedback-receipt");
     const summary = receipt.querySelector("small");
-    const token = getComputedStyle(document.documentElement).getPropertyValue("--size-receipt").trim();
+    const token = getComputedStyle(document.querySelector(".guide-feedback")).getPropertyValue("--feedback-card-receipt-height").trim();
     assert.equal(receipt.getAttribute("role"), "group");
     assert.equal(receipt.getAttribute("aria-label"), "Feedback sent");
     assert.equal(summary.textContent, "4/5 · Clear steps · with comment");
@@ -377,7 +377,7 @@ test("remounting keeps the sent receipt collapsed", async () => {
       document.querySelector(".remount").click();
     });
     const card = document.querySelector(".guide-feedback");
-    const token = getComputedStyle(document.documentElement).getPropertyValue("--size-receipt").trim();
+    const token = getComputedStyle(document.querySelector(".guide-feedback")).getPropertyValue("--feedback-card-receipt-height").trim();
     assert.equal(card.style.height, token);
     assert.equal(document.querySelector(".guide-feedback-receipt small").textContent, "4/5 · Clear steps");
     assert.equal(buttonNamed("Edit").textContent, "Edit");

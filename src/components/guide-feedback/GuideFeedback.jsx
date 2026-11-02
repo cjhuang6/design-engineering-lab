@@ -40,13 +40,13 @@ function reducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-function rootValue(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+function cssValue(element, name) {
+  return getComputedStyle(element).getPropertyValue(name).trim()
 }
 
 function motionMs(name) {
   if (reducedMotion()) return 0
-  return cssDurationMs(rootValue(name))
+  return cssDurationMs(getComputedStyle(document.documentElement).getPropertyValue(name))
 }
 
 function pageHidden() {
@@ -375,7 +375,7 @@ export function GuideFeedback({ value, onChange }) {
     let shrinkTimer = 0
     if (snapshot.announced) {
       card.classList.add('is-sending', 'is-shrinking')
-      card.style.height = rootValue('--size-receipt')
+      card.style.height = cssValue(card, '--feedback-card-receipt-height')
       if (snapshot.editOffered) armEdit(snapshot.editRemaining)
     } else {
       const full = card.offsetHeight
@@ -383,12 +383,12 @@ export function GuideFeedback({ value, onChange }) {
       card.classList.add('is-sending')
       receiptRef.current?.focus()
       announce(liveRef.current, sendAnnouncement(snapshot))
-      const editWindow = cssDurationMs(rootValue('--duration-edit'))
+      const editWindow = cssDurationMs(cssValue(card, '--feedback-card-edit-window'))
       const exit = motionMs('--duration-fast')
       shrinkTimer = window.setTimeout(() => {
         card.classList.add('is-shrinking')
         void card.offsetHeight
-        card.style.height = rootValue('--size-receipt')
+        card.style.height = cssValue(card, '--feedback-card-receipt-height')
       }, exit)
       armEdit(editWindow)
     }

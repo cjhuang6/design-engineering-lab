@@ -1568,6 +1568,18 @@
         }
       }
     },
+    "2xl": {
+      "$type": "dimension",
+      "$value": {
+        "value": 24,
+        "unit": "px"
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "id": "prim-4a1c8e"
+        }
+      }
+    },
     "full": {
       "$type": "dimension",
       "$value": {
@@ -1798,6 +1810,18 @@
     }
   },
   "blur": {
+    "xs": {
+      "$type": "dimension",
+      "$value": {
+        "value": 3,
+        "unit": "px"
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "id": "prim-b8e241"
+        }
+      }
+    },
     "sm": {
       "$type": "dimension",
       "$value": {
@@ -2194,6 +2218,20 @@
           "id": "prim-77f986"
         }
       }
+    },
+    "in-out": {
+      "$type": "cubicBezier",
+      "$value": [
+        0.65,
+        0,
+        0.35,
+        1
+      ],
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "id": "prim-6c3d94"
+        }
+      }
     }
   },
   "breakpoint": {
@@ -2320,6 +2358,18 @@
           "com.cjhuang.camellia": {
             "id": "prim-86a7f1"
           }
+        }
+      }
+    },
+    "touch-target": {
+      "$type": "dimension",
+      "$value": {
+        "value": 44,
+        "unit": "px"
+      },
+      "$extensions": {
+        "com.cjhuang.camellia": {
+          "id": "prim-91b2d0"
         }
       }
     },
@@ -2659,6 +2709,15 @@
               }
             }
           },
+          "placeholder": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.600}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-8c4e21"
+              }
+            }
+          },
           "inverse": {
             "$type": "color",
             "$value": "{color.base.white}",
@@ -2776,7 +2835,7 @@
         },
         "focus": {
           "$type": "color",
-          "$value": "{color.primitive.blue.500}",
+          "$value": "{color.primitive.ice.950}",
           "$extensions": {
             "com.cjhuang.camellia": {
               "id": "sem-a57c44"
@@ -2886,6 +2945,234 @@
             }
           }
         }
+      },
+      "shadow": {
+        "raised": {
+          "$type": "shadow",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.06
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 0,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 0,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.06
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 1,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 3,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 0,
+                "unit": "px"
+              }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.1
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 8,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 24,
+                "unit": "px"
+              },
+              "spread": {
+                "value": -8,
+                "unit": "px"
+              }
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-1d9b73"
+            }
+          }
+        },
+        "control": {
+          "$type": "shadow",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.08
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 0,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 0,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.06
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 1,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 2,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 0,
+                "unit": "px"
+              }
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-a6f042"
+            }
+          }
+        },
+        "control-hover": {
+          "$type": "shadow",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.12
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 0,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 0,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  0.031373,
+                  0.066667,
+                  0.121569
+                ],
+                "hex": "#08111F",
+                "alpha": 0.1
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 1,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 3,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 0,
+                "unit": "px"
+              }
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-53c8e7"
+            }
+          }
+        }
       }
     },
     "dark": {
@@ -2964,6 +3251,15 @@
             "$extensions": {
               "com.cjhuang.camellia": {
                 "id": "sem-6b9cd9"
+              }
+            }
+          },
+          "placeholder": {
+            "$type": "color",
+            "$value": "{color.primitive.ice.400}",
+            "$extensions": {
+              "com.cjhuang.camellia": {
+                "id": "sem-8c4e21"
               }
             }
           },
@@ -3084,7 +3380,7 @@
         },
         "focus": {
           "$type": "color",
-          "$value": "{color.primitive.blue.400}",
+          "$value": "{color.primitive.ice.50}",
           "$extensions": {
             "com.cjhuang.camellia": {
               "id": "sem-a57c44"
@@ -3191,6 +3487,122 @@
           "$extensions": {
             "com.cjhuang.camellia": {
               "id": "sem-13e699"
+            }
+          }
+        }
+      },
+      "shadow": {
+        "raised": {
+          "$type": "shadow",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1,
+                  1,
+                  1
+                ],
+                "hex": "#FFFFFF",
+                "alpha": 0.09
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 0,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 0,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 1,
+                "unit": "px"
+              }
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-1d9b73"
+            }
+          }
+        },
+        "control": {
+          "$type": "shadow",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1,
+                  1,
+                  1
+                ],
+                "hex": "#FFFFFF",
+                "alpha": 0.09
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 0,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 0,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 1,
+                "unit": "px"
+              }
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-a6f042"
+            }
+          }
+        },
+        "control-hover": {
+          "$type": "shadow",
+          "$value": [
+            {
+              "color": {
+                "colorSpace": "srgb",
+                "components": [
+                  1,
+                  1,
+                  1
+                ],
+                "hex": "#FFFFFF",
+                "alpha": 0.14
+              },
+              "offsetX": {
+                "value": 0,
+                "unit": "px"
+              },
+              "offsetY": {
+                "value": 0,
+                "unit": "px"
+              },
+              "blur": {
+                "value": 0,
+                "unit": "px"
+              },
+              "spread": {
+                "value": 1,
+                "unit": "px"
+              }
+            }
+          ],
+          "$extensions": {
+            "com.cjhuang.camellia": {
+              "id": "sem-53c8e7"
             }
           }
         }

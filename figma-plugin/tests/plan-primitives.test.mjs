@@ -41,21 +41,21 @@ test("plans the expected number of variables per group", () => {
     "font/family/": 2,
     "font/weight/": 3,
     "space/": 13,
-    "radius/": 6,
+    "radius/": 7,
     "border/width/": 3,
     "opacity/": 4,
-    "blur/": 4,
-    "size/": 9,
+    "blur/": 5,
+    "size/": 10,
     "breakpoint/": 4,
     "duration/": 6,
-    "ease/": 4,
+    "ease/": 5,
   };
   for (const [prefix, count] of Object.entries(expected)) {
     assert.equal(withPrefix(prefix).length, count, prefix);
   }
   const total = Object.values(expected).reduce((sum, n) => sum + n, 0);
   assert.equal(plan.variables.length, total);
-  assert.equal(total, 110);
+  assert.equal(total, 114);
 });
 
 test("every variable name is unique", () => {
@@ -67,7 +67,7 @@ test("every primitive variable has a unique permanent id", () => {
   assert.equal(PRIMITIVE_SHARED_ID_KEY, "id");
   const ids = plan.variables.map((variable) => variable.id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.equal(ids.length, 110);
+  assert.equal(ids.length, 114);
   const semanticIds = new Set();
   const walk = (node) => {
     if (!node || typeof node !== "object") return;

@@ -8,6 +8,7 @@ import { catalogFromCss, parseTokenCss } from "../../src/parseTokenCss.js";
 const TOKEN_CSS = "src/styles/tokens.css";
 const DEMO_ROOT = "src";
 const PICKER_CSS = "src/components/hex-color-picker/HexColorPicker.css";
+const FEEDBACK_CSS = "src/components/guide-feedback/GuideFeedback.css";
 const SHOWCASE_CSS = "src/showcase/showcase.css";
 const PLACEHOLDER_MARKER = "PLACEHOLDER - candidate token, see color-picker-brief.md";
 const SHOWCASE_MARKER = "PLACEHOLDER - showcase shell, no token fits";
@@ -25,6 +26,12 @@ const PLACEHOLDER_NAMES = [
   "--hex-picker-mark-size",
   "--hex-picker-scale-idle",
   "--hex-picker-white-hairline",
+];
+const FEEDBACK_NAMES = [
+  "--feedback-card-receipt-height",
+  "--feedback-card-comment-max-height",
+  "--feedback-card-edit-window",
+  "--feedback-card-press-scale",
 ];
 const SHOWCASE_NAMES = [
   "--showcase-masonry-row",
@@ -51,6 +58,21 @@ function withoutPlaceholderBody(source, marker = PLACEHOLDER_MARKER) {
   const open = source.lastIndexOf("{", markerAt);
   const close = source.indexOf("}", markerAt);
   return `${source.slice(0, open + 1)}${source.slice(close)}`;
+}
+
+function declarationBody(source, name) {
+  const at = source.indexOf(name);
+  if (at < 0) return null;
+  const open = source.lastIndexOf("{", at);
+  const close = source.indexOf("}", at);
+  if (open < 0 || close < 0 || open > at) return null;
+  return { open, close, body: source.slice(open + 1, close) };
+}
+
+function withoutDeclaration(source, name) {
+  const found = declarationBody(source, name);
+  if (!found) return source;
+  return `${source.slice(0, found.open + 1)}${source.slice(found.close)}`;
 }
 
 function placeholderNames(source, marker = PLACEHOLDER_MARKER) {
@@ -89,6 +111,7 @@ test("demo source uses only custom properties defined in tokens.css", async () =
   assert.ok(defined.size > 0);
   const placeholders = new Set([
     ...placeholderNames(await readFile(PICKER_CSS, "utf8")),
+    ...FEEDBACK_NAMES,
     ...placeholderNames(await readFile(SHOWCASE_CSS, "utf8"), SHOWCASE_MARKER),
   ]);
   const files = await sourceFiles(DEMO_ROOT);
@@ -111,6 +134,7 @@ test("demo source does not hardcode colors or absolute lengths", async () => {
   for (const path of files) {
     let source = await readFile(path, "utf8");
     if (path === PICKER_CSS) source = withoutPlaceholderBody(source);
+    if (path === FEEDBACK_CSS) source = withoutDeclaration(source, "--feedback-card-receipt-height");
     if (path === SHOWCASE_CSS) source = withoutPlaceholderBody(source, SHOWCASE_MARKER);
     source = stripComments(source);
     for (const [name, pattern] of FORBIDDEN) {
@@ -120,20 +144,34 @@ test("demo source does not hardcode colors or absolute lengths", async () => {
   assert.deepEqual(problems, []);
 });
 
-test("hex picker placeholders are the only custom properties outside the token file", async () => {
+test("local custom properties outside the token file stay in their labeled blocks", async () => {
   const files = await sourceFiles(DEMO_ROOT);
   const picker = await readFile(PICKER_CSS, "utf8");
+  const feedback = await readFile(FEEDBACK_CSS, "utf8");
   const showcase = await readFile(SHOWCASE_CSS, "utf8");
   assert.equal(picker.split(PLACEHOLDER_MARKER).length - 1, 1);
   assert.equal(showcase.split(SHOWCASE_MARKER).length - 1, 1);
   assert.equal(picker.includes(SHOWCASE_MARKER), false);
   assert.equal(showcase.includes(PLACEHOLDER_MARKER), false);
+  assert.equal(feedback.includes(PLACEHOLDER_MARKER), false);
+  assert.equal(feedback.includes(SHOWCASE_MARKER), false);
   for (const path of files) {
     if (path === PICKER_CSS || path === SHOWCASE_CSS) continue;
     const source = await readFile(path, "utf8");
     assert.equal(source.includes(PLACEHOLDER_MARKER), false, path);
     assert.equal(source.includes(SHOWCASE_MARKER), false, path);
   }
+  const feedbackBody = declarationBody(feedback, "--feedback-card-receipt-height")?.body;
+  assert.ok(feedbackBody);
+  const feedbackDeclarations = feedbackBody
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("/*") && !line.startsWith("*"));
+  assert.deepEqual(
+    feedbackDeclarations.map((line) => line.slice(0, line.indexOf(":"))),
+    FEEDBACK_NAMES,
+  );
+  for (const line of feedbackDeclarations) assert.match(line, /^--feedback-card-[\w-]+:\s*[^;]+;$/);
   const showcaseBody = placeholderBody(showcase, SHOWCASE_MARKER);
   assert.ok(showcaseBody);
   const showcaseDeclarations = showcaseBody
@@ -164,6 +202,12 @@ test("hex picker placeholders are the only custom properties outside the token f
   for (const name of PLACEHOLDER_NAMES) {
     assert.equal(tokens.includes(name), false);
     assert.ok(outside.includes(name) || component.includes(name), `${name} is unused`);
+  }
+  const feedbackJsx = await readFile("src/components/guide-feedback/GuideFeedback.jsx", "utf8");
+  const feedbackOutside = withoutDeclaration(feedback, "--feedback-card-receipt-height");
+  for (const name of FEEDBACK_NAMES) {
+    assert.equal(tokens.includes(name), false);
+    assert.ok(feedbackOutside.includes(name) || feedbackJsx.includes(name), `${name} is unused`);
   }
 });
 

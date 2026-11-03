@@ -182,7 +182,11 @@
   transform-origin: top center;
 }
 
-.showcase-slot .showcase-card-fit:has(.guide-feedback) {
+.showcase-card:has(.guide-feedback-stage) .showcase-card-viewport {
+  place-items: start stretch;
+}
+
+.showcase-slot .showcase-card-fit:has(.guide-feedback-stage) {
   width: 100%;
 }
 

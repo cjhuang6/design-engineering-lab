@@ -11,6 +11,30 @@
   min-width: var(--space-0);
 }
 
+.guide-feedback-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: var(--space-0);
+}
+
+.guide-feedback-measure {
+  position: absolute;
+  inset-inline: var(--space-0);
+  top: var(--space-0);
+  width: 100%;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.guide-feedback-measure .guide-feedback-field {
+  height: var(--feedback-card-comment-max-height);
+  field-sizing: fixed;
+}
+
 .guide-feedback-live,
 .guide-feedback-sr {
   position: absolute;
@@ -38,25 +62,14 @@
 }
 
 .guide-feedback button {
-  min-height: var(--space-0);
-  padding: var(--space-0);
   border-width: var(--border-width-0);
   border-style: solid;
   border-color: transparent;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-primary);
-  color: var(--color-text-secondary);
-  font: var(--label-md);
-  letter-spacing: var(--label-md-letter-spacing);
+  background: transparent;
+  color: inherit;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-}
-
-.guide-feedback button:hover,
-.guide-feedback button:active {
-  background: var(--color-surface-primary);
-  color: var(--color-text-secondary);
 }
 
 .guide-feedback-question {
@@ -78,7 +91,13 @@
   position: relative;
   height: var(--size-touch-target);
   overflow: hidden;
+  padding: var(--space-0);
   border-radius: var(--radius-md);
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  line-height: 1;
   box-shadow: var(--shadow-control);
   font-variant-numeric: tabular-nums;
   user-select: none;
@@ -177,18 +196,22 @@
   max-width: 100%;
 }
 
-.guide-feedback-chip {
+.guide-feedback-chip,
+button.guide-feedback-chip {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  height: var(--size-touch-target);
-  padding-inline: var(--space-3);
+  gap: var(--space-1);
+  height: var(--size-control-sm);
+  padding-block: var(--space-0);
+  padding-inline: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-control);
+  background: var(--color-surface-primary);
   color: var(--color-text-secondary);
-  font: var(--label-md);
-  letter-spacing: var(--label-md-letter-spacing);
+  font: var(--label-sm);
+  letter-spacing: var(--label-sm-letter-spacing);
+  line-height: 1;
   transition:
     transform var(--duration-fast) var(--ease-standard),
     box-shadow var(--duration-fast) var(--ease-standard),
@@ -196,11 +219,11 @@
     color var(--duration-fast) var(--ease-standard);
 }
 
-.guide-feedback-chip:active {
+button.guide-feedback-chip:active {
   transform: scale(var(--feedback-card-press-scale));
 }
 
-.guide-feedback-chip[aria-pressed='true'] {
+button.guide-feedback-chip[aria-pressed='true'] {
   background: var(--color-surface-selected);
   color: var(--color-action-primary);
   box-shadow: 0 0 0 var(--border-width-1) var(--color-action-primary);
@@ -351,19 +374,32 @@
 }
 
 .guide-feedback-cancel,
-.guide-feedback-send {
+.guide-feedback-send,
+button.guide-feedback-cancel,
+button.guide-feedback-send {
   position: relative;
   height: var(--size-control-md);
-  padding-inline: var(--space-4);
+  padding-block: var(--space-0);
   border-radius: var(--radius-full);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  line-height: 1;
   transition:
     transform var(--duration-fast) var(--ease-standard),
     box-shadow var(--duration-fast) var(--ease-standard),
     background-color var(--duration-fast) var(--ease-standard);
 }
 
-.guide-feedback-cancel {
+.guide-feedback-cancel,
+button.guide-feedback-cancel {
+  padding-inline: var(--space-3);
   box-shadow: var(--shadow-control);
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+}
+
+.guide-feedback-send {
+  padding-inline: var(--space-4);
 }
 
 .guide-feedback-cancel:active,
@@ -401,6 +437,11 @@
   width: 100%;
   height: var(--size-touch-target);
   transform: translate(-50%, -50%);
+}
+
+.guide-feedback-cancel::after,
+.guide-feedback-send::after {
+  width: calc(100% + var(--space-2));
 }
 
 .guide-feedback.is-sending .guide-feedback-body {

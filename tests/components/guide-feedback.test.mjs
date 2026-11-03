@@ -77,6 +77,11 @@ function field() {
   return document.querySelector("textarea");
 }
 
+function live(selector) {
+  const card = document.querySelector("[data-feedback-stage] > .guide-feedback");
+  return selector ? card?.querySelector(selector) ?? null : card;
+}
+
 function pressKey(target, key, extras = {}) {
   target.dispatchEvent(new window.KeyboardEvent("keydown", { bubbles: true, key, ...extras }));
 }
@@ -316,7 +321,7 @@ test("Cancel and Escape return to the plain scale, and Escape keeps a comment", 
     await act(async () => {
       buttonNamed("Cancel").click();
     });
-    assert.equal(document.querySelector(".guide-feedback-ask"), null);
+    assert.equal(live(".guide-feedback-ask"), null);
     assert.equal(segment(2).getAttribute("aria-checked"), "false");
     assert.equal([...document.querySelectorAll("[role='radio']")].every((item) => item.getAttribute("aria-checked") === "false"), true);
 
@@ -324,7 +329,7 @@ test("Cancel and Escape return to the plain scale, and Escape keeps a comment", 
     await act(async () => {
       pressKey(segment(3), "Escape");
     });
-    assert.equal(document.querySelector(".guide-feedback-ask"), null);
+    assert.equal(live(".guide-feedback-ask"), null);
     assert.equal(segment(3).getAttribute("aria-checked"), "false");
 
     await chooseRating(5);

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { cssDurationMs } from '../hex-color-picker/model.js'
 import {
   COMMENT_LIMIT,
@@ -128,6 +128,50 @@ function ChipMark() {
   )
 }
 
+function TallestCard() {
+  return (
+    <div className="guide-feedback">
+      <div className="guide-feedback-body">
+        <p className="guide-feedback-question">{QUESTION}</p>
+        <div className="guide-feedback-scale">
+          {RATING_WORDS.map((word, index) => (
+            <span key={word} className="guide-feedback-segment">
+              <span>{index + 1}</span>
+            </span>
+          ))}
+        </div>
+        <div className="guide-feedback-ends">
+          <span>{ENDS[0]}</span>
+          <span>{ENDS[1]}</span>
+        </div>
+        <div className="guide-feedback-word">
+          <span className="is-on">{RATING_WORDS[2]}</span>
+        </div>
+        <div className="guide-feedback-details">
+          <p className="guide-feedback-ask">{askText(1)}</p>
+          <div className="guide-feedback-chips">
+            {CHIPS.low.map((label) => (
+              <span key={label} className="guide-feedback-chip">
+                <ChipMark />
+                {label}
+              </span>
+            ))}
+          </div>
+          <div className="guide-feedback-comment">
+            <span>Comment</span>
+            <span className="guide-feedback-field" />
+            <span className="guide-feedback-meta" />
+          </div>
+          <div className="guide-feedback-actions">
+            <span className="guide-feedback-cancel">Cancel</span>
+            <span className="guide-feedback-send">Submit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function GuideFeedbackControls({ onReset }) {
   return (
     <div className="showcase-controls">
@@ -151,6 +195,8 @@ export function GuideFeedback({ value, onChange }) {
   const hintId = useId()
   const leftId = useId()
   const cardRef = useRef(null)
+  const stageRef = useRef(null)
+  const measureRef = useRef(null)
   const fieldRef = useRef(null)
   const submitRef = useRef(null)
   const receiptRef = useRef(null)
@@ -176,6 +222,21 @@ export function GuideFeedback({ value, onChange }) {
     modelRef.current = model
     commitRef.current = setModel
   })
+
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    const measure = measureRef.current
+    if (!stage || !measure) return undefined
+    const apply = () => {
+      const height = measure.offsetHeight
+      const next = `${height}px`
+      if (height > 0 && stage.style.minBlockSize !== next) stage.style.minBlockSize = next
+    }
+    apply()
+    const observer = new ResizeObserver(apply)
+    observer.observe(measure)
+    return () => observer.disconnect()
+  }, [])
 
   function setModel(update) {
     const next = typeof update === 'function' ? update(modelRef.current) : update
@@ -417,6 +478,7 @@ export function GuideFeedback({ value, onChange }) {
   return (
     <div className="guide-feedback-block">
       <div className="guide-feedback-live" aria-live="polite" aria-atomic="true" ref={liveRef} />
+      <div className="guide-feedback-stage" data-feedback-stage="" ref={stageRef}>
       <div className="guide-feedback" ref={cardRef} onKeyDown={onCardKeyDown}>
         <div className="guide-feedback-body" inert={model.phase === 'receipt' ? true : undefined}>
           <p className="guide-feedback-question" id={questionId}>
@@ -600,6 +662,10 @@ export function GuideFeedback({ value, onChange }) {
             ) : null}
           </div>
         ) : null}
+      </div>
+      <div className="guide-feedback-measure" ref={measureRef} inert aria-hidden="true">
+        <TallestCard />
+      </div>
       </div>
     </div>
   )

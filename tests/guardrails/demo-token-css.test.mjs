@@ -29,9 +29,14 @@ const PLACEHOLDER_NAMES = [
 ];
 const FEEDBACK_NAMES = [
   "--feedback-card-receipt-height",
-  "--feedback-card-comment-height",
   "--feedback-card-edit-window",
   "--feedback-card-press-scale",
+  "--feedback-card-max-width",
+  "--feedback-card-chip-height",
+  "--feedback-card-chip-size",
+  "--feedback-card-chip-pad-start",
+  "--feedback-card-chip-pad-end",
+  "--feedback-card-chip-gap",
 ];
 const SHOWCASE_NAMES = [
   "--showcase-masonry-row",

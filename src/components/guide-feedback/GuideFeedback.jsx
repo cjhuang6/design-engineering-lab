@@ -33,8 +33,6 @@ import {
 } from './model.js'
 import './GuideFeedback.css'
 
-const COMMENT_VISIBLE = 250
-const COMMENT_SAMPLE = 'The steps were clear but the example uses an old token name. '.repeat(8).slice(0, COMMENT_VISIBLE)
 const MEASURE_RATINGS = [1, 3, 5]
 
 export const GUIDE_FEEDBACK_DESCRIPTION =
@@ -132,21 +130,6 @@ function ChipMark() {
   )
 }
 
-function fittedFieldHeight(probe) {
-  probe.value = COMMENT_SAMPLE
-  probe.style.overflow = ''
-  probe.style.height = 'auto'
-  let fitted = probe.scrollHeight
-  for (let pass = 0; pass < 3; pass += 1) {
-    probe.style.height = `${fitted}px`
-    if (probe.scrollHeight <= probe.clientHeight) break
-    fitted += probe.scrollHeight - probe.clientHeight
-  }
-  probe.value = ''
-  probe.style.height = ''
-  return fitted
-}
-
 function MeasureCard({ rating }) {
   return (
     <div className="guide-feedback">
@@ -163,9 +146,6 @@ function MeasureCard({ rating }) {
           <span>{ENDS[0]}</span>
           <span>{ENDS[1]}</span>
         </div>
-        <div className="guide-feedback-word">
-          <span className="is-on">{RATING_WORDS[rating - 1]}</span>
-        </div>
         <div className="guide-feedback-details">
           <p className="guide-feedback-ask">{askText(rating)}</p>
           <div className="guide-feedback-chips">
@@ -176,10 +156,12 @@ function MeasureCard({ rating }) {
               </span>
             ))}
           </div>
-          <div className="guide-feedback-comment">
-            <label>Comment</label>
-            <textarea className="guide-feedback-field" rows={3} readOnly tabIndex={-1} defaultValue="" />
-            <span className="guide-feedback-meta" />
+          <div className="guide-feedback-slot">
+            <div className="guide-feedback-comment">
+              <label>Comment</label>
+              <input className="guide-feedback-field" readOnly tabIndex={-1} defaultValue="" />
+              <span className="guide-feedback-meta" />
+            </div>
           </div>
           <div className="guide-feedback-actions">
             <span className="guide-feedback-cancel">Cancel</span>
@@ -235,7 +217,6 @@ export function GuideFeedback({ value, onChange }) {
   const commitRef = useRef(null)
   const [lit, setLit] = useState(starting)
   const [preview, setPreview] = useState(starting)
-  const [cue, setCue] = useState(starting)
 
   useEffect(() => {
     modelRef.current = model
@@ -245,46 +226,17 @@ export function GuideFeedback({ value, onChange }) {
   useLayoutEffect(() => {
     const stage = stageRef.current
     const measure = measureRef.current
-    const block = stage?.parentElement
-    if (!stage || !measure || !block) return undefined
+    if (!stage || !measure) return undefined
     let cancel = false
     const apply = () => {
       if (cancel) return
-      const probe = measure.querySelector('textarea')
-      if (probe) {
-        const fitted = fittedFieldHeight(probe)
-        if (fitted > 0) {
-          const next = `${fitted}px`
-          for (const node of block.querySelectorAll('.guide-feedback')) {
-            if (node.style.getPropertyValue('--feedback-card-comment-height') !== next) {
-              node.style.setProperty('--feedback-card-comment-height', next)
-            }
-          }
-        }
-      }
       let maxCard = 0
-      let maxDetails = 0
-      let commentHeight = 0
       for (const card of measure.querySelectorAll('.guide-feedback')) {
         maxCard = Math.max(maxCard, card.offsetHeight)
-        const details = card.querySelector('.guide-feedback-details')
-        if (details) maxDetails = Math.max(maxDetails, details.offsetHeight)
-        const comment = card.querySelector('.guide-feedback-comment')
-        if (comment) commentHeight = Math.max(commentHeight, comment.offsetHeight)
       }
       if (maxCard > 0) {
         const next = `${maxCard}px`
         if (stage.style.minBlockSize !== next) stage.style.minBlockSize = next
-      }
-      const form = cardRef.current?.querySelector('.guide-feedback-details')
-      if (form && maxDetails > 0) {
-        const next = `${maxDetails}px`
-        if (form.style.minHeight !== next) form.style.minHeight = next
-      }
-      const slot = cardRef.current?.querySelector('.guide-feedback-slot')
-      if (slot && commentHeight > 0) {
-        const next = `${commentHeight}px`
-        if (slot.style.minHeight !== next) slot.style.minHeight = next
       }
     }
     apply()
@@ -346,13 +298,11 @@ export function GuideFeedback({ value, onChange }) {
 
   function choose(rating, instant) {
     setModel((current) => rate(current, rating))
-    setCue(rating)
     moveFill(rating, 0, instant)
   }
 
   function clearScale(instant) {
     focusScale.current = true
-    setCue(0)
     setModel((current) => cancelDetails(current))
     moveFill(0, 0, instant)
   }
@@ -387,7 +337,6 @@ export function GuideFeedback({ value, onChange }) {
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     const current = modelRef.current
     const selected = current.phase === 'scale' ? 0 : current.rating
-    setCue(rating)
     moveFill(selected, rating, false)
   }
 
@@ -395,7 +344,6 @@ export function GuideFeedback({ value, onChange }) {
     const current = modelRef.current
     if (current.phase === 'receipt') return
     const selected = current.phase === 'scale' ? 0 : current.rating
-    setCue(selected)
     moveFill(selected, 0, false)
   }
 
@@ -415,7 +363,6 @@ export function GuideFeedback({ value, onChange }) {
 
   function onFieldKeyDown(event) {
     if (event.key !== 'Enter' || event.repeat) return
-    if (!event.metaKey && !event.ctrlKey) return
     event.preventDefault()
     if (submitRef.current?.disabled) return
     attemptSubmit()
@@ -592,14 +539,6 @@ export function GuideFeedback({ value, onChange }) {
             <span>{ENDS[0]}</span>
             <span>{ENDS[1]}</span>
           </div>
-          <div className="guide-feedback-word" aria-hidden="true">
-            <span className={cue === 0 ? 'is-on' : ''}>{'\u00a0'}</span>
-            {RATING_WORDS.map((word, index) => (
-              <span key={word} className={cue === index + 1 ? 'is-on' : ''}>
-                {word}
-              </span>
-            ))}
-          </div>
           {responded ? (
             <form
               className="guide-feedback-details"
@@ -644,12 +583,12 @@ export function GuideFeedback({ value, onChange }) {
                   inert={model.commentOpen ? undefined : true}
                 >
                   <label htmlFor={fieldId}>Comment</label>
-                  <textarea
+                  <input
                     id={fieldId}
                     ref={fieldRef}
                     className="guide-feedback-field"
                     name="comment"
-                    rows={3}
+                    type="text"
                     value={model.comment}
                     placeholder="Anything else? (optional)"
                     aria-describedby={`${countId} ${errorId} ${hintId} ${leftId}`}
@@ -658,7 +597,7 @@ export function GuideFeedback({ value, onChange }) {
                     autoComplete="off"
                     spellCheck
                     autoCapitalize="sentences"
-                    enterKeyHint="enter"
+                    enterKeyHint="send"
                     onChange={(event) => setModel((current) => setComment(current, event.target.value))}
                     onBlur={() => {
                       const current = modelRef.current
@@ -677,7 +616,7 @@ export function GuideFeedback({ value, onChange }) {
                     </span>
                   </div>
                   <span className="guide-feedback-sr" id={hintId}>
-                    Press Command or Control and Enter to submit.
+                    Press Enter to submit.
                   </span>
                   <span className="guide-feedback-sr" id={leftId} aria-live="polite">
                     {charactersLeft(model.comment)}

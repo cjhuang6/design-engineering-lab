@@ -74,7 +74,53 @@ function buttonNamed(name) {
 }
 
 function field() {
-  return document.querySelector("textarea");
+  return document.querySelector(".guide-feedback-field");
+}
+
+function scaleOf(rating) {
+  const match = /scaleX\(([^)]+)\)/.exec(fillOf(rating).style.transform);
+  return match ? Number(match[1]) : Number.NaN;
+}
+
+function holdFrames() {
+  const realNow = performance.now.bind(performance);
+  const realFrame = globalThis.requestAnimationFrame;
+  const realCancel = globalThis.cancelAnimationFrame;
+  let now = 20_000;
+  let sequence = 1;
+  const queue = [];
+  function requestAnimationFrame(callback) {
+    const id = sequence;
+    sequence += 1;
+    queue.push({ id, callback });
+    return id;
+  }
+  function cancelAnimationFrame(id) {
+    const index = queue.findIndex((frame) => frame.id === id);
+    if (index >= 0) queue.splice(index, 1);
+  }
+  performance.now = () => now;
+  globalThis.requestAnimationFrame = requestAnimationFrame;
+  globalThis.cancelAnimationFrame = cancelAnimationFrame;
+  window.requestAnimationFrame = requestAnimationFrame;
+  window.cancelAnimationFrame = cancelAnimationFrame;
+  return {
+    queued: () => queue.length,
+    async flush(ms) {
+      now += ms;
+      const batch = queue.splice(0, queue.length);
+      await act(async () => {
+        for (const frame of batch) frame.callback(now);
+      });
+    },
+    restore() {
+      performance.now = realNow;
+      globalThis.requestAnimationFrame = realFrame;
+      globalThis.cancelAnimationFrame = realCancel;
+      window.requestAnimationFrame = realFrame;
+      window.cancelAnimationFrame = realCancel;
+    },
+  };
 }
 
 function live(selector) {
@@ -130,15 +176,22 @@ async function settleMotion() {
 
 test("pointer rating animates and a keyboard choice fills the segment and opens details", async () => {
   const pointer = await mount();
+  const clock = holdFrames();
   try {
     await act(async () => {
       segment(4).click();
     });
     assert.equal(segment(4).getAttribute("aria-checked"), "true");
-    assert.notEqual(fillOf(4).style.transform, "scaleX(1)");
+    assert.ok(clock.queued() > 0);
+    assert.equal(fillOf(4).style.transform, "scaleX(0)");
+    await clock.flush(360);
+    const partial = scaleOf(4);
+    assert.ok(partial > 0 && partial < 1, `fill should be between 0 and 1, got ${partial}`);
+    assert.equal(scaleOf(1), 1);
     assert.equal(document.querySelector(".guide-feedback-ask").textContent, "What worked well? (optional)");
   } finally {
     await pointer.unmount();
+    clock.restore();
   }
 
   const keys = await mount();
@@ -156,12 +209,16 @@ test("pointer rating animates and a keyboard choice fills the segment and opens 
   }
 });
 
-test("the scale word is hidden and each radio name includes its word", async () => {
+test("each radio name includes its word and the scale has no selection word", async () => {
   const view = await mount();
   try {
-    const word = document.querySelector(".guide-feedback-word");
-    assert.equal(word.getAttribute("aria-hidden"), "true");
-    assert.equal(word.textContent.includes("Okay"), true);
+    assert.equal(document.querySelector(".guide-feedback-word"), null);
+    const ends = document.querySelector(".guide-feedback-ends");
+    assert.equal(ends.getAttribute("aria-hidden"), "true");
+    assert.equal(ends.textContent.includes("Confusing"), true);
+    assert.equal(ends.textContent.includes("Crystal clear"), true);
+    assert.equal(ends.textContent.includes("Hard to follow"), false);
+    assert.equal(segment(2).getAttribute("aria-label"), "2 of 5, Hard to follow");
     assert.equal(segment(3).getAttribute("aria-label"), "3 of 5, Okay");
     assert.equal(segment(1).getAttribute("aria-label"), "1 of 5, Confusing");
     assert.equal(segment(5).getAttribute("aria-label"), "5 of 5, Crystal clear");
@@ -202,6 +259,27 @@ test("a comment over 280 stays quiet until blur or send, then clears at 280", as
     assert.equal(count.classList.contains("is-over"), false);
     assert.equal(count.textContent, "280/280");
     assert.equal(send.getAttribute("aria-disabled"), null);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("Enter submits once", async () => {
+  const view = await mount();
+  try {
+    await chooseRating(2);
+    await act(async () => {
+      buttonNamed("Add a comment").click();
+    });
+    await typeComment("The token names");
+    await act(async () => {
+      pressKey(field(), "Enter");
+    });
+    assert.equal(document.querySelectorAll(".guide-feedback-receipt").length, 1);
+    await act(async () => {
+      pressKey(field(), "Enter");
+    });
+    assert.equal(document.querySelectorAll(".guide-feedback-receipt").length, 1);
   } finally {
     await view.unmount();
   }

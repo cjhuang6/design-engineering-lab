@@ -13,7 +13,6 @@ import {
   counterText,
   editAnnouncement,
   editReceipt,
-  expireEdit,
   hoverTargets,
   initialFeedback,
   keepsCommentOnEscape,
@@ -49,42 +48,6 @@ function cssValue(element, name) {
 function motionMs(name) {
   if (reducedMotion()) return 0
   return cssDurationMs(getComputedStyle(document.documentElement).getPropertyValue(name))
-}
-
-function pageHidden() {
-  return document.hidden
-}
-
-function pauseableTimeout(ms, onDone) {
-  let left = ms
-  let started = Date.now()
-  let timer = 0
-  let stopped = false
-  const remaining = () => (pageHidden() ? left : Math.max(0, left - (Date.now() - started)))
-  const stop = () => {
-    stopped = true
-    window.clearTimeout(timer)
-    document.removeEventListener('visibilitychange', onVisibility)
-  }
-  const arm = () => {
-    started = Date.now()
-    timer = window.setTimeout(() => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      onDone()
-    }, left)
-  }
-  const onVisibility = () => {
-    if (stopped) return
-    if (pageHidden()) {
-      window.clearTimeout(timer)
-      left = remaining()
-      return
-    }
-    arm()
-  }
-  document.addEventListener('visibilitychange', onVisibility)
-  arm()
-  return { stop, remaining }
 }
 
 function announce(node, message) {
@@ -201,7 +164,6 @@ export function GuideFeedback({ value, onChange }) {
   const fieldRef = useRef(null)
   const submitRef = useRef(null)
   const receiptRef = useRef(null)
-  const editRef = useRef(null)
   const liveRef = useRef(null)
   const [internal, setInternal] = useState(initialFeedback)
   const model = value ?? internal
@@ -213,7 +175,6 @@ export function GuideFeedback({ value, onChange }) {
   const focusSubmit = useRef(false)
   const focusInvalid = useRef(false)
   const focusScale = useRef(false)
-  const receiptRun = useRef(0)
   const commitRef = useRef(null)
   const [lit, setLit] = useState(starting)
   const [preview, setPreview] = useState(starting)
@@ -425,59 +386,31 @@ export function GuideFeedback({ value, onChange }) {
     const card = cardRef.current
     const snapshot = modelRef.current
     if (!card || snapshot.phase !== 'receipt') return undefined
-    let stopEdit = () => {}
-    let remaining = () => 0
-    const finishEdit = () => {
-      const edit = editRef.current
-      const receipt = receiptRef.current
-      if (edit && document.activeElement === edit) receipt?.focus()
-      commitRef.current?.((current) => expireEdit(current))
-    }
-    const armEdit = (ms) => {
-      if (ms <= 0) {
-        finishEdit()
-        return
-      }
-      const handle = pauseableTimeout(ms, finishEdit)
-      stopEdit = handle.stop
-      remaining = handle.remaining
-    }
-    const run = receiptRun.current + 1
-    receiptRun.current = run
     let shrinkTimer = 0
     if (snapshot.announced) {
       card.classList.add('is-sending', 'is-shrinking')
       card.style.height = cssValue(card, '--feedback-card-receipt-height')
-      if (snapshot.editOffered) armEdit(snapshot.editRemaining)
     } else {
       const full = card.offsetHeight
       card.style.height = `${full}px`
       card.classList.add('is-sending')
       receiptRef.current?.focus()
       announce(liveRef.current, sendAnnouncement(snapshot))
-      const editWindow = cssDurationMs(cssValue(card, '--feedback-card-edit-window'))
       const exit = motionMs('--duration-fast')
       shrinkTimer = window.setTimeout(() => {
         card.classList.add('is-shrinking')
         void card.offsetHeight
         card.style.height = cssValue(card, '--feedback-card-receipt-height')
       }, exit)
-      armEdit(editWindow)
+      commitRef.current?.((current) => {
+        if (current.phase !== 'receipt' || current.announced) return current
+        return { ...current, announced: true }
+      })
     }
     return () => {
       window.clearTimeout(shrinkTimer)
-      const left = remaining()
-      stopEdit()
-      queueMicrotask(() => {
-        if (receiptRun.current !== run) return
-        if (modelRef.current.phase !== 'receipt') return
-        commitRef.current?.((current) => {
-          if (current.phase !== 'receipt') return current
-          return { ...current, announced: true, editRemaining: left }
-        })
-      })
     }
-  }, [model.phase, model.announced])
+  }, [model.phase])
 
   const responded = model.phase !== 'scale'
   const rating = responded ? model.rating : 0
@@ -660,11 +593,9 @@ export function GuideFeedback({ value, onChange }) {
               Thanks for rating
               <small title={summary}>{summary}</small>
             </span>
-            {model.editOffered ? (
-              <button type="button" className="guide-feedback-link guide-feedback-edit" ref={editRef} onClick={onEdit}>
-                Edit
-              </button>
-            ) : null}
+            <button type="button" className="guide-feedback-link guide-feedback-edit" onClick={onEdit}>
+              Edit
+            </button>
           </div>
         ) : null}
       </div>

@@ -339,7 +339,7 @@ test("submit lands on a receipt with the summary, the live sentence, and the rec
     assert.equal(summary.getAttribute("title"), "4/5 · Clear steps · with comment");
     assert.equal(
       document.querySelector(".guide-feedback-live").textContent,
-      "Thanks for rating. 4/5, Clear steps, with comment. Edit is available for 6 seconds.",
+      "Thanks for rating. 4/5, Clear steps, with comment. Edit is available.",
     );
     assert.equal(document.querySelector(".guide-feedback").style.height, token);
   } finally {
@@ -358,7 +358,7 @@ test("a rating with no chips uses the rating word in the summary", async () => {
     assert.equal(document.querySelector(".guide-feedback-receipt small").textContent, "4/5 · Clear");
     assert.equal(
       document.querySelector(".guide-feedback-live").textContent,
-      "Thanks for rating. 4/5, Clear. Edit is available for 6 seconds.",
+      "Thanks for rating. 4/5, Clear. Edit is available.",
     );
   } finally {
     await view.unmount();
@@ -440,6 +440,62 @@ function KeptCard() {
     createElement(GuideFeedback, { key: generation, value, onChange: setValue }),
   );
 }
+
+function MovedCard() {
+  const [value, setValue] = useState(initialFeedback);
+  const [place, setPlace] = useState("inline");
+  const card = createElement(GuideFeedback, { value, onChange: setValue });
+  return createElement(
+    "div",
+    null,
+    createElement(
+      "button",
+      {
+        type: "button",
+        className: "move",
+        onClick: () => setPlace((current) => (current === "inline" ? "expanded" : "inline")),
+      },
+      "Move",
+    ),
+    place === "inline"
+      ? createElement("div", { className: "inline-slot" }, card)
+      : createElement("div", { className: "expanded-slot" }, card),
+  );
+}
+
+test("Edit stays on the receipt across inline and expanded remounts", async () => {
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const root = createRoot(host);
+  await act(async () => {
+    root.render(createElement(MovedCard));
+  });
+  try {
+    await chooseRating(4);
+    await act(async () => {
+      buttonNamed("Submit").click();
+    });
+    await settleMotion();
+    const token = getComputedStyle(document.querySelector(".guide-feedback")).getPropertyValue("--feedback-card-receipt-height").trim();
+    for (let move = 0; move < 5; move += 1) {
+      await act(async () => {
+        document.querySelector(".move").click();
+      });
+      assert.equal(buttonNamed("Edit").textContent, "Edit");
+      assert.equal(document.querySelector(".guide-feedback").style.height, token);
+      assert.equal(document.querySelector(".guide-feedback-receipt small").textContent, "4/5 · Clear");
+    }
+    await act(async () => {
+      buttonNamed("Edit").click();
+    });
+    assert.equal(segment(4).getAttribute("aria-checked"), "true");
+    assert.equal(document.activeElement, buttonNamed("Submit"));
+    assert.equal(document.querySelector(".guide-feedback-receipt"), null);
+  } finally {
+    await act(async () => root.unmount());
+    host.remove();
+  }
+});
 
 test("remounting keeps the sent receipt collapsed", async () => {
   const host = document.createElement("div");

@@ -13,7 +13,6 @@ const VARS = {
   '--duration-fast': '100ms',
   '--duration-normal': '200ms',
   '--duration-slow': '300ms',
-  '--feedback-card-edit-window': '6000ms',
   '--feedback-card-receipt-height': '60px',
   '--ease-expression': 'cubic-bezier(0.22, 1, 0.36, 1)',
   '--ease-in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',

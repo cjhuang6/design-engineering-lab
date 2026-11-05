@@ -97,15 +97,8 @@ export function submitFeedback(state) {
     chips: state.chips,
     comment: state.comment,
     commentOpen: state.commentOpen,
-    editOffered: true,
     announced: false,
-    editRemaining: 0,
   }
-}
-
-export function expireEdit(state) {
-  if (state.phase !== 'receipt' || !state.editOffered) return state
-  return { ...state, editOffered: false }
 }
 
 export function editReceipt(state) {
@@ -140,7 +133,7 @@ export function summaryText(state) {
 
 export function sendAnnouncement(state) {
   const summary = summaryText(state).replaceAll(' · ', ', ')
-  return `Thanks for rating. ${summary}. Edit is available for 6 seconds.`
+  return `Thanks for rating. ${summary}. Edit is available.`
 }
 
 export function editAnnouncement() {

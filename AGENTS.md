@@ -132,7 +132,7 @@ Rules for every agent and subagent, for these packs and any skill pack added lat
 1. When CJ names a skill, use that exact skill: open its SKILL.md and follow it.
 2. When you hand work to a subagent or another agent, name the skill in the handoff so it uses it too.
 3. If a named skill is missing, won't load, or conflicts with this file, stop and tell CJ before doing any work. Don't substitute another skill or carry on without it.
-4. Work in /poteto-mode for every task, and run /no-comments on your diff before opening a PR.
+4. Don't run pstack or Emil skills unless CJ names that skill for the task. Without a named skill, work normally and rely on the repo's comment guard (scripts/guardrails/check-no-new-comments.mjs) for the comment rule.
 
 - **Autonomy inside the task, CJ at the boundaries.** pstack's "never block on the human" applies within an approved task. Protected actions and phase boundaries still wait for CJ.
 - **PRs.** At the end of an approved, verified task, a pstack playbook may commit to the task branch, push it, open the PR, and run autopilot on it to fix CI and review comments. It never merges; CJ merges. No shipping, orchestrated merges or overnight runs unless CJ asks.

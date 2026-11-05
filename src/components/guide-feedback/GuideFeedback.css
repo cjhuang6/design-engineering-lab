@@ -1,6 +1,6 @@
 .guide-feedback {
   --feedback-card-receipt-height: 60px;
-  --feedback-card-comment-max-height: 168px;
+  --feedback-card-comment-height: 232px;
   --feedback-card-edit-window: 6000ms;
   --feedback-card-press-scale: 0.96;
 }
@@ -26,13 +26,17 @@
   inset-inline: var(--space-0);
   top: var(--space-0);
   width: 100%;
+  height: var(--space-0);
+  overflow: hidden;
   visibility: hidden;
   pointer-events: none;
 }
 
-.guide-feedback-measure .guide-feedback-field {
-  height: var(--feedback-card-comment-max-height);
-  field-sizing: fixed;
+.guide-feedback-measure .guide-feedback {
+  position: absolute;
+  inset-inline: var(--space-0);
+  top: var(--space-0);
+  width: 100%;
 }
 
 .guide-feedback-live,
@@ -174,9 +178,17 @@
 }
 
 .guide-feedback-details {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-3);
   margin-top: var(--space-3);
+  min-width: var(--space-0);
+}
+
+.guide-feedback-details > * {
+  flex: none;
+  min-width: var(--space-0);
 }
 
 .guide-feedback-ask {
@@ -191,7 +203,7 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   row-gap: var(--space-3);
-  width: min-content;
+  width: var(--space-0);
   min-width: 100%;
   max-width: 100%;
 }
@@ -212,6 +224,7 @@ button.guide-feedback-chip {
   font: var(--label-sm);
   letter-spacing: var(--label-sm-letter-spacing);
   line-height: 1;
+  white-space: nowrap;
   transition:
     transform var(--duration-fast) var(--ease-standard),
     box-shadow var(--duration-fast) var(--ease-standard),
@@ -261,6 +274,13 @@ button.guide-feedback-chip[aria-pressed='true'] {
   opacity: var(--opacity-full);
 }
 
+.guide-feedback-slot {
+  display: grid;
+  align-content: start;
+  margin-top: auto;
+  min-width: var(--space-0);
+}
+
 .guide-feedback-link {
   position: relative;
   justify-self: start;
@@ -301,9 +321,11 @@ button.guide-feedback-chip[aria-pressed='true'] {
   min-width: var(--space-0);
   max-width: 100%;
   box-sizing: border-box;
-  field-sizing: content;
-  max-height: var(--feedback-card-comment-max-height);
+  height: var(--feedback-card-comment-height);
+  field-sizing: fixed;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   resize: none;
   padding: var(--space-2);
   border-width: var(--border-width-1);
@@ -437,6 +459,12 @@ button.guide-feedback-cancel {
   width: 100%;
   height: var(--size-touch-target);
   transform: translate(-50%, -50%);
+}
+
+.guide-feedback-chip::after {
+  left: var(--space-0);
+  width: 100%;
+  transform: translateY(-50%);
 }
 
 .guide-feedback-cancel::after,

@@ -33,6 +33,10 @@ import {
 } from './model.js'
 import './GuideFeedback.css'
 
+const COMMENT_VISIBLE = 250
+const COMMENT_SAMPLE = 'The steps were clear but the example uses an old token name. '.repeat(8).slice(0, COMMENT_VISIBLE)
+const MEASURE_RATINGS = [1, 3, 5]
+
 export const GUIDE_FEEDBACK_DESCRIPTION =
   'How clear was this guide? Rate it from 1 to 5, then optionally say why and leave a comment.'
 
@@ -128,7 +132,22 @@ function ChipMark() {
   )
 }
 
-function TallestCard() {
+function fittedFieldHeight(probe) {
+  probe.value = COMMENT_SAMPLE
+  probe.style.overflow = ''
+  probe.style.height = 'auto'
+  let fitted = probe.scrollHeight
+  for (let pass = 0; pass < 3; pass += 1) {
+    probe.style.height = `${fitted}px`
+    if (probe.scrollHeight <= probe.clientHeight) break
+    fitted += probe.scrollHeight - probe.clientHeight
+  }
+  probe.value = ''
+  probe.style.height = ''
+  return fitted
+}
+
+function MeasureCard({ rating }) {
   return (
     <div className="guide-feedback">
       <div className="guide-feedback-body">
@@ -145,12 +164,12 @@ function TallestCard() {
           <span>{ENDS[1]}</span>
         </div>
         <div className="guide-feedback-word">
-          <span className="is-on">{RATING_WORDS[2]}</span>
+          <span className="is-on">{RATING_WORDS[rating - 1]}</span>
         </div>
         <div className="guide-feedback-details">
-          <p className="guide-feedback-ask">{askText(1)}</p>
+          <p className="guide-feedback-ask">{askText(rating)}</p>
           <div className="guide-feedback-chips">
-            {CHIPS.low.map((label) => (
+            {CHIPS[bandOf(rating)].map((label) => (
               <span key={label} className="guide-feedback-chip">
                 <ChipMark />
                 {label}
@@ -158,8 +177,8 @@ function TallestCard() {
             ))}
           </div>
           <div className="guide-feedback-comment">
-            <span>Comment</span>
-            <span className="guide-feedback-field" />
+            <label>Comment</label>
+            <textarea className="guide-feedback-field" rows={3} readOnly tabIndex={-1} defaultValue="" />
             <span className="guide-feedback-meta" />
           </div>
           <div className="guide-feedback-actions">
@@ -226,17 +245,62 @@ export function GuideFeedback({ value, onChange }) {
   useLayoutEffect(() => {
     const stage = stageRef.current
     const measure = measureRef.current
-    if (!stage || !measure) return undefined
+    const block = stage?.parentElement
+    if (!stage || !measure || !block) return undefined
+    let cancel = false
     const apply = () => {
-      const height = measure.offsetHeight
-      const next = `${height}px`
-      if (height > 0 && stage.style.minBlockSize !== next) stage.style.minBlockSize = next
+      if (cancel) return
+      const probe = measure.querySelector('textarea')
+      if (probe) {
+        const fitted = fittedFieldHeight(probe)
+        if (fitted > 0) {
+          const next = `${fitted}px`
+          for (const node of block.querySelectorAll('.guide-feedback')) {
+            if (node.style.getPropertyValue('--feedback-card-comment-height') !== next) {
+              node.style.setProperty('--feedback-card-comment-height', next)
+            }
+          }
+        }
+      }
+      let maxCard = 0
+      let maxDetails = 0
+      let commentHeight = 0
+      for (const card of measure.querySelectorAll('.guide-feedback')) {
+        maxCard = Math.max(maxCard, card.offsetHeight)
+        const details = card.querySelector('.guide-feedback-details')
+        if (details) maxDetails = Math.max(maxDetails, details.offsetHeight)
+        const comment = card.querySelector('.guide-feedback-comment')
+        if (comment) commentHeight = Math.max(commentHeight, comment.offsetHeight)
+      }
+      if (maxCard > 0) {
+        const next = `${maxCard}px`
+        if (stage.style.minBlockSize !== next) stage.style.minBlockSize = next
+      }
+      const form = cardRef.current?.querySelector('.guide-feedback-details')
+      if (form && maxDetails > 0) {
+        const next = `${maxDetails}px`
+        if (form.style.minHeight !== next) form.style.minHeight = next
+      }
+      const slot = cardRef.current?.querySelector('.guide-feedback-slot')
+      if (slot && commentHeight > 0) {
+        const next = `${commentHeight}px`
+        if (slot.style.minHeight !== next) slot.style.minHeight = next
+      }
     }
     apply()
     const observer = new ResizeObserver(apply)
-    observer.observe(measure)
-    return () => observer.disconnect()
-  }, [])
+    observer.observe(stage)
+    const fontsReady = document.fonts?.ready
+    if (fontsReady && typeof fontsReady.then === 'function') {
+      fontsReady.then(() => {
+        if (!cancel) apply()
+      })
+    }
+    return () => {
+      cancel = true
+      observer.disconnect()
+    }
+  }, [model.phase])
 
   function setModel(update) {
     const next = typeof update === 'function' ? update(modelRef.current) : update
@@ -562,61 +626,63 @@ export function GuideFeedback({ value, onChange }) {
                   </button>
                 ))}
               </div>
-              <button
-                type="button"
-                className="guide-feedback-link"
-                hidden={model.commentOpen}
-                aria-expanded={model.commentOpen ? 'true' : 'false'}
-                aria-controls={commentId}
-                onClick={onAddComment}
-              >
-                Add a comment
-              </button>
-              <div
-                className="guide-feedback-comment"
-                id={commentId}
-                hidden={!model.commentOpen}
-                inert={model.commentOpen ? undefined : true}
-              >
-                <label htmlFor={fieldId}>Comment</label>
-                <textarea
-                  id={fieldId}
-                  ref={fieldRef}
-                  className="guide-feedback-field"
-                  name="comment"
-                  rows={3}
-                  value={model.comment}
-                  placeholder="Anything else? (optional)"
-                  aria-describedby={`${countId} ${errorId} ${hintId} ${leftId}`}
-                  aria-invalid={errorShown ? 'true' : undefined}
-                  aria-keyshortcuts="Meta+Enter Control+Enter"
-                  autoComplete="off"
-                  spellCheck
-                  autoCapitalize="sentences"
-                  enterKeyHint="enter"
-                  onChange={(event) => setModel((current) => setComment(current, event.target.value))}
-                  onBlur={() => {
-                    const current = modelRef.current
-                    if (current.phase !== 'details' || current.comment.length <= COMMENT_LIMIT) return
-                    focusInvalid.current = true
-                    setModel((next) => revealOverLimit(next))
-                  }}
-                  onKeyDown={onFieldKeyDown}
-                />
-                <div className="guide-feedback-meta">
-                  <span className="guide-feedback-error" id={errorId} aria-live="assertive">
-                    {errorShown ? 'Too long to send' : ''}
+              <div className="guide-feedback-slot">
+                <button
+                  type="button"
+                  className="guide-feedback-link"
+                  hidden={model.commentOpen}
+                  aria-expanded={model.commentOpen ? 'true' : 'false'}
+                  aria-controls={commentId}
+                  onClick={onAddComment}
+                >
+                  Add a comment
+                </button>
+                <div
+                  className="guide-feedback-comment"
+                  id={commentId}
+                  hidden={!model.commentOpen}
+                  inert={model.commentOpen ? undefined : true}
+                >
+                  <label htmlFor={fieldId}>Comment</label>
+                  <textarea
+                    id={fieldId}
+                    ref={fieldRef}
+                    className="guide-feedback-field"
+                    name="comment"
+                    rows={3}
+                    value={model.comment}
+                    placeholder="Anything else? (optional)"
+                    aria-describedby={`${countId} ${errorId} ${hintId} ${leftId}`}
+                    aria-invalid={errorShown ? 'true' : undefined}
+                    aria-keyshortcuts="Meta+Enter Control+Enter"
+                    autoComplete="off"
+                    spellCheck
+                    autoCapitalize="sentences"
+                    enterKeyHint="enter"
+                    onChange={(event) => setModel((current) => setComment(current, event.target.value))}
+                    onBlur={() => {
+                      const current = modelRef.current
+                      if (current.phase !== 'details' || current.comment.length <= COMMENT_LIMIT) return
+                      focusInvalid.current = true
+                      setModel((next) => revealOverLimit(next))
+                    }}
+                    onKeyDown={onFieldKeyDown}
+                  />
+                  <div className="guide-feedback-meta">
+                    <span className="guide-feedback-error" id={errorId} aria-live="assertive">
+                      {errorShown ? 'Too long to send' : ''}
+                    </span>
+                    <span className={errorShown ? 'guide-feedback-count is-over' : 'guide-feedback-count'} id={countId}>
+                      {counterText(model.comment)}
+                    </span>
+                  </div>
+                  <span className="guide-feedback-sr" id={hintId}>
+                    Press Command or Control and Enter to submit.
                   </span>
-                  <span className={errorShown ? 'guide-feedback-count is-over' : 'guide-feedback-count'} id={countId}>
-                    {counterText(model.comment)}
+                  <span className="guide-feedback-sr" id={leftId} aria-live="polite">
+                    {charactersLeft(model.comment)}
                   </span>
                 </div>
-                <span className="guide-feedback-sr" id={hintId}>
-                  Press Command or Control and Enter to submit.
-                </span>
-                <span className="guide-feedback-sr" id={leftId} aria-live="polite">
-                  {charactersLeft(model.comment)}
-                </span>
               </div>
               <div className="guide-feedback-actions">
                 <button
@@ -664,7 +730,9 @@ export function GuideFeedback({ value, onChange }) {
         ) : null}
       </div>
       <div className="guide-feedback-measure" ref={measureRef} inert aria-hidden="true">
-        <TallestCard />
+        {MEASURE_RATINGS.map((rating) => (
+          <MeasureCard key={rating} rating={rating} />
+        ))}
       </div>
       </div>
     </div>

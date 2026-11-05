@@ -29,7 +29,7 @@ const PLACEHOLDER_NAMES = [
 ];
 const FEEDBACK_NAMES = [
   "--feedback-card-receipt-height",
-  "--feedback-card-comment-max-height",
+  "--feedback-card-comment-height",
   "--feedback-card-edit-window",
   "--feedback-card-press-scale",
 ];

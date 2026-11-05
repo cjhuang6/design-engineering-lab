@@ -1,6 +1,6 @@
 # Components & interactions
 
-Phase 3 of the project roadmap: components, with the weight on how they behave. Project-wide **current status** and the **next agreed task** live in [docs/roadmap.md](roadmap.md). This file does not restate them. The color picker is in progress in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25). The rest of the phase has not started.
+Phase 3 of the project roadmap: components, with the weight on how they behave. Project-wide **current status** and the **next agreed task** live in [docs/roadmap.md](roadmap.md). This file does not restate them. The color picker is merged in [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25) (`953f851`, 2026-10-25). **Observed** on `main`, with CJ's per-component approvals while Phase 2E waited: the showcase shell, the slot-code component, and the guide-feedback card, listed in [Current status](roadmap.md#current-status). This file does not choose the next task.
 
 Every entry is labelled:
 
@@ -13,13 +13,13 @@ The token pipeline roadmap uses "Phase 3" for a designer-review workflow and "Ph
 
 ## Direction (Approved)
 
-**Approved (2026-10-22):** Phase 2D (Text Styles) and Phase 2E (Effect Styles) come first. Then build components with the emphasis on behavior: how a component responds, and the interaction model behind that response.
+**Approved (2026-10-22):** Phase 2D (Text Styles) and Phase 2E (Effect Styles) come first. Then build components with the emphasis on behavior: how a component responds, and the interaction model behind that response. Components already on `main` are the per-component approvals in [Entry criteria](#entry-criteria).
 
 The goal is original interaction concepts, prototyped and shipped in code. Invent the interaction. Do not implement a component by following a spec line by line. The approved goal includes prototyping in Figma and with AI tools, alongside code. What ships is the coded component in this repository. Whether at least one interaction must be AI-assisted is a [proposal](#proposals) below, not a requirement yet.
 
 ## Entry criteria
 
-**Approved (2026-10-22):** Phase 3 starts after Phase 2D (Text Styles) and Phase 2E (Effect Styles) are merged and desktop-verified.
+**Approved (2026-10-22):** Phase 3 starts after Phase 2D (Text Styles) and Phase 2E (Effect Styles) are merged and desktop-verified. **Approved (CJ, 2026-10-24):** the color picker started in parallel with Phase 2D. **Approved:** the showcase, slot-code, and guide-feedback also shipped under per-component approvals while Phase 2E waited. Those approvals are the ones named in [Current status](roadmap.md#current-status). They do not approve the next component.
 
 These deferred token-pipeline items do not block that start. **Approved (deferred, 2026-10-22).** The trigger is: until a component needs them, except where a tighter trigger is named.
 
@@ -37,7 +37,7 @@ What is merged and desktop-verified is [Current status](roadmap.md#current-statu
 
 The picker uses Camellia's color tokens only.
 
-**In progress (CJ, 2026-10-24).** CJ approved building this picker now, in parallel with Phase 2D. The React component is in draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25), at `src/components/hex-color-picker/`. Phase 2D is still the next agreed task. The [entry criteria](#entry-criteria) still apply to the rest of Phase 3. **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
+**Observed (merged 2026-10-25).** [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25) (`953f851`) is on `main`, at `src/components/hex-color-picker/`. **Approved (CJ, 2026-10-24):** CJ approved building this picker in parallel with Phase 2D. Phase 2E is the next agreed task ([Current status](roadmap.md#current-status)). **Decided (CJ, 2026-10-23):** a throwaway prototype, a standalone HTML file outside this repo, settled the picker's interaction details. That file is not in the repository.
 
 Values that are not tokens yet stay on the component. The color picker uses one block commented `PLACEHOLDER - candidate token, see color-picker-brief.md`. The feedback card keeps its own values the same way. They are not in the token JSON. [Question 2](#open-questions) keeps them there.
 
@@ -132,17 +132,15 @@ What a designer learning to ship in code should take from this component.
 
 The approved working method includes a Figma prototype in the component pull request. This proposal puts Figma after the coded component. Which order wins is one of the details still to settle. Until CJ settles it, the approved working method stands.
 
-## Showcase site (Planned)
+## Showcase site
 
 **Approved (CJ, 2026-10-25).** Turn the demo app, deployed at [https://cjhuang6.github.io/design-engineering-lab/](https://cjhuang6.github.io/design-engineering-lab/), into a public showcase of the components CJ explores, in the spirit of component galleries such as [bencho.dev](https://bencho.dev). How a component is explored and chosen stays in [How we collaborate on a component](#how-we-collaborate-on-a-component). This decision does not change the [next agreed task](roadmap.md#current-status).
 
-**Start condition.** Begin once there is a second component. Until then the demo keeps its current single page.
+**Observed** on `main`: the shell is [PR #32](https://github.com/cjhuang6/design-engineering-lab/pull/32) (`4542b7d`) and the phone layout is [PR #33](https://github.com/cjhuang6/design-engineering-lab/pull/33) (`8f9d3fe`). Refinements on that showcase are [#31](https://github.com/cjhuang6/design-engineering-lab/pull/31), [#34](https://github.com/cjhuang6/design-engineering-lab/pull/34), [#35](https://github.com/cjhuang6/design-engineering-lab/pull/35), [#37](https://github.com/cjhuang6/design-engineering-lab/pull/37), [#41](https://github.com/cjhuang6/design-engineering-lab/pull/41), and [#44](https://github.com/cjhuang6/design-engineering-lab/pull/44). GitHub Pages is [PR #27](https://github.com/cjhuang6/design-engineering-lab/pull/27) (`27d44ba`). The demo loads self-hosted Geist ([PR #28](https://github.com/cjhuang6/design-engineering-lab/pull/28), `75fdad3`). The top navigation is Blocks, Tokens, and Pipeline, using hash links (`#blocks`, `#tokens`, `#pipeline`). Tokens is the token reference. Pipeline is a placeholder page. The live cards are the slot-code security component ([PR #36](https://github.com/cjhuang6/design-engineering-lab/pull/36) `5235ee7`, with [#38](https://github.com/cjhuang6/design-engineering-lab/pull/38)–[#40](https://github.com/cjhuang6/design-engineering-lab/pull/40), [#42](https://github.com/cjhuang6/design-engineering-lab/pull/42), [#43](https://github.com/cjhuang6/design-engineering-lab/pull/43), [#45](https://github.com/cjhuang6/design-engineering-lab/pull/45)), the hex color picker, and the guide-feedback receipt card ([PR #49](https://github.com/cjhuang6/design-engineering-lab/pull/49) `c370dca`, [#50](https://github.com/cjhuang6/design-engineering-lab/pull/50) `a787c6b`, [#51](https://github.com/cjhuang6/design-engineering-lab/pull/51) `e7a6bcb`, [#52](https://github.com/cjhuang6/design-engineering-lab/pull/52) `681bb93`, [#53](https://github.com/cjhuang6/design-engineering-lab/pull/53) `837dd86`). [PR #49](https://github.com/cjhuang6/design-engineering-lab/pull/49) also added `theme.light.shadow.*` and `theme.dark.shadow.*` (`raised`, `control`, `control-hover`) to `tokens/camellia.tokens.json`.
 
-**Step 1, site shell.** Top navigation with Components, Tokens, and Pipeline, each its own page. The current token reference moves to Tokens. The README's [pipeline explanation and diagram](../README.md#pipeline) move to Pipeline.
+**Step 1, site shell.** Top navigation with a component page, Tokens, and Pipeline. The token reference moves to Tokens. The README's [pipeline explanation and diagram](../README.md#pipeline) move to Pipeline. **Observed** in `src/App.jsx`: the shipped nav says Blocks, Tokens, and Pipeline, the links are hashes, and no router library was added. Tokens is the token reference. The Pipeline page is still the placeholder sentence, so that README section has not moved.
 
-**Open decision for step 1.** Page links via a small router library, or via a small homemade hash router. The library is a new dependency and needs CJ's approval. The hash router adds no dependency.
-
-**Step 2, component cards.** Each component is a live, interactive card. Expanding a card shows the design idea, the logic, notes, and learnings. Each component folder gets a small notes file, so adding a component means adding a folder. The hex color picker is the first card. Its brief, [proximity hex color picker](components/color-picker-brief.md), supplies most of its write-up.
+**Step 2, component cards.** Each component is a live, interactive card. Expanding a card shows the design idea, the logic, notes, and learnings. Each component folder gets a small notes file, so adding a component means adding a folder. The hex color picker's brief, [proximity hex color picker](components/color-picker-brief.md), supplies most of its write-up. Slot-code and guide-feedback are the other cards on `main`.
 
 **Deferred.** Search and filter chips, for example by interaction type: hover, press, drag, select, type. Revisit only once there are many components.
 
@@ -169,6 +167,6 @@ The approved working method includes a Figma prototype in the component pull req
 
 | # | Question | Status | Blocks |
 |---|---|---|---|
-| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. **In progress:** draft [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25), in parallel with Phase 2D. The rest of Phase 3 still waits on the [entry criteria](#entry-criteria) |
+| 1 | **Which component is first?** | **Approved (CJ, 2026-10-23).** A proximity hex color picker, direction B. Brief: [proximity hex color picker](components/color-picker-brief.md). The later candidates, including the toggle, are still a proposal | Choosing the first component. **Observed:** merged in [PR #25](https://github.com/cjhuang6/design-engineering-lab/pull/25) (`953f851`, 2026-10-25), in parallel with Phase 2D. Slot-code and guide-feedback later shipped under per-component approvals. The [entry criteria](#entry-criteria) still gate the next component |
 | 2 | **Where component tokens live.** The canonical token file sets `componentTokensIncluded` to false. The design spec's Components collection and Profile Card tokens are not in the JSON (token pipeline [open question 7](token-pipeline-roadmap.md#open-questions)). A value used by one component stays on that component. A component token layer is a later decision, revisited when a second component needs the same contract. The feedback card's local values today are `--feedback-card-receipt-height` 60px, `--feedback-card-max-width` 320px, the chip size (`--feedback-card-chip-height` 28px, `--feedback-card-chip-size` 13px, padding 6px and 10px, gap 6px), and `--feedback-card-press-scale` 0.96. The one-line comment field uses the existing 40px control size, so it no longer has its own height value. The hex picker's placeholder block stays local the same way. | **Approved (CJ, 2026-11-02).** Option A. Component-specific values stay on the component. `componentTokensIncluded` stays false. | A shared component-token layer, until a second component needs the same contract |
 | 3 | **Figma component sync scope.** Whether each component is also a Figma component, whether the plugin syncs it, and whether Code Connect is in scope. The earlier pipeline note said Code Connect gets evaluated when components exist. That evaluation has not happened | Unknown | Figma component parity. It does not block the React demo |

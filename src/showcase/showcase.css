@@ -259,13 +259,16 @@ button.showcase-icon {
   border-radius: var(--radius-full);
   background: none;
   color: var(--color-icon-secondary);
-  transition: color var(--duration-fast) var(--ease-standard);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 }
 
 button.showcase-icon:hover,
 button.showcase-icon:active,
 button.showcase-icon:focus-visible {
-  background: none;
+  background: var(--color-surface-secondary);
   color: var(--color-icon-primary);
 }
 
@@ -521,6 +524,7 @@ button.showcase-reset {
   color: var(--color-text-secondary);
   font: var(--label-md);
   letter-spacing: var(--label-md-letter-spacing);
+  cursor: pointer;
   transition:
     background-color var(--duration-fast) var(--ease-standard),
     color var(--duration-fast) var(--ease-standard);

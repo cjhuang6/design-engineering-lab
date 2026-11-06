@@ -18,6 +18,7 @@ import {
   keepsCommentOnEscape,
   nextRating,
   openComment,
+  pointerRating,
   radioName,
   rate,
   revealOverLimit,
@@ -293,12 +294,13 @@ export function GuideFeedback({ value, onChange }) {
     choose(rating, event.detail === 0)
   }
 
-  function onRadioEnter(event, rating) {
+  function onRadioMove(event, rating) {
     if (event.pointerType !== 'mouse') return
     if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
     const current = modelRef.current
     const selected = current.phase === 'scale' ? 0 : current.rating
-    moveFill(selected, rating, false)
+    const { left, width } = event.currentTarget.getBoundingClientRect()
+    moveFill(selected, pointerRating(rating, event.clientX - left, width), true)
   }
 
   function onScaleLeave() {
@@ -459,7 +461,7 @@ export function GuideFeedback({ value, onChange }) {
                   tabIndex={tab}
                   onClick={(event) => onRadioClick(event, value)}
                   onKeyDown={(event) => onRadioKeyDown(event, value)}
-                  onPointerEnter={(event) => onRadioEnter(event, value)}
+                  onPointerMove={(event) => onRadioMove(event, value)}
                 >
                   <i className="guide-feedback-wash" style={{ transform: `scaleX(${previewAmount})` }} />
                   <b className="guide-feedback-fill" style={{ transform: `scaleX(${litAmount})` }} />

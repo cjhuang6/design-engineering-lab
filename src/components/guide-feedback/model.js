@@ -178,6 +178,11 @@ export function nextRating(fromRating, key) {
   return null
 }
 
+export function pointerRating(value, offset, width) {
+  const fraction = width > 0 ? Math.min(1, Math.max(0, offset / width)) : 1
+  return value - 1 + fraction
+}
+
 export function hoverTargets(rating, hoverRating) {
   const drain = hoverRating > 0 && hoverRating < rating
   return {

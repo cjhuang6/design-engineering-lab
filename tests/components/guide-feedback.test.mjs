@@ -77,6 +77,11 @@ function field() {
   return document.querySelector(".guide-feedback-field");
 }
 
+function washOf(rating) {
+  const match = /scaleX\(([^)]+)\)/.exec(segment(rating).querySelector(".guide-feedback-wash").style.transform);
+  return match ? Number(match[1]) : Number.NaN;
+}
+
 function scaleOf(rating) {
   const match = /scaleX\(([^)]+)\)/.exec(fillOf(rating).style.transform);
   return match ? Number(match[1]) : Number.NaN;
@@ -206,6 +211,29 @@ test("pointer rating animates and a keyboard choice fills the segment and opens 
     assert.equal(buttonNamed("Add a comment").textContent, "Add a comment");
   } finally {
     await keys.unmount();
+  }
+});
+
+test("a mouse hover fills each number only up to the pointer", async () => {
+  const originalMatchMedia = window.matchMedia;
+  window.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} });
+  const pointer = await mount();
+  try {
+    const target = segment(2);
+    target.style.left = "100px";
+    target.style.width = "40px";
+    await act(async () => {
+      target.dispatchEvent(
+        new window.MouseEvent("pointermove", { bubbles: true, clientX: 110, pointerType: "mouse" }),
+      );
+    });
+    assert.equal(washOf(1), 1);
+    assert.equal(washOf(2), 0.25);
+    assert.equal(washOf(3), 0);
+    assert.equal(scaleOf(2), 0);
+  } finally {
+    await pointer.unmount();
+    window.matchMedia = originalMatchMedia;
   }
 });
 

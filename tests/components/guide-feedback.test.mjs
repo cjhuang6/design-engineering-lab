@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import * as esbuild from "esbuild";
-import { createElement, useState } from "react";
+import { createElement, useLayoutEffect, useState } from "react";
 import { act } from "react";
 import { initialFeedback } from "../../src/components/guide-feedback/model.js";
 import { createRoot } from "react-dom/client";
@@ -522,6 +522,182 @@ test("Edit stays on the receipt across inline and expanded remounts", async () =
   } finally {
     await act(async () => root.unmount());
     host.remove();
+  }
+});
+
+function receiptCard() {
+  return document.querySelector("[data-feedback-stage] > .guide-feedback");
+}
+
+function receiptSnapshot() {
+  const card = receiptCard();
+  return {
+    sending: card.classList.contains("is-sending"),
+    shrinking: card.classList.contains("is-shrinking"),
+    height: card.style.height,
+  };
+}
+
+const announcedReceipt = {
+  phase: "receipt",
+  rating: 4,
+  chips: ["Clear steps"],
+  comment: "Noted",
+  commentOpen: true,
+  announced: true,
+};
+
+test("an announced receipt is collapsed before passive effects", async () => {
+  const shots = [];
+  function Probe() {
+    const [value, setValue] = useState(announcedReceipt);
+    useLayoutEffect(() => {
+      if (receiptCard()) shots.push(receiptSnapshot());
+    });
+    return createElement(GuideFeedback, { value, onChange: setValue });
+  }
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const root = createRoot(host);
+  try {
+    await act(async () => {
+      root.render(createElement(Probe));
+    });
+    const token = getComputedStyle(receiptCard()).getPropertyValue("--feedback-card-receipt-height").trim();
+    assert.equal(shots[0].sending, true);
+    assert.equal(shots[0].shrinking, false);
+    assert.equal(shots[0].height, token);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.equal(receiptCard().style.height, token);
+    assert.equal(document.querySelector(".guide-feedback-live").textContent, "");
+    const stage = document.querySelector("[data-feedback-stage]");
+    assert.notEqual(stage.style.minBlockSize, "");
+
+    await act(async () => {
+      buttonNamed("Edit").click();
+    });
+    assert.equal(receiptCard().classList.contains("is-sending"), false);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.equal(receiptCard().style.height, "");
+    assert.equal(segment(4).getAttribute("aria-checked"), "true");
+    assert.equal(buttonNamed("Clear steps").getAttribute("aria-pressed"), "true");
+    assert.equal(field().value, "Noted");
+    assert.equal(document.activeElement, buttonNamed("Submit"));
+
+    await act(async () => {
+      buttonNamed("Submit").click();
+    });
+    assert.equal(receiptCard().classList.contains("is-sending"), true);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.notEqual(receiptCard().style.height, "");
+    assert.notEqual(receiptCard().style.height, token);
+    await settleMotion();
+    assert.equal(receiptCard().classList.contains("is-shrinking"), true);
+    assert.equal(receiptCard().style.height, token);
+    assert.equal(
+      document.querySelector(".guide-feedback-live").textContent,
+      "Thanks for rating. 4/5, Clear steps, with comment. Edit is available.",
+    );
+  } finally {
+    await act(async () => root.unmount());
+    host.remove();
+  }
+});
+
+test("remounting an announced receipt stays collapsed before passive effects", async () => {
+  const shots = [];
+  function Probe() {
+    const [value, setValue] = useState(initialFeedback);
+    const [generation, setGeneration] = useState(0);
+    useLayoutEffect(() => {
+      if (!receiptCard()) return;
+      shots.push({ generation, ...receiptSnapshot() });
+    });
+    return createElement(
+      "div",
+      null,
+      createElement(
+        "button",
+        { type: "button", className: "remount", onClick: () => setGeneration((next) => next + 1) },
+        "Remount",
+      ),
+      createElement(GuideFeedback, { key: generation, value, onChange: setValue }),
+    );
+  }
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  const root = createRoot(host);
+  try {
+    await act(async () => {
+      root.render(createElement(Probe));
+    });
+    await chooseRating(4);
+    await act(async () => {
+      buttonNamed("Clear steps").click();
+      buttonNamed("Submit").click();
+    });
+    await settleMotion();
+    const token = getComputedStyle(receiptCard()).getPropertyValue("--feedback-card-receipt-height").trim();
+    const mark = shots.length;
+    await act(async () => {
+      document.querySelector(".remount").click();
+    });
+    const remounted = shots.slice(mark);
+    assert.ok(remounted.length > 0);
+    assert.equal(remounted[0].sending, true);
+    assert.equal(remounted[0].shrinking, false);
+    assert.equal(remounted[0].height, token);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.equal(receiptCard().classList.contains("is-sending"), true);
+    assert.equal(receiptCard().style.height, token);
+    assert.equal(document.querySelector(".guide-feedback-receipt small").textContent, "4/5 · Clear steps");
+    await act(async () => {
+      buttonNamed("Edit").click();
+    });
+    assert.equal(receiptCard().classList.contains("is-sending"), false);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.equal(receiptCard().style.height, "");
+    assert.equal(document.activeElement, buttonNamed("Submit"));
+    assert.equal(buttonNamed("Clear steps").getAttribute("aria-pressed"), "true");
+  } finally {
+    await act(async () => root.unmount());
+    host.remove();
+  }
+});
+
+test("submitting still holds before the receipt shrinks", async () => {
+  const view = await mount();
+  try {
+    await chooseRating(4);
+    await act(async () => {
+      buttonNamed("Submit").click();
+    });
+    const token = getComputedStyle(receiptCard()).getPropertyValue("--feedback-card-receipt-height").trim();
+    assert.equal(receiptCard().classList.contains("is-sending"), true);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.notEqual(receiptCard().style.height, "");
+    assert.notEqual(receiptCard().style.height, token);
+    await settleMotion();
+    assert.equal(receiptCard().classList.contains("is-shrinking"), true);
+    assert.equal(receiptCard().style.height, token);
+    await act(async () => {
+      buttonNamed("Edit").click();
+    });
+    assert.equal(receiptCard().classList.contains("is-sending"), false);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.equal(receiptCard().style.height, "");
+    assert.equal(document.activeElement, buttonNamed("Submit"));
+    await act(async () => {
+      buttonNamed("Submit").click();
+    });
+    assert.equal(receiptCard().classList.contains("is-sending"), true);
+    assert.equal(receiptCard().classList.contains("is-shrinking"), false);
+    assert.notEqual(receiptCard().style.height, token);
+    await settleMotion();
+    assert.equal(receiptCard().classList.contains("is-shrinking"), true);
+    assert.equal(receiptCard().style.height, token);
+  } finally {
+    await view.unmount();
   }
 });
 

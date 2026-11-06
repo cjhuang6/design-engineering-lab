@@ -179,11 +179,24 @@ export function GuideFeedback({ value, onChange }) {
   const commitRef = useRef(null)
   const [lit, setLit] = useState(starting)
   const [preview, setPreview] = useState(starting)
+  const [settledOnMount, setSettledOnMount] = useState(
+    () => model.phase === 'receipt' && model.announced === true,
+  )
+  const showSettled = settledOnMount && model.phase === 'receipt'
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     modelRef.current = model
     commitRef.current = setModel
   })
+
+  useLayoutEffect(() => {
+    if (!showSettled) return
+    const card = cardRef.current
+    if (!card) return
+    card.classList.remove('is-shrinking')
+    card.classList.add('is-sending')
+    card.style.height = cssValue(card, '--feedback-card-receipt-height')
+  }, [showSettled])
 
   useLayoutEffect(() => {
     const stage = stageRef.current
@@ -344,6 +357,7 @@ export function GuideFeedback({ value, onChange }) {
       card.classList.remove('is-sending', 'is-shrinking')
       card.style.height = ''
     }
+    setSettledOnMount(false)
     setModel((current) => editReceipt(current))
   }
 
@@ -387,28 +401,23 @@ export function GuideFeedback({ value, onChange }) {
     if (model.phase !== 'receipt') return undefined
     const card = cardRef.current
     const snapshot = modelRef.current
-    if (!card || snapshot.phase !== 'receipt') return undefined
+    if (!card || snapshot.phase !== 'receipt' || snapshot.announced) return undefined
     let shrinkTimer = 0
-    if (snapshot.announced) {
-      card.classList.add('is-sending', 'is-shrinking')
+    const full = card.offsetHeight
+    card.style.height = `${full}px`
+    card.classList.add('is-sending')
+    receiptRef.current?.focus()
+    announce(liveRef.current, sendAnnouncement(snapshot))
+    const exit = motionMs('--duration-fast')
+    shrinkTimer = window.setTimeout(() => {
+      card.classList.add('is-shrinking')
+      void card.offsetHeight
       card.style.height = cssValue(card, '--feedback-card-receipt-height')
-    } else {
-      const full = card.offsetHeight
-      card.style.height = `${full}px`
-      card.classList.add('is-sending')
-      receiptRef.current?.focus()
-      announce(liveRef.current, sendAnnouncement(snapshot))
-      const exit = motionMs('--duration-fast')
-      shrinkTimer = window.setTimeout(() => {
-        card.classList.add('is-shrinking')
-        void card.offsetHeight
-        card.style.height = cssValue(card, '--feedback-card-receipt-height')
-      }, exit)
-      commitRef.current?.((current) => {
-        if (current.phase !== 'receipt' || current.announced) return current
-        return { ...current, announced: true }
-      })
-    }
+    }, exit)
+    commitRef.current?.((current) => {
+      if (current.phase !== 'receipt' || current.announced) return current
+      return { ...current, announced: true }
+    })
     return () => {
       window.clearTimeout(shrinkTimer)
     }
@@ -425,7 +434,12 @@ export function GuideFeedback({ value, onChange }) {
     <div className="guide-feedback-block">
       <div className="guide-feedback-live" aria-live="polite" aria-atomic="true" ref={liveRef} />
       <div className="guide-feedback-stage" data-feedback-stage="" ref={stageRef}>
-      <div className="guide-feedback" ref={cardRef} onKeyDown={onCardKeyDown}>
+      <div
+        className={showSettled ? 'guide-feedback is-sending' : 'guide-feedback'}
+        style={showSettled ? { height: 'var(--feedback-card-receipt-height)' } : undefined}
+        ref={cardRef}
+        onKeyDown={onCardKeyDown}
+      >
         <div className="guide-feedback-body" inert={model.phase === 'receipt' ? true : undefined}>
           <p className="guide-feedback-question" id={questionId}>
             {QUESTION}

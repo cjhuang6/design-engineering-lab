@@ -1,6 +1,6 @@
 # Basic component library
 
-Track 2 of Camellia: a library of ordinary controls with predictable behavior. Project-wide **current status** and the **next agreed task** stay in [docs/roadmap.md](../roadmap.md). Phase 2E (Effect Styles) stays that next task. This file does not start component code.
+Track 2 of Camellia: a library of ordinary controls with predictable behavior. Project-wide **current status** and the **next agreed task** stay in [docs/roadmap.md](../roadmap.md). Phase 2E (Effect Styles) stays that next task. Component code starts one approved step at a time. Button is step 1.
 
 Every entry is labelled:
 
@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 7, 8, and 10 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 7, 8, and 10 are recorded for the later component pull requests. They are not built with the nav. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Row 10 stays with TextField. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -125,7 +125,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | Step | Pull request | Why it is here |
 |---|---|---|
 | 0 | Showcase nav restructure | **Approved (CJ, 2026-11-09).** Its own pull request, before Button. Detail: [Showcase navigation](#showcase-navigation) |
-| 1 | Button | Smallest control. Primary, secondary, and ghost. Sizes from the control size tokens |
+| 1 | Button | **In progress.** Primary, secondary, and ghost, at `sm`, `md`, and `lg`, in the Components section. Usage: [Button](basics/button.md) |
 | 2 | IconButton | The same button, with an icon and an accessible name |
 | 3 | TextField | One line, with label, help, and error |
 | 4 | Chip / ToggleChip | The pressable chip the feedback card already invented by hand |
@@ -163,7 +163,7 @@ Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, `#t
 **Approved (CJ, 2026-11-09):** what each section shows at first.
 
 - Lab shows the three cards that Blocks showed: slot-code, the hex color picker, and the guide-feedback card. The page moved. The cards were not redesigned.
-- Components is an empty section until Button. **Approved (CJ, 2026-11-09)** sentence: "Core components built to spec on Camellia tokens. Button and TextField are up first."
+- Components showed one sentence until Button. **Approved (CJ, 2026-11-09)** sentence, still the line on the page: "Core components built to spec on Camellia tokens. Button and TextField are up first." Button renders under that sentence.
 - Prototypes is reserved and empty. Nothing is listed until a prototype built from the basics exists. **Approved (CJ, 2026-11-09)** sentence: "Product prototypes assembled from Camellia components with AI tools. First builds coming soon."
 
 **Approved (CJ, 2026-11-09):** row 5, option A. This is its own pull request, before Button. It updates the demo-app feature in the feature map, because the entry points change. It does not add a component, and it does not edit the token file.
@@ -172,7 +172,7 @@ Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, `#t
 
 ## Button
 
-**Proposal.** Step 1. Variants: primary, secondary, ghost. Sizes: `sm`, `md`, `lg`.
+**In progress.** Step 1. Variants: primary, secondary, ghost. Sizes: `sm`, `md`, `lg`. Usage: [Button](basics/button.md). Code: `src/components/button/`.
 
 **States.** Rest, hover, pressed, keyboard focus, disabled.
 
@@ -193,15 +193,17 @@ Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, `#t
 | Focus | `border/focus`, offset `border/width/2` | Shared ring above |
 | Motion | `duration/fast`, `ease/standard` | Color and shadow only |
 
-There is no `color/action/secondary`. **Approved (CJ, 2026-11-09):** row 8, option A. Secondary, taken from the card's Cancel button (**Observed** in `GuideFeedback.css`): fill `color/surface/primary`, label `color/text/secondary`, shadow `shadow/control`, hover shadow `shadow/control-hover`. Ghost: transparent fill, label `color/text/primary`, hover fill `color/surface/subtle`. No shadow. Not built in the nav pull request.
+There is no `color/action/secondary`. **Approved (CJ, 2026-11-09):** row 8, option A. Secondary, taken from the card's Cancel button (**Observed** in `GuideFeedback.css`): fill `color/surface/primary`, label `color/text/secondary`, shadow `shadow/control`, hover shadow `shadow/control-hover`. Ghost: transparent fill, label `color/text/primary`, hover fill `color/surface/subtle`. No shadow.
 
-**Approved (CJ, 2026-11-09):** row 7, option A. Button radius is `radius/md`. The card's buttons use `radius/full`. The design spec says most UI sits between `radius/md` (8px) and `radius/lg` (12px). The card keeps its pill until the adoption pull request. Not built in the nav pull request.
+**Approved (CJ, 2026-11-09):** row 7, option A. Button radius is `radius/md`. The card's buttons use `radius/full`. The design spec says most UI sits between `radius/md` (8px) and `radius/lg` (12px). The card keeps its pill until the adoption pull request.
 
-**Unknown.**
+**Approved (CJ, 2026-11-09):** row 6, option A. The height is the `size/control/*` token, horizontal padding is `control/padding-inline/*`, and vertical padding is `space/0`. `label/md` has a 20px line box. `size/control/md` is 40px, so the leftover vertical space is 10px a side. The space tokens jump from `space/1` (4px) to `space/2` (8px). 10px is not a token. `control/padding-block/md` is 12px a side, and 20 + 24 = 44, which is `size/touch-target`, not `size/control/md`. The fixed height and the padding tokens do not add up. Option A is how the card's buttons are built.
 
-- **Height math.** `label/md` has a 20px line box. `size/control/md` is 40px, so the leftover vertical space is 10px a side. The space tokens jump from `space/1` (4px) to `space/2` (8px). 10px is not a token. `control/padding-block/md` is 12px a side, and 20 + 24 = 44, which is `size/touch-target`, not `size/control/md`. The fixed height and the padding tokens do not add up. **Proposal:** the height is the `size/control/*` token, horizontal padding is `control/padding-inline/*`, and vertical padding is `space/0`. That is how the card's buttons are built.
-- **Unavailable.** A native `disabled` button cannot be focused, so a screen reader user tabs past it. `aria-disabled="true"` announces unavailable and leaves it focusable. The card uses the focusable form on Submit when the comment is too long, so the error can still be reached. **Proposal:** support both, and have the usage doc say which one to pick. The usual case is native `disabled`.
-- **Press scale.** The card scales to 0.96 on press. That number is a local value, `--feedback-card-press-scale`, and there is no scale token. **Proposal:** the basic button does not scale. The card may keep the scale as a local wrapper until question 2 is decided.
+**Approved (CJ, 2026-11-09):** row 9, option C. Support both native `disabled` and `aria-disabled="true"`. The usage doc says which to pick. The usual case is native `disabled`. A native `disabled` button cannot be focused, so a screen reader user tabs past it. `aria-disabled="true"` announces unavailable and leaves it focusable. The card uses the focusable form on Submit when the comment is too long, so the error can still be reached.
+
+The token table names a pressed color for primary only. Secondary and ghost use `color/surface/secondary` while pressed, so that state is visible. Secondary keeps `shadow/control` while pressed and uses `shadow/control-hover` only for hover. That choice is recorded in the [usage doc](basics/button.md) for review.
+
+**Proposal.** Press scale. The card scales to 0.96 on press. That number is a local value, `--feedback-card-press-scale`, and there is no scale token. The basic button does not scale. The card may keep the scale as a local wrapper until question 2 is decided.
 
 ## IconButton
 
@@ -437,7 +439,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 7, 8, and 10 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Rows 1, 7, 8, and 10 are recorded for later pull requests and are not built with the nav. No other row is approved.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. Row 10 stays with TextField. No other row is approved.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -446,10 +448,10 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 3 | Nav label wording | A. Ship the nav pull request with the working labels. B. Wait for a copy review before any nav change | **Approved (CJ, 2026-11-09):** A. The wording stays **Unknown**. A later copy review can rename them. The hashes follow the labels, and a renamed hash keeps the old one working |
 | 4 | Existing `#blocks` hash | A. Redirect. `#blocks` changes the address to the lab hash, and the back button does not bounce. An empty hash opens Lab, which is what an empty hash does today when it opens Blocks. B. Alias. `#blocks` and the lab hash both show Lab, and the address can stay `#blocks`. C. `#blocks` stops working | **Approved (CJ, 2026-11-09):** A |
 | 5 | When the nav pull request lands | A. Its own pull request, before Button. B. The same pull request as Button | **Approved (CJ, 2026-11-09):** A. Button then has a section to land in, and the Button pull request stays one component |
-| 6 | Button height and padding | A. Fixed height `size/control/*`, horizontal padding `control/padding-inline/*`, vertical padding `space/0`. B. Height is the line box plus `control/padding-block/*` | A. For `label/md` (20px line box), B does not land on `size/control/*`. The space scale has no 6px, 10px, or 14px step |
+| 6 | Button height and padding | A. Fixed height `size/control/*`, horizontal padding `control/padding-inline/*`, vertical padding `space/0`. B. Height is the line box plus `control/padding-block/*` | **Approved (CJ, 2026-11-09):** A. For `label/md` (20px line box), B does not land on `size/control/*`. The space scale has no 6px, 10px, or 14px step |
 | 7 | Button radius | A. `radius/md`. B. `radius/lg`. C. `radius/full`, matching the feedback card's buttons | **Approved (CJ, 2026-11-09):** A. The card keeps its pill until the adoption pull request |
-| 8 | Secondary and ghost, with no secondary action color in the tokens | A. Secondary: `color/surface/primary`, `color/text/secondary`, `shadow/control`. Ghost: transparent fill, `color/text/primary`, hover `color/surface/subtle`. B. Ghost uses `color/action/link`, matching Add a comment and Edit | **Approved (CJ, 2026-11-09):** A |
-| 9 | Unavailable button | A. Native `disabled` only. The button leaves the tab order. B. `aria-disabled` only. It stays focusable. C. Both, and the usage doc says which to use | C. The card's Submit stays focusable when the comment is too long, so the error can be reached. The usual case is native `disabled` |
+| 8 | Secondary and ghost, with no secondary action color in the tokens | A. Secondary: `color/surface/primary`, `color/text/secondary`, `shadow/control`, hover `shadow/control-hover`. Ghost: transparent fill, `color/text/primary`, hover `color/surface/subtle`. B. Ghost uses `color/action/link`, matching Add a comment and Edit | **Approved (CJ, 2026-11-09):** A |
+| 9 | Unavailable button | A. Native `disabled` only. The button leaves the tab order. B. `aria-disabled` only. It stays focusable. C. Both, and the usage doc says which to use | **Approved (CJ, 2026-11-09):** C. The card's Submit stays focusable when the comment is too long, so the error can be reached. The usual case is native `disabled` |
 | 10 | TextField error color | A. `feedback/error`, as the card does today. The same red in light and dark. B. Add a semantic error color with a dark value before TextField | **Approved (CJ, 2026-11-09):** A. B is a token-file change and goes through the adoption table first |
 | 11 | TextField validation timing | A. Late. Show the error on blur and on submit. Clear it as soon as the value is valid. B. Show the error on every change | A. This is the feedback card's timing |
 | 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | A. The size name and the padding name match. The card changes at adoption |

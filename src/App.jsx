@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ButtonDemo } from './components/button/Button.jsx'
 import { Showcase } from './showcase/Showcase.jsx'
 import tokensCss from './styles/tokens.css?raw'
 import { catalogFromCss, frostProperties, previewKind } from './parseTokenCss.js'
@@ -280,6 +281,7 @@ function ComponentsPage() {
       <p className="note">
         Core components built to spec on Camellia tokens. Button and TextField are up first.
       </p>
+      <ButtonDemo />
     </main>
   )
 }

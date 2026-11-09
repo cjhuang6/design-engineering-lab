@@ -39,7 +39,9 @@ If both are set, native `disabled` wins. The browser will not focus the button.
 
 Rest, hover, pressed, keyboard focus, and disabled. Hover applies only for a fine pointer that can hover. The focus ring shows on `:focus-visible` and stays off after a click. Disabled and `aria-disabled="true"` use the disabled opacity. The button does not scale on press.
 
-Pressed fills: primary uses `color/action/primary-pressed`. Secondary and ghost use `color/surface/secondary`. The plan named a pressed color for primary only. Secondary and ghost use the next surface color so the press is visible. Secondary keeps `shadow/control` while it is pressed, and uses `shadow/control-hover` only for hover.
+Primary pressed uses `color/action/primary-pressed`. In light, secondary and ghost get heavier in this order: rest, hover `color/surface/secondary`, pressed `color/surface/subtle`. Secondary keeps `shadow/control` while it is pressed, and uses `shadow/control-hover` only for hover.
+
+In dark, `color/surface/subtle` is `#08111f`, the same hex as `color/surface/primary` and darker than hover `color/surface/secondary` (`#111a27`). Pressed stays on `color/surface/secondary` there, so the press does not turn lighter than hover. No other semantic color is a stronger neutral fill.
 
 ## Tokens
 
@@ -54,11 +56,11 @@ Pressed fills: primary uses `color/action/primary-pressed`. Secondary and ghost 
 | Primary hover | `color/action/primary-hover` |
 | Primary pressed | `color/action/primary-pressed` |
 | Secondary rest | `color/surface/primary`, `color/text/secondary`, `shadow/control` |
-| Secondary hover | `shadow/control-hover` |
-| Secondary pressed | `color/surface/secondary`, `shadow/control` |
+| Secondary hover | `color/surface/secondary`, `shadow/control-hover` |
+| Secondary pressed | `color/surface/subtle` in light, `color/surface/secondary` in dark, `shadow/control` |
 | Ghost rest | transparent, `color/text/primary`, `shadow/none` |
-| Ghost hover | `color/surface/subtle` |
-| Ghost pressed | `color/surface/secondary` |
+| Ghost hover | `color/surface/secondary` |
+| Ghost pressed | `color/surface/subtle` in light, `color/surface/secondary` in dark |
 | Disabled | `opacity/disabled` |
 | Focus | `border/focus`, offset `border/width/2` |
 | Coarse hit area | `size/touch-target` |

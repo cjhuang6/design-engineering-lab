@@ -118,6 +118,8 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 - Basics do not use the expression colors (`color/expression/pink`, `color/expression/blue`, `color/expression/green`), the expression motion tokens, or the frost materials. Those are for atmospheric work.
 - Theme-aware shadows are `shadow/raised`, `shadow/control`, and `shadow/control-hover`. They change in the dark theme. The primitive shadows `shadow/none`, `shadow/sm`, `shadow/md`, and `shadow/lg` do not. Controls use the theme-aware ones.
 
+**Approved (CJ, 2026-11-09).** Micro-interactions for the basics are deferred until the first batch is built. Until then every basic component uses only a `duration/fast` and `ease/standard` color and shadow transition. No press scale, and no custom choreography.
+
 ## Order
 
 **Proposal.** One pull request per step. The order is the list below.
@@ -201,7 +203,7 @@ There is no `color/action/secondary`. **Approved (CJ, 2026-11-09):** row 8, opti
 
 **Approved (CJ, 2026-11-09):** row 9, option C. Support both native `disabled` and `aria-disabled="true"`. The usage doc says which to pick. The usual case is native `disabled`. A native `disabled` button cannot be focused, so a screen reader user tabs past it. `aria-disabled="true"` announces unavailable and leaves it focusable. The card uses the focusable form on Submit when the comment is too long, so the error can still be reached.
 
-The token table names a pressed color for primary only. Secondary and ghost use `color/surface/secondary` while pressed, so that state is visible. Secondary keeps `shadow/control` while pressed and uses `shadow/control-hover` only for hover. That choice is recorded in the [usage doc](basics/button.md) for review.
+The token table names a pressed color for primary only. The fills here replace the ghost hover from row 8. Light hover is `color/surface/secondary` and light pressed is `color/surface/subtle`, so the fill gets heavier from rest to hover to pressed. In dark, pressed stays `color/surface/secondary`, because `color/surface/subtle` is the same hex as `color/surface/primary` and is darker than that hover. Secondary keeps `shadow/control` while pressed and uses `shadow/control-hover` only for hover. The fills are in the [usage doc](basics/button.md).
 
 **Proposal.** Press scale. The card scales to 0.96 on press. That number is a local value, `--feedback-card-press-scale`, and there is no scale token. The basic button does not scale. The card may keep the scale as a local wrapper until question 2 is decided.
 

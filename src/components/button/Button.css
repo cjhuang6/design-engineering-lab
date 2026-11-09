@@ -79,11 +79,12 @@
   }
 
   .camellia-button-secondary:not(:disabled):not([aria-disabled='true']):hover {
+    background: var(--color-surface-secondary);
     box-shadow: var(--shadow-control-hover);
   }
 
   .camellia-button-ghost:not(:disabled):not([aria-disabled='true']):hover {
-    background: var(--color-surface-subtle);
+    background: var(--color-surface-secondary);
   }
 }
 
@@ -92,11 +93,16 @@
 }
 
 .camellia-button-secondary:not(:disabled):not([aria-disabled='true']):active {
-  background: var(--color-surface-secondary);
+  background: var(--color-surface-subtle);
   box-shadow: var(--shadow-control);
 }
 
 .camellia-button-ghost:not(:disabled):not([aria-disabled='true']):active {
+  background: var(--color-surface-subtle);
+}
+
+[data-theme='dark'] .camellia-button-secondary:not(:disabled):not([aria-disabled='true']):active,
+[data-theme='dark'] .camellia-button-ghost:not(:disabled):not([aria-disabled='true']):active {
   background: var(--color-surface-secondary);
 }
 

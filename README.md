@@ -55,7 +55,15 @@ npm ci
 npm run dev
 ```
 
-Vite prints the local URL. The page opens on Blocks, a masonry of components. The hex color picker is the first block. Hover or focus a card to see its name and the button that opens its details. Tokens lists the generated custom properties (color, type, space, radius, shadow, and the other groups), and a button there sets `data-theme="dark"` so semantic colors follow the dark overrides. Pipeline is a short placeholder page. Text links at the top switch among the three. The page starts from the system's light or dark preference.
+## The showcase
+
+The [live showcase](https://cjhuang6.github.io/design-engineering-lab/) is organized into five sections:
+
+- **Components**: core components built to spec on Camellia tokens, starting with Button.
+- **Lab**: experimental interaction pieces that push past standard patterns, including a security code input, a hex color picker, and a feedback card.
+- **Prototypes**: product prototypes assembled from Camellia components with AI tools. Coming soon.
+- **Tokens**: Camellia's design tokens, the shared foundation every component is built on.
+- **Pipeline**: the pipeline write-up is coming. How tokens move from design source to production code is in [Pipeline](#pipeline).
 
 The font tokens name Geist and Geist Mono. The demo self-hosts those font files, so the page uses them even when the families are not installed.
 

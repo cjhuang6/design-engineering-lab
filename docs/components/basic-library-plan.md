@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Row 10 stays with TextField. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 14 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Row 10 stays with TextField. Row 14 is the IconButton icon source. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -128,7 +128,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 |---|---|---|
 | 0 | Showcase nav restructure | **Approved (CJ, 2026-11-09).** Its own pull request, before Button. Detail: [Showcase navigation](#showcase-navigation) |
 | 1 | Button | **In progress.** Primary, secondary, and ghost, at `sm`, `md`, and `lg`, in the Components section. Usage: [Button](basics/button.md) |
-| 2 | IconButton | The same button, with an icon and an accessible name |
+| 2 | IconButton | **In progress.** Square control. The caller passes the icon. The accessible name is the `label` prop. Usage: [IconButton](basics/icon-button.md) |
 | 3 | TextField | One line, with label, help, and error |
 | 4 | Chip / ToggleChip | The pressable chip the feedback card already invented by hand |
 | 5 | Guide-feedback adoption | **Proposal.** Switch that card's buttons, chips, and one-line field over to the basics. This is the reuse proof, and it is the trigger for [question 2](#adoption-and-question-2). It waits until steps 1, 3, and 4 are merged |
@@ -209,15 +209,23 @@ The token table names a pressed color for primary only. The fills here replace t
 
 ## IconButton
 
-**Proposal.** Step 2. A Button with no visible words.
+**In progress.** Step 2. A Button with no visible words. The control is square. Usage: [IconButton](basics/icon-button.md). Code: `src/components/icon-button/`.
 
-**States.** The same as Button.
+**States.** The same as Button, including the pressed fills in that [usage doc](basics/button.md).
 
-**Spec.** The same [Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/). The accessible name cannot come from visible text, so the component requires a name, passed to `aria-label`. An accessible name is the text a screen reader reads for the control. An icon button without one is announced as a blank button.
+**Spec.** The same [Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/). The accessible name cannot come from visible text. An accessible name is the text a screen reader reads for the control. An icon button without one is announced as a blank button.
 
-**Tokens.** The Button tokens, plus the icon glyph size: `size/icon/sm` 16px, `size/icon/md` 20px, `size/icon/lg` 24px. **Proposal:** pair them with the control size of the same name (16 inside 32, 20 inside 40, 24 inside 48). The icon color is `color/icon/primary` on secondary and ghost, and `color/action/primary-text` on primary.
+**Approved (CJ, 2026-11-09):** row 14, option A. No icon package. The caller passes the icon element in. IconButton requires an accessible name, passed as the `label` prop and rendered as `aria-label`. The icon is `aria-hidden`. Adding a package is a dependency change and was not chosen. A shared Camellia icon set is a later decision, not this pull request.
 
-**Unknown.** Where the icon graphic comes from. **Proposal:** no icon package. The caller passes the icon in. Adding a package is a dependency change and needs CJ's approval. A shared Camellia icon set is a later decision, not this pull request.
+**Tokens.** The Button tokens, plus:
+
+| Part | Token | Notes |
+|---|---|---|
+| Width | `size/control/sm` 32px, `size/control/md` 40px, `size/control/lg` 48px | Square. Width equals the height of the same size. Inline padding is `space/0`, so the width stays that token |
+| Icon glyph | `size/icon/sm` 16px, `size/icon/md` 20px, `size/icon/lg` 24px | Paired with the control size of the same name: 16 inside 32, 20 inside 40, 24 inside 48 |
+| Icon color | `color/icon/primary` on secondary and ghost. `color/action/primary-text` on primary | The graphic uses the button's text color |
+
+The focus ring, the coarse hit area, hover only on a fine pointer, disabled opacity, and the motion rule are Button's. **Approved (CJ, 2026-11-09):** motion stays `duration/fast` and `ease/standard` on color and shadow. Under reduced motion those transitions take no time. No press scale.
 
 ## TextField
 
@@ -431,7 +439,7 @@ No token-file edit lands in the pull request until CJ approves that table. **Pro
 | An index written for AI tools | One markdown page listing every basic component, the file it lives in, and a short example. A person can paste it into a prompt, or a tool can fetch it | One place to point a tool | It goes stale unless it is generated from the components or checked |
 | Figma Code Connect | Figma's link from a Figma component to a code snippet. Components-roadmap [question 3](../components-roadmap.md#open-questions) | Design-to-code stays tied to the real component | Question 3 is **Unknown**. Code Connect and any Figma write need CJ's approval. It does not help a prototype that never opens Figma |
 
-The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above.
+The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. The rest of that prop set is still not chosen.
 
 ## Figma
 
@@ -441,7 +449,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. Row 10 stays with TextField. No other row is approved.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 14 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. Row 10 stays with TextField. IconButton uses row 14. No other row is approved.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -458,7 +466,7 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 11 | TextField validation timing | A. Late. Show the error on blur and on submit. Clear it as soon as the value is valid. B. Show the error on every change | A. This is the feedback card's timing |
 | 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | A. The size name and the padding name match. The card changes at adoption |
 | 13 | ToggleChip size | A. Existing tokens only. Height `size/control/sm`, type `label/sm`. B. New tokens for the card's 28px height and 13px type | A. B waits for the token table at adoption |
-| 14 | Icon source | A. No icon package. The caller passes the icon, and IconButton requires an accessible name. B. Add an icon package | A. B is a dependency change |
+| 14 | Icon source | A. No icon package. The caller passes the icon, and IconButton requires an accessible name. B. Add an icon package | **Approved (CJ, 2026-11-09):** A. The name is the `label` prop, rendered as `aria-label`. The icon is `aria-hidden`. B is a dependency change |
 | 15 | Checkbox mixed state | A. Checked and unchecked only. B. Include the mixed state in the first Checkbox pull request | A |
 | 16 | Switch on color | A. `color/action/primary`. B. `color/functional/accent` | A. On is an action, not a success message |
 | 17 | Switch track size | A. Height `size/control/sm` (32px), width `size/control/lg` (48px). B. Height `size/icon/lg` (24px), width `size/control/md` (40px). C. Decide at the Switch pull request, from tokens that exist | A, confirmed when that pull request opens. No new size token |

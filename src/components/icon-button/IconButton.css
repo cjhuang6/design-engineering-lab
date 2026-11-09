@@ -1,0 +1,81 @@
+.camellia-icon-button {
+  flex-shrink: 0;
+}
+
+.camellia-icon-button.camellia-button-sm {
+  width: var(--size-control-sm);
+  padding-inline: var(--space-0);
+}
+
+.camellia-icon-button.camellia-button-md {
+  width: var(--size-control-md);
+  padding-inline: var(--space-0);
+}
+
+.camellia-icon-button.camellia-button-lg {
+  width: var(--size-control-lg);
+  padding-inline: var(--space-0);
+}
+
+.camellia-icon-button.camellia-button-primary {
+  color: var(--color-action-primary-text);
+}
+
+.camellia-icon-button.camellia-button-secondary,
+.camellia-icon-button.camellia-button-ghost {
+  color: var(--color-icon-primary);
+}
+
+.camellia-icon-button-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.camellia-icon-button.camellia-button-sm .camellia-icon-button-icon {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+}
+
+.camellia-icon-button.camellia-button-md .camellia-icon-button-icon {
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+}
+
+.camellia-icon-button.camellia-button-lg .camellia-icon-button-icon {
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
+}
+
+.camellia-icon-button-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.camellia-icon-button-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--layout-content-gap-lg);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-icon-button-demo-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-icon-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 100%;
+}

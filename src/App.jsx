@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ButtonDemo } from './components/button/Button.jsx'
+import { IconButtonDemo } from './components/icon-button/IconButton.jsx'
 import { Showcase } from './showcase/Showcase.jsx'
 import tokensCss from './styles/tokens.css?raw'
 import { catalogFromCss, frostProperties, previewKind } from './parseTokenCss.js'
@@ -282,6 +283,7 @@ function ComponentsPage() {
         Core components built to spec on Camellia tokens. Button and TextField are up first.
       </p>
       <ButtonDemo />
+      <IconButtonDemo />
     </main>
   )
 }

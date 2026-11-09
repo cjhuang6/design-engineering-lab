@@ -197,7 +197,7 @@ test("each hash opens its section and marks that link current", async () => {
     {
       hash: "#components",
       current: "Components",
-      present: [COMPONENTS_COPY, "Primary md", "Primary disabled", "Primary unavailable", "No button activated."],
+      present: [COMPONENTS_COPY, "Primary md", "Primary disabled", "Primary unavailable", "No button activated.", "Icon button", "No icon button activated."],
       absent: [PROTOTYPES_COPY, ...LAB_CARDS.map((name) => `Open ${name} details`)],
     },
     {
@@ -249,6 +249,15 @@ test("each hash opens its section and marks that link current", async () => {
         assert.equal(cardButton(view.host, name) != null, item.cards === true, `${item.hash} card ${name}`);
       }
       if (item.cards) assert.equal(view.host.querySelector(".showcase-sr")?.textContent, "Lab");
+      if (item.hash === "#components") {
+        const iconButton = [...view.host.querySelectorAll("button")].find(
+          (button) => button.getAttribute("aria-label") === "Primary sm",
+        );
+        assert.ok(iconButton);
+        assert.equal(iconButton.classList.contains("camellia-icon-button"), true);
+        assert.equal(iconButton.classList.contains("camellia-button"), true);
+        assert.ok(iconButton.querySelector("[aria-hidden='true'] svg"));
+      }
     } finally {
       await view.unmount();
     }

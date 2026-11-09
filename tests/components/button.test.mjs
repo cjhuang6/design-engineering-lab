@@ -258,4 +258,20 @@ describe("button", { concurrency: false }, () => {
     assert.match(css, /box-shadow: var\(--shadow-control-hover\);/);
     assert.match(css, /background: var\(--color-surface-subtle\);/);
   });
+
+  test("secondary and ghost fills step from secondary on hover to subtle when pressed, except in dark", async () => {
+    const css = await readFile(join(ROOT, "src/components/button/Button.css"), "utf8");
+    const hover = mediaBlock(css, "@media (hover: hover) and (pointer: fine)");
+    const secondaryHover = /\.camellia-button-secondary:not\(:disabled\):not\(\[aria-disabled='true'\]\):hover \{[^}]*background: var\(--color-surface-secondary\);/;
+    const ghostHover = /\.camellia-button-ghost:not\(:disabled\):not\(\[aria-disabled='true'\]\):hover \{[^}]*background: var\(--color-surface-secondary\);/;
+    assert.match(hover.body, secondaryHover);
+    assert.match(hover.body, ghostHover);
+    assert.equal(hover.body.includes("--color-surface-subtle"), false);
+    const secondaryPressed = /\.camellia-button-secondary:not\(:disabled\):not\(\[aria-disabled='true'\]\):active \{\s*background: var\(--color-surface-subtle\);/;
+    const ghostPressed = /\.camellia-button-ghost:not\(:disabled\):not\(\[aria-disabled='true'\]\):active \{\s*background: var\(--color-surface-subtle\);/;
+    assert.match(css, secondaryPressed);
+    assert.match(css, ghostPressed);
+    const darkPressed = /\[data-theme='dark'\] \.camellia-button-secondary:not\(:disabled\):not\(\[aria-disabled='true'\]\):active,\s*\[data-theme='dark'\] \.camellia-button-ghost:not\(:disabled\):not\(\[aria-disabled='true'\]\):active \{\s*background: var\(--color-surface-secondary\);\s*\}/;
+    assert.match(css.slice(hover.end), darkPressed);
+  });
 });

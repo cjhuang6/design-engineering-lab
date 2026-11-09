@@ -11,7 +11,19 @@ Every entry is labelled:
 
 The token pipeline roadmap uses "Phase 3" for a designer-review workflow and "Phase 4" for an earlier component sketch, including a note that Button might be first. Those sections are not this phase. This document is the components plan. The Button note does not choose the first component.
 
+## Two tracks
+
+**Approved (CJ, 2026-11-09).** Camellia has two component tracks. They can both be in progress. This file's approved method is track 1. Track 2 has its own plan: [basic component library](components/basic-library-plan.md).
+
+**Track 1, lab components.** Invent the interaction, then write an interaction brief, prototype, and a rationale note. The three pieces on `main` are this track: the hex color picker, slot-code, and the guide-feedback card. The [Direction](#direction-approved), the [working method](#working-method-approved), and the interaction brief stay the rules for this track. A later invented piece still needs its own approval. This section does not approve the next one.
+
+**Track 2, standard basic components.** Follow a published pattern, so the behavior is the conventional, predictable kind. The goal is to build that library, then use AI tools to make prototypes out of those pieces. **Approved (CJ, 2026-11-09):** the plan is written down and approved before any track 2 component code, and the track runs in parallel with Phase 2E. It does not wait for 2E, and it does not change the next agreed task. **Approved (CJ, 2026-11-09):** the showcase navigation splits into three sections, the basics, the lab pieces, and a reserved list of prototypes. The open proposals, including nav labels, live in that plan.
+
+The [later candidates](#proposals) table overlaps track 2 where a row names the same kind of control. The note under that table says which rows. An overlap does not turn a track 1 idea into a track 2 component, and it does not approve either one.
+
 ## Direction (Approved)
+
+**Approved (CJ, 2026-11-09):** this direction is track 1. Track 2 is summarized in [Two tracks](#two-tracks) and planned in the [basic component library](components/basic-library-plan.md).
 
 **Approved (2026-10-22):** Phase 2D (Text Styles) and Phase 2E (Effect Styles) come first. Then build components with the emphasis on behavior: how a component responds, and the interaction model behind that response. Components already on `main` are the per-component approvals in [Entry criteria](#entry-criteria).
 
@@ -64,6 +76,8 @@ The toggle stays on the [later list](#proposals), credited to daz.
 ## Working method (Approved)
 
 One component per pull request. The pull request contains the four parts below, in this order. Code does not start a component that has no interaction brief in the same change.
+
+**Proposal:** track 2 would use the conformance checklist in the [basic component library](components/basic-library-plan.md) instead of this brief. That swap is part of the plan, and it waits for CJ to approve the plan. Until then, a component pull request still follows the four parts below.
 
 **(a) Interaction brief, written before code.** The concept, the states, keyboard behavior, pointer behavior, motion, and accessibility. Motion uses Camellia's duration and ease tokens (`duration/fast`, `duration/normal`, `duration/slow`, `ease/standard`, `ease/enter`, `ease/exit`). The expression tokens (`duration/expression-sm`, `duration/expression-md`, `duration/expression-lg`, `ease/expression`) are for motion that is deliberately expressive. The brief names the token. It does not invent a millisecond value or a cubic-bezier.
 
@@ -138,6 +152,8 @@ The approved working method includes a Figma prototype in the component pull req
 
 **Observed** on `main`: the shell is [PR #32](https://github.com/cjhuang6/design-engineering-lab/pull/32) (`4542b7d`) and the phone layout is [PR #33](https://github.com/cjhuang6/design-engineering-lab/pull/33) (`8f9d3fe`). Refinements on that showcase are [#31](https://github.com/cjhuang6/design-engineering-lab/pull/31), [#34](https://github.com/cjhuang6/design-engineering-lab/pull/34), [#35](https://github.com/cjhuang6/design-engineering-lab/pull/35), [#37](https://github.com/cjhuang6/design-engineering-lab/pull/37), [#41](https://github.com/cjhuang6/design-engineering-lab/pull/41), and [#44](https://github.com/cjhuang6/design-engineering-lab/pull/44). GitHub Pages is [PR #27](https://github.com/cjhuang6/design-engineering-lab/pull/27) (`27d44ba`). The demo loads self-hosted Geist ([PR #28](https://github.com/cjhuang6/design-engineering-lab/pull/28), `75fdad3`). The top navigation is Blocks, Tokens, and Pipeline, using hash links (`#blocks`, `#tokens`, `#pipeline`). Tokens is the token reference. Pipeline is a placeholder page. The live cards are the slot-code security component ([PR #36](https://github.com/cjhuang6/design-engineering-lab/pull/36) `5235ee7`, with [#38](https://github.com/cjhuang6/design-engineering-lab/pull/38)–[#40](https://github.com/cjhuang6/design-engineering-lab/pull/40), [#42](https://github.com/cjhuang6/design-engineering-lab/pull/42), [#43](https://github.com/cjhuang6/design-engineering-lab/pull/43), [#45](https://github.com/cjhuang6/design-engineering-lab/pull/45)), the hex color picker, and the guide-feedback receipt card ([PR #49](https://github.com/cjhuang6/design-engineering-lab/pull/49) `c370dca`, [#50](https://github.com/cjhuang6/design-engineering-lab/pull/50) `a787c6b`, [#51](https://github.com/cjhuang6/design-engineering-lab/pull/51) `e7a6bcb`, [#52](https://github.com/cjhuang6/design-engineering-lab/pull/52) `681bb93`, [#53](https://github.com/cjhuang6/design-engineering-lab/pull/53) `837dd86`). [PR #49](https://github.com/cjhuang6/design-engineering-lab/pull/49) also added `theme.light.shadow.*` and `theme.dark.shadow.*` (`raised`, `control`, `control-hover`) to `tokens/camellia.tokens.json`.
 
+**Approved (CJ, 2026-11-09):** the nav will split into three sections, standard basics, lab components, and a reserved prototypes list. That split, and the proposals still open on labels and on the `#blocks` hash, are in the [basic component library](components/basic-library-plan.md#showcase-navigation). The Blocks, Tokens, and Pipeline nav in this section is what is on `main` today.
+
 **Step 1, site shell.** Top navigation with a component page, Tokens, and Pipeline. The token reference moves to Tokens. The README's [pipeline explanation and diagram](../README.md#pipeline) move to Pipeline. **Observed** in `src/App.jsx`: the shipped nav says Blocks, Tokens, and Pipeline, the links are hashes, and no router library was added. Tokens is the token reference. The Pipeline page is still the placeholder sentence, so that README section has not moved.
 
 **Step 2, component cards.** Each component is a live, interactive card. Expanding a card shows the design idea, the logic, notes, and learnings. Each component folder gets a small notes file, so adding a component means adding a folder. The hex color picker's brief, [proximity hex color picker](components/color-picker-brief.md), supplies most of its write-up. Slot-code and guide-feedback are the other cards on `main`.
@@ -162,6 +178,8 @@ The approved working method includes a Figma prototype in the component pull req
 | Theme switch | Flips `data-theme` so semantic colors change. The control does not introduce a second palette |
 | Inline status | A field moves among neutral, error, and success using feedback and semantic colors that already exist |
 | Toggle | Hover states on a switch. Dropped as the first component for now. A later idea, credited to [daz](https://daz.typenote.co/toggle-hover-states) |
+
+**Overlap with track 2.** Press feedback overlaps Button, Single-choice segments overlaps Segmented control, Inline status overlaps TextField, and Toggle overlaps Switch. Track 2 follows the standard pattern in the [basic component library](components/basic-library-plan.md). The interaction idea in this table stays a track 1 proposal when CJ still wants an invented version. Single-choice segments, as written here, keeps focus visible on a segment that is not the selected one. The standard radio pattern moves focus and the selection together, which is what track 2 Segmented control follows. Disclosure and Theme switch have no track 2 row. A theme switch could later be a track 2 Switch that flips `data-theme`, and that use is still undecided. Overlap does not approve a row here and does not approve a track 2 component.
 
 ## Open questions
 

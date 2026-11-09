@@ -668,7 +668,7 @@ export function Showcase({ blocks: blocksProp }) {
     <main className="showcase-page">
       <div className="showcase-safe-probe" ref={safeProbeRef} aria-hidden="true" />
       <div className="showcase-main">
-        <h1 className="showcase-sr">Blocks</h1>
+        <h1 className="showcase-sr">Lab</h1>
         <div className="showcase-grid" ref={gridRef}>
           {blocks.map((block) => (
             <Slot

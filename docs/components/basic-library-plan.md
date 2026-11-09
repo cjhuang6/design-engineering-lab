@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided). Everything else in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. No other decision is Approved. No track 2 pull request that changes the demo, the nav, or a component opens until CJ approves the part of this plan that pull request needs. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 7, 8, and 10 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 7, 8, and 10 are recorded for the later component pull requests. They are not built with the nav. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -86,7 +86,7 @@ What this pull request will not do.
 
 A **headless library** is a package that supplies keyboard, focus, and ARIA behavior, and leaves the visuals to us. Examples a later decision could consider: Radix, React Aria, Base UI.
 
-**Proposal: no new dependency.** The library is native elements plus the APG, styled with Camellia tokens.
+**Approved (CJ, 2026-11-09):** row 1, option A. No new dependency. The library is native elements plus the APG, styled with Camellia tokens.
 
 | | Native elements, no new package | Add a headless library |
 |---|---|---|
@@ -95,7 +95,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | Risk | We can get a role or a key wrong, which the checklist and the tests are there to catch | The package's prop names become Camellia's prop names, and we take on its releases |
 | Fit | Matches the current demo, which has no component library | Faster for Dialog, Select, and Tabs, which are on the later list |
 
-**Unknown** until CJ picks. The recommendation is in [Decisions for CJ](#decisions-for-cj).
+**Approved (CJ, 2026-11-09):** row 1, option A. The comparison above is the record of that choice.
 
 ## Definition of done
 
@@ -124,7 +124,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 
 | Step | Pull request | Why it is here |
 |---|---|---|
-| 0 | Showcase nav restructure | **Proposal, recommended first.** Button needs a section to land in. Detail: [Showcase navigation](#showcase-navigation) |
+| 0 | Showcase nav restructure | **Approved (CJ, 2026-11-09).** Its own pull request, before Button. Detail: [Showcase navigation](#showcase-navigation) |
 | 1 | Button | Smallest control. Primary, secondary, and ghost. Sizes from the control size tokens |
 | 2 | IconButton | The same button, with an icon and an accessible name |
 | 3 | TextField | One line, with label, help, and error |
@@ -146,9 +146,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 2. **Lab components.** The innovative pieces: slot-code, the hex color picker, the guide-feedback card, and future track 1 pieces.
 3. **Prototypes.** A reserved section that lists prototypes built from the basic components. This is the AI prototyping goal. It is empty until a prototype exists.
 
-**Observed** in `src/App.jsx` on `main`: the nav is Blocks, Tokens, and Pipeline. The links are hash links, the part of the address after `#`. `#tokens` opens Tokens, `#pipeline` opens Pipeline, and every other hash, including `#blocks` and an empty hash, opens Blocks. There is no router package.
-
-**Proposal (pending CJ).** Keep Tokens and Pipeline as nav items after the three sections. That is five items. Working labels, in order:
+**Approved (CJ, 2026-11-09):** rows 2 and 3, option A. Five items. Working labels, in order:
 
 1. Components
 2. Lab
@@ -156,19 +154,21 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 4. Tokens
 5. Pipeline
 
-Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, plus the existing `#tokens` and `#pipeline`.
+Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, `#tokens`, and `#pipeline`.
 
-**Unknown.** The final label wording. Site copy is reviewed separately. The working labels are a stand-in so the nav pull request has words to ship. A later copy review can rename them. A rename changes the hash, so the old hash should keep working the same way `#blocks` does.
+**Unknown.** The final label wording. The working labels shipped with the nav. A later copy review can rename them. A rename changes the hash, so the old hash should keep working the same way `#blocks` does. The label stays Lab, and the hash stays `#lab`, until that review.
 
-**Proposal.** `#blocks` redirects to the lab section. Someone with an old link lands on Lab, and the address bar changes to the lab hash. The browser back button should not bounce between `#blocks` and the lab hash. An empty hash keeps opening Lab, because an empty hash opens Blocks today and Lab is that same page.
+**Approved (CJ, 2026-11-09):** row 4, option A. `#blocks` redirects to `#lab`. The address changes to `#lab` through `history.replaceState`, so the back button does not bounce between the two. An empty hash opens Lab.
 
-**Proposal, what each section shows at first.**
+**Approved (CJ, 2026-11-09):** what each section shows at first.
 
-- Lab shows the three cards that Blocks shows today. The page moves. The cards do not get redesigned in the nav pull request.
-- Components is an empty section until Button. One short sentence says the library will live here. The sentence is site copy, so its wording is part of the **Unknown** above.
-- Prototypes is reserved and empty. The same copy note applies. Nothing is listed until a prototype built from the basics exists.
+- Lab shows the three cards that Blocks showed: slot-code, the hex color picker, and the guide-feedback card. The page moved. The cards were not redesigned.
+- Components is an empty section until Button. **Approved (CJ, 2026-11-09)** sentence: "Core components built to spec on Camellia tokens. Button and TextField are up first."
+- Prototypes is reserved and empty. Nothing is listed until a prototype built from the basics exists. **Approved (CJ, 2026-11-09)** sentence: "Product prototypes assembled from Camellia components with AI tools. First builds coming soon."
 
-**Proposal.** This is its own pull request, before Button. It updates the demo-app feature in the feature map, because the entry points change. It does not add a component, and it does not edit the token file.
+**Approved (CJ, 2026-11-09):** row 5, option A. This is its own pull request, before Button. It updates the demo-app feature in the feature map, because the entry points change. It does not add a component, and it does not edit the token file.
+
+**Observed** in `src/App.jsx`: the nav is those five links. There is no router package.
 
 ## Button
 
@@ -193,14 +193,13 @@ Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, plu
 | Focus | `border/focus`, offset `border/width/2` | Shared ring above |
 | Motion | `duration/fast`, `ease/standard` | Color and shadow only |
 
-There is no `color/action/secondary`. **Proposal** for secondary, taken from the card's Cancel button (**Observed** in `GuideFeedback.css`): fill `color/surface/primary`, label `color/text/secondary`, shadow `shadow/control`, hover shadow `shadow/control-hover`.
+There is no `color/action/secondary`. **Approved (CJ, 2026-11-09):** row 8, option A. Secondary, taken from the card's Cancel button (**Observed** in `GuideFeedback.css`): fill `color/surface/primary`, label `color/text/secondary`, shadow `shadow/control`, hover shadow `shadow/control-hover`. Ghost: transparent fill, label `color/text/primary`, hover fill `color/surface/subtle`. No shadow. Not built in the nav pull request.
 
-**Proposal** for ghost: transparent fill, label `color/text/primary`, hover fill `color/surface/subtle`. No shadow.
+**Approved (CJ, 2026-11-09):** row 7, option A. Button radius is `radius/md`. The card's buttons use `radius/full`. The design spec says most UI sits between `radius/md` (8px) and `radius/lg` (12px). The card keeps its pill until the adoption pull request. Not built in the nav pull request.
 
 **Unknown.**
 
 - **Height math.** `label/md` has a 20px line box. `size/control/md` is 40px, so the leftover vertical space is 10px a side. The space tokens jump from `space/1` (4px) to `space/2` (8px). 10px is not a token. `control/padding-block/md` is 12px a side, and 20 + 24 = 44, which is `size/touch-target`, not `size/control/md`. The fixed height and the padding tokens do not add up. **Proposal:** the height is the `size/control/*` token, horizontal padding is `control/padding-inline/*`, and vertical padding is `space/0`. That is how the card's buttons are built.
-- **Radius.** The card's buttons use `radius/full`. The design spec says most UI sits between `radius/md` (8px) and `radius/lg` (12px). **Proposal:** `radius/md` for the basic button. The card keeps its pill until the adoption pull request.
 - **Unavailable.** A native `disabled` button cannot be focused, so a screen reader user tabs past it. `aria-disabled="true"` announces unavailable and leaves it focusable. The card uses the focusable form on Submit when the comment is too long, so the error can still be reached. **Proposal:** support both, and have the usage doc say which one to pick. The usual case is native `disabled`.
 - **Press scale.** The card scales to 0.96 on press. That number is a local value, `--feedback-card-press-scale`, and there is no scale token. **Proposal:** the basic button does not scale. The card may keep the scale as a local wrapper until question 2 is decided.
 
@@ -249,7 +248,7 @@ There is no `color/action/secondary`. **Proposal** for secondary, taken from the
 
 **Unknown.**
 
-- `feedback/error` (`--feedback-error`, `#EF4444`) is a primitive. **Observed:** the dark theme block in `tokens.css` does not override it, so the red is the same in both themes. **Proposal:** use it anyway, as the card does. A semantic error color with its own dark value is a token-file change and waits for the table in [Adoption](#adoption-and-question-2).
+- `feedback/error` (`--feedback-error`, `#EF4444`) is a primitive. **Observed:** the dark theme block in `tokens.css` does not override it, so the red is the same in both themes. **Approved (CJ, 2026-11-09):** row 10, option A. Use `feedback/error`, as the card does. A semantic error color with its own dark value is a token-file change and waits for the table in [Adoption](#adoption-and-question-2). Not built in the nav pull request.
 - A success state. `feedback/success` exists and has the same one-value limit. The card's field has no success state. **Proposal:** the first TextField has no success state.
 - Read-only. **Proposal:** out of the first pull request.
 
@@ -438,20 +437,20 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. No track 2 code, including the nav, starts until the rows that pull request needs are answered.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 7, 8, and 10 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Rows 1, 7, 8, and 10 are recorded for later pull requests and are not built with the nav. No other row is approved.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
-| 1 | Headless dependency | A. Native HTML plus the APG. No new package. B. Add a headless library (Radix, React Aria, or Base UI) | A. B needs an explicit approval to change `package.json` and the lockfile |
-| 2 | Nav items after the three approved sections | A. Five items. The three sections, then Tokens, then Pipeline. B. Only the three sections. Tokens and Pipeline leave the bar | A. Working order: Components, Lab, Prototypes, Tokens, Pipeline |
-| 3 | Nav label wording | A. Ship the nav pull request with the working labels. B. Wait for a copy review before any nav change | A. The wording stays **Unknown**. A later copy review can rename them. The hashes follow the labels, and a renamed hash keeps the old one working |
-| 4 | Existing `#blocks` hash | A. Redirect. `#blocks` changes the address to the lab hash, and the back button does not bounce. An empty hash opens Lab, which is what an empty hash does today when it opens Blocks. B. Alias. `#blocks` and the lab hash both show Lab, and the address can stay `#blocks`. C. `#blocks` stops working | A |
-| 5 | When the nav pull request lands | A. Its own pull request, before Button. B. The same pull request as Button | A. Button then has a section to land in, and the Button pull request stays one component |
+| 1 | Headless dependency | A. Native HTML plus the APG. No new package. B. Add a headless library (Radix, React Aria, or Base UI) | **Approved (CJ, 2026-11-09):** A. B needs an explicit approval to change `package.json` and the lockfile |
+| 2 | Nav items after the three approved sections | A. Five items. The three sections, then Tokens, then Pipeline. B. Only the three sections. Tokens and Pipeline leave the bar | **Approved (CJ, 2026-11-09):** A. Working order: Components, Lab, Prototypes, Tokens, Pipeline |
+| 3 | Nav label wording | A. Ship the nav pull request with the working labels. B. Wait for a copy review before any nav change | **Approved (CJ, 2026-11-09):** A. The wording stays **Unknown**. A later copy review can rename them. The hashes follow the labels, and a renamed hash keeps the old one working |
+| 4 | Existing `#blocks` hash | A. Redirect. `#blocks` changes the address to the lab hash, and the back button does not bounce. An empty hash opens Lab, which is what an empty hash does today when it opens Blocks. B. Alias. `#blocks` and the lab hash both show Lab, and the address can stay `#blocks`. C. `#blocks` stops working | **Approved (CJ, 2026-11-09):** A |
+| 5 | When the nav pull request lands | A. Its own pull request, before Button. B. The same pull request as Button | **Approved (CJ, 2026-11-09):** A. Button then has a section to land in, and the Button pull request stays one component |
 | 6 | Button height and padding | A. Fixed height `size/control/*`, horizontal padding `control/padding-inline/*`, vertical padding `space/0`. B. Height is the line box plus `control/padding-block/*` | A. For `label/md` (20px line box), B does not land on `size/control/*`. The space scale has no 6px, 10px, or 14px step |
-| 7 | Button radius | A. `radius/md`. B. `radius/lg`. C. `radius/full`, matching the feedback card's buttons | A. The card keeps its pill until the adoption pull request |
-| 8 | Secondary and ghost, with no secondary action color in the tokens | A. Secondary: `color/surface/primary`, `color/text/secondary`, `shadow/control`. Ghost: transparent fill, `color/text/primary`, hover `color/surface/subtle`. B. Ghost uses `color/action/link`, matching Add a comment and Edit | A |
+| 7 | Button radius | A. `radius/md`. B. `radius/lg`. C. `radius/full`, matching the feedback card's buttons | **Approved (CJ, 2026-11-09):** A. The card keeps its pill until the adoption pull request |
+| 8 | Secondary and ghost, with no secondary action color in the tokens | A. Secondary: `color/surface/primary`, `color/text/secondary`, `shadow/control`. Ghost: transparent fill, `color/text/primary`, hover `color/surface/subtle`. B. Ghost uses `color/action/link`, matching Add a comment and Edit | **Approved (CJ, 2026-11-09):** A |
 | 9 | Unavailable button | A. Native `disabled` only. The button leaves the tab order. B. `aria-disabled` only. It stays focusable. C. Both, and the usage doc says which to use | C. The card's Submit stays focusable when the comment is too long, so the error can be reached. The usual case is native `disabled` |
-| 10 | TextField error color | A. `feedback/error`, as the card does today. The same red in light and dark. B. Add a semantic error color with a dark value before TextField | A. B is a token-file change and goes through the adoption table first |
+| 10 | TextField error color | A. `feedback/error`, as the card does today. The same red in light and dark. B. Add a semantic error color with a dark value before TextField | **Approved (CJ, 2026-11-09):** A. B is a token-file change and goes through the adoption table first |
 | 11 | TextField validation timing | A. Late. Show the error on blur and on submit. Clear it as soon as the value is valid. B. Show the error on every change | A. This is the feedback card's timing |
 | 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | A. The size name and the padding name match. The card changes at adoption |
 | 13 | ToggleChip size | A. Existing tokens only. Height `size/control/sm`, type `label/sm`. B. New tokens for the card's 28px height and 13px type | A. B waits for the token table at adoption |

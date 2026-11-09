@@ -1,0 +1,145 @@
+.camellia-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-0);
+  padding-block: var(--space-0);
+  border-width: var(--border-width-0);
+  border-style: var(--border-style-solid);
+  border-color: transparent;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-none);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  appearance: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.camellia-button-sm {
+  height: var(--size-control-sm);
+  padding-inline: var(--control-padding-inline-sm);
+}
+
+.camellia-button-md {
+  height: var(--size-control-md);
+  padding-inline: var(--control-padding-inline-md);
+}
+
+.camellia-button-lg {
+  height: var(--size-control-lg);
+  padding-inline: var(--control-padding-inline-lg);
+}
+
+.camellia-button-primary {
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  box-shadow: var(--shadow-none);
+}
+
+.camellia-button-secondary {
+  background: var(--color-surface-primary);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-control);
+}
+
+.camellia-button-ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-none);
+}
+
+.camellia-button:disabled,
+.camellia-button[aria-disabled='true'] {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.camellia-button:focus {
+  outline: none;
+}
+
+.camellia-button:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--border-width-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .camellia-button-primary:not(:disabled):not([aria-disabled='true']):hover {
+    background: var(--color-action-primary-hover);
+  }
+
+  .camellia-button-secondary:not(:disabled):not([aria-disabled='true']):hover {
+    box-shadow: var(--shadow-control-hover);
+  }
+
+  .camellia-button-ghost:not(:disabled):not([aria-disabled='true']):hover {
+    background: var(--color-surface-subtle);
+  }
+}
+
+.camellia-button-primary:not(:disabled):not([aria-disabled='true']):active {
+  background: var(--color-action-primary-pressed);
+}
+
+.camellia-button-secondary:not(:disabled):not([aria-disabled='true']):active {
+  background: var(--color-surface-secondary);
+  box-shadow: var(--shadow-control);
+}
+
+.camellia-button-ghost:not(:disabled):not([aria-disabled='true']):active {
+  background: var(--color-surface-secondary);
+}
+
+@media (pointer: coarse) {
+  .camellia-button::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--size-touch-target));
+    height: max(100%, var(--size-touch-target));
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camellia-button {
+    transition: none;
+  }
+}
+
+.camellia-button-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--layout-content-gap-lg);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-button-demo-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 100%;
+}

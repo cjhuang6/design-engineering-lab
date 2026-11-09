@@ -197,7 +197,7 @@ test("each hash opens its section and marks that link current", async () => {
     {
       hash: "#components",
       current: "Components",
-      present: [COMPONENTS_COPY],
+      present: [COMPONENTS_COPY, "Primary md", "Primary disabled", "Primary unavailable", "No button activated."],
       absent: [PROTOTYPES_COPY, ...LAB_CARDS.map((name) => `Open ${name} details`)],
     },
     {

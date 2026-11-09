@@ -203,10 +203,25 @@ function sectionNote(id) {
   return null
 }
 
-function readView() {
-  if (window.location.hash === '#tokens') return 'tokens'
-  if (window.location.hash === '#pipeline') return 'pipeline'
-  return 'blocks'
+const NAV = [
+  ['components', 'Components'],
+  ['lab', 'Lab'],
+  ['prototypes', 'Prototypes'],
+  ['tokens', 'Tokens'],
+  ['pipeline', 'Pipeline'],
+]
+
+const SECTIONS = new Set(NAV.map(([id]) => id))
+
+function viewForHash(hash) {
+  const id = hash.startsWith('#') ? hash.slice(1) : hash
+  if (SECTIONS.has(id)) return id
+  return 'lab'
+}
+
+function replaceLegacyBlocksHash() {
+  if (window.location.hash !== '#blocks') return
+  window.history.replaceState(window.history.state, '', '#lab')
 }
 
 function App() {
@@ -214,12 +229,14 @@ function App() {
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   )
   const [computed, setComputed] = useState(() => readComputed(tokenNames))
-  const [view, setView] = useState(readView)
+  const [view, setView] = useState(() => viewForHash(window.location.hash))
 
   useEffect(() => {
     function onHash() {
-      setView(readView())
+      replaceLegacyBlocksHash()
+      setView(viewForHash(window.location.hash))
     }
+    onHash()
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
@@ -236,29 +253,45 @@ function App() {
         <div className="showcase-bar-inner">
           <nav aria-label="Primary">
             <ul className="showcase-nav">
-              <li>
-                <a href="#blocks" aria-current={view === 'blocks' ? 'page' : undefined}>
-                  Blocks
-                </a>
-              </li>
-              <li>
-                <a href="#tokens" aria-current={view === 'tokens' ? 'page' : undefined}>
-                  Tokens
-                </a>
-              </li>
-              <li>
-                <a href="#pipeline" aria-current={view === 'pipeline' ? 'page' : undefined}>
-                  Pipeline
-                </a>
-              </li>
+              {NAV.map(([id, label]) => (
+                <li key={id}>
+                  <a href={`#${id}`} aria-current={view === id ? 'page' : undefined}>
+                    {label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </nav>
         </div>
       </header>
-      {view === 'blocks' ? <Showcase /> : null}
+      {view === 'components' ? <ComponentsPage /> : null}
+      {view === 'lab' ? <Showcase /> : null}
+      {view === 'prototypes' ? <PrototypesPage /> : null}
       {view === 'tokens' ? <TokenPage theme={theme} computed={computed} onTheme={applyTheme} /> : null}
       {view === 'pipeline' ? <PipelinePage /> : null}
     </>
+  )
+}
+
+function ComponentsPage() {
+  return (
+    <main className="page">
+      <h1>Components</h1>
+      <p className="note">
+        Core components built to spec on Camellia tokens. Button and TextField are up first.
+      </p>
+    </main>
+  )
+}
+
+function PrototypesPage() {
+  return (
+    <main className="page">
+      <h1>Prototypes</h1>
+      <p className="note">
+        Product prototypes assembled from Camellia components with AI tools. First builds coming soon.
+      </p>
+    </main>
   )
 }
 

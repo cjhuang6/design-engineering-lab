@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 14 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Row 10 stays with TextField. Row 14 is the IconButton icon source. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 14 in [Decisions for CJ](#decisions-for-cj). Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 14 is the IconButton icon source. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -129,7 +129,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | 0 | Showcase nav restructure | **Approved (CJ, 2026-11-09).** Its own pull request, before Button. Detail: [Showcase navigation](#showcase-navigation) |
 | 1 | Button | **In progress.** Primary, secondary, and ghost, at `sm`, `md`, and `lg`, in the Components section. Usage: [Button](basics/button.md) |
 | 2 | IconButton | **In progress.** Square control. The caller passes the icon. The accessible name is the `label` prop. Usage: [IconButton](basics/icon-button.md) |
-| 3 | TextField | One line, with label, help, and error |
+| 3 | TextField | **In progress.** One line, with a visible label, optional hint, and an error. Late validation. Usage: [TextField](basics/text-field.md) |
 | 4 | Chip / ToggleChip | The pressable chip the feedback card already invented by hand |
 | 5 | Guide-feedback adoption | **Proposal.** Switch that card's buttons, chips, and one-line field over to the basics. This is the reuse proof, and it is the trigger for [question 2](#adoption-and-question-2). It waits until steps 1, 3, and 4 are merged |
 | 6 | Checkbox | After the card has moved, so the selection controls are not tangled with that edit |
@@ -229,11 +229,11 @@ The focus ring, the coarse hit area, hover only on a fine pointer, disabled opac
 
 ## TextField
 
-**Proposal.** Step 3. One line. A visible label, optional help text, and an error.
+**In progress.** Step 3. One line. A visible label, optional help text, and an error. Usage: [TextField](basics/text-field.md). Code: `src/components/text-field/`.
 
 **States.** Rest, hover, keyboard focus, disabled, error. A filled field is a field with a value, not a separate color.
 
-**Spec.** The APG has no text-field pattern. **Proposal:** a native `<input>` with a `<label>`, following the W3C forms tutorials on [labels](https://www.w3.org/WAI/tutorials/forms/labels/) and [notifications](https://www.w3.org/WAI/tutorials/forms/notifications/). The label is tied to the input with `for` and `id`. Help text and the error are tied with `aria-describedby`, which points at the id of that extra text so the screen reader reads it with the field. When the error is showing, the input has `aria-invalid="true"`.
+**Spec.** The APG has no text-field pattern. A native `<input>` with a `<label>`, following the W3C forms tutorials on [labels](https://www.w3.org/WAI/tutorials/forms/labels/) and [notifications](https://www.w3.org/WAI/tutorials/forms/notifications/). The label is tied to the input with `for` and `id`. Help text and the error are tied with `aria-describedby`, which points at the id of that extra text so the screen reader reads it with the field. When the error is showing, the input has `aria-invalid="true"`.
 
 **Late validation. Observed** on the guide-feedback comment field (`model.js`, `GuideFeedback.jsx`):
 
@@ -242,27 +242,28 @@ The focus ring, the coarse hit area, hover only on a fine pointer, disabled opac
 - Trying to submit while the text is over the limit turns the error on and does not submit.
 - Editing the text back under the limit turns the error off immediately.
 
-**Proposal.** TextField uses that timing. The error appears on blur and on submit. It clears as soon as the value is valid. It does not appear on every keystroke before the first blur or submit. The component shows the message. The screen that uses it decides the rule, the way the card decides "too long."
+**Approved (CJ, 2026-11-09):** row 11, option A. TextField uses that timing. The error appears on blur and on submit. It clears as soon as the value is valid. It does not appear on every keystroke before the first blur or submit. The component shows the message. The screen that uses it decides the rule, the way the card decides "too long." The error is a polite live region, so a stable message is announced when it appears and is not repeated on each keystroke.
 
-**Tokens. Observed** on the card's field, and **Proposal** for the basic field:
+**Tokens.**
 
-| Part | Token |
-|---|---|
-| Height, default md | `size/control/md` (40px). **Proposal:** sm and lg exist too, from `size/control/sm` and `size/control/lg` |
-| Inline padding | **Proposal:** `control/padding-inline` at the same size name. The card uses `space/3` (12px) on a 40px field, which is the sm padding |
-| Border | `border/width/1`, `border/style/solid`, `color/border/default`, `radius/md` |
-| Fill and text | `color/surface/primary`, `color/text/primary`, `body/md` |
-| Placeholder | `color/text/placeholder` |
-| Label and help | `label/sm`, `color/text/secondary` |
-| Hover border | **Proposal:** `color/border/strong`. The card uses `color/text/tertiary` |
-| Error border and error text | `feedback/error`, type `label/sm` |
-| Focus | The shared ring. The card also paints the border `color/action/primary` on focus. **Proposal:** the ring is enough, so focus does not add a second blue |
+| Part | Token | Notes |
+|---|---|---|
+| Height | `size/control/sm` 32px, `size/control/md` 40px, `size/control/lg` 48px | Paired with the padding of the same name |
+| Inline padding | `control/padding-inline/sm` 12px, `md` 16px, `lg` 20px | **Approved (CJ, 2026-11-09):** row 12, option A. The card uses `space/3` (12px) on a 40px field, which is the sm padding. The card changes at adoption |
+| Vertical padding | `space/0` | The same height rule as Button |
+| Border | `border/width/1`, `border/style/solid`, `color/border/default`, `radius/md` | |
+| Fill and text | `color/surface/primary`, `color/text/primary`, `body/md` | |
+| Placeholder | `color/text/placeholder` | |
+| Label and help | `label/sm`, `color/text/secondary` | |
+| Hover border | `color/border/strong` | The card uses `color/text/tertiary`. Hover stays inside the fine-pointer query |
+| Error border and error text | `feedback/error`, type `label/sm` | **Approved (CJ, 2026-11-09):** row 10, option A |
+| Focus | `border/focus`, offset `border/width/2`, on `:focus-visible` | The same treatment Button uses. Row 20 is still a proposal. The card also paints the border `color/action/primary` on focus. This field does not |
 
-**Unknown.**
+The focus ring, the coarse hit area, hover only on a fine pointer, disabled opacity, and the motion rule are Button's. **Approved (CJ, 2026-11-09):** motion stays `duration/fast` and `ease/standard` on color, border, and shadow. Under reduced motion those transitions take no time. No press scale.
 
-- `feedback/error` (`--feedback-error`, `#EF4444`) is a primitive. **Observed:** the dark theme block in `tokens.css` does not override it, so the red is the same in both themes. **Approved (CJ, 2026-11-09):** row 10, option A. Use `feedback/error`, as the card does. A semantic error color with its own dark value is a token-file change and waits for the table in [Adoption](#adoption-and-question-2). Not built in the nav pull request.
-- A success state. `feedback/success` exists and has the same one-value limit. The card's field has no success state. **Proposal:** the first TextField has no success state.
-- Read-only. **Proposal:** out of the first pull request.
+`feedback/error` (`--feedback-error`, `#EF4444`) is a primitive. **Observed:** the dark theme block in `tokens.css` does not override it, so the red is the same in both themes. A semantic error color with its own dark value is a token-file change and waits for the table in [Adoption](#adoption-and-question-2).
+
+A success state stays out. `feedback/success` exists and has the same one-value limit. The card's field has no success state. Read-only stays out of this pull request.
 
 ## Chip / ToggleChip
 
@@ -439,7 +440,7 @@ No token-file edit lands in the pull request until CJ approves that table. **Pro
 | An index written for AI tools | One markdown page listing every basic component, the file it lives in, and a short example. A person can paste it into a prompt, or a tool can fetch it | One place to point a tool | It goes stale unless it is generated from the components or checked |
 | Figma Code Connect | Figma's link from a Figma component to a code snippet. Components-roadmap [question 3](../components-roadmap.md#open-questions) | Design-to-code stays tied to the real component | Question 3 is **Unknown**. Code Connect and any Figma write need CJ's approval. It does not help a prototype that never opens Figma |
 
-The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. The rest of that prop set is still not chosen.
+The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. That records the props for this component. It does not choose the set for every later component.
 
 ## Figma
 
@@ -449,7 +450,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 14 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. Row 10 stays with TextField. IconButton uses row 14. No other row is approved.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 14 are **Approved (CJ, 2026-11-09)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. IconButton uses row 14. No other row is approved.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -463,8 +464,8 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 8 | Secondary and ghost, with no secondary action color in the tokens | A. Secondary: `color/surface/primary`, `color/text/secondary`, `shadow/control`, hover `shadow/control-hover`. Ghost: transparent fill, `color/text/primary`, hover `color/surface/subtle`. B. Ghost uses `color/action/link`, matching Add a comment and Edit | **Approved (CJ, 2026-11-09):** A |
 | 9 | Unavailable button | A. Native `disabled` only. The button leaves the tab order. B. `aria-disabled` only. It stays focusable. C. Both, and the usage doc says which to use | **Approved (CJ, 2026-11-09):** C. The card's Submit stays focusable when the comment is too long, so the error can be reached. The usual case is native `disabled` |
 | 10 | TextField error color | A. `feedback/error`, as the card does today. The same red in light and dark. B. Add a semantic error color with a dark value before TextField | **Approved (CJ, 2026-11-09):** A. B is a token-file change and goes through the adoption table first |
-| 11 | TextField validation timing | A. Late. Show the error on blur and on submit. Clear it as soon as the value is valid. B. Show the error on every change | A. This is the feedback card's timing |
-| 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | A. The size name and the padding name match. The card changes at adoption |
+| 11 | TextField validation timing | A. Late. Show the error on blur and on submit. Clear it as soon as the value is valid. B. Show the error on every change | **Approved (CJ, 2026-11-09):** A. This is the feedback card's timing |
+| 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | **Approved (CJ, 2026-11-09):** A. The size name and the padding name match. The card changes at adoption |
 | 13 | ToggleChip size | A. Existing tokens only. Height `size/control/sm`, type `label/sm`. B. New tokens for the card's 28px height and 13px type | A. B waits for the token table at adoption |
 | 14 | Icon source | A. No icon package. The caller passes the icon, and IconButton requires an accessible name. B. Add an icon package | **Approved (CJ, 2026-11-09):** A. The name is the `label` prop, rendered as `aria-label`. The icon is `aria-hidden`. B is a dependency change |
 | 15 | Checkbox mixed state | A. Checked and unchecked only. B. Include the mixed state in the first Checkbox pull request | A |

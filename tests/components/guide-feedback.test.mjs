@@ -1,6 +1,6 @@
 import "../helpers/dom-shim.mjs";
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -74,7 +74,11 @@ function buttonNamed(name) {
 }
 
 function field() {
-  return document.querySelector(".guide-feedback-field");
+  return live(".camellia-text-field-input");
+}
+
+function fieldError() {
+  return live(".camellia-text-field-error");
 }
 
 function washOf(rating) {
@@ -270,25 +274,65 @@ test("a comment over 280 stays quiet until blur or send, then clears at 280", as
     assert.equal(count.classList.contains("is-over"), false);
     assert.equal(send.getAttribute("aria-disabled"), "true");
     assert.equal(send.hasAttribute("disabled"), false);
-    assert.equal(document.querySelector(".guide-feedback-error").textContent, "");
+    assert.equal(fieldError().textContent, "");
     assert.equal(field().getAttribute("aria-invalid"), null);
 
     await act(async () => {
       field().dispatchEvent(new window.Event("focusout", { bubbles: true }));
     });
-    assert.equal(document.querySelector(".guide-feedback-error").textContent, "Too long to send");
+    assert.equal(fieldError().textContent, "Too long to send");
     assert.equal(field().getAttribute("aria-invalid"), "true");
     assert.equal(count.classList.contains("is-over"), true);
     assert.equal(document.activeElement, field());
 
     await typeComment("x".repeat(280));
-    assert.equal(document.querySelector(".guide-feedback-error").textContent, "");
+    assert.equal(fieldError().textContent, "");
     assert.equal(field().getAttribute("aria-invalid"), null);
     assert.equal(count.classList.contains("is-over"), false);
     assert.equal(count.textContent, "280/280");
     assert.equal(send.getAttribute("aria-disabled"), null);
   } finally {
     await view.unmount();
+  }
+});
+
+test("Submit click and keyboard still reveal the over-limit error", async () => {
+  const click = await mount();
+  try {
+    await chooseRating(1);
+    await act(async () => {
+      buttonNamed("Add a comment").click();
+    });
+    await typeComment("x".repeat(281));
+    await act(async () => {
+      buttonNamed("Submit").click();
+    });
+    assert.equal(document.querySelectorAll(".guide-feedback-receipt").length, 0);
+    assert.equal(fieldError().textContent, "Too long to send");
+    assert.equal(field().getAttribute("aria-invalid"), "true");
+    assert.equal(document.activeElement, field());
+  } finally {
+    await click.unmount();
+  }
+
+  const keys = await mount();
+  try {
+    await chooseRating(1);
+    await act(async () => {
+      buttonNamed("Add a comment").click();
+    });
+    await typeComment("y".repeat(281));
+    await act(async () => {
+      pressKey(buttonNamed("Submit"), "Enter");
+    });
+    assert.equal(document.querySelectorAll(".guide-feedback-receipt").length, 0);
+    assert.equal(fieldError().textContent, "Too long to send");
+    await act(async () => {
+      pressKey(buttonNamed("Submit"), " ");
+    });
+    assert.equal(document.querySelectorAll(".guide-feedback-receipt").length, 0);
+  } finally {
+    await keys.unmount();
   }
 });
 
@@ -728,4 +772,69 @@ test("remounting keeps the sent receipt collapsed", async () => {
     await act(async () => root.unmount());
     host.remove();
   }
+});
+
+test("details renders Button, ToggleChip, and TextField, and the links stay on the card", async () => {
+  const view = await mount();
+  try {
+    const measure = document.querySelector(".guide-feedback-measure");
+    assert.ok(measure.querySelector(".camellia-button-secondary"));
+    assert.ok(measure.querySelector(".camellia-button-primary"));
+    assert.ok(measure.querySelector(".camellia-toggle-chip"));
+    assert.ok(measure.querySelector(".camellia-text-field-md"));
+    assert.equal(measure.querySelector(".guide-feedback-count").textContent, "281/280 · 1 over");
+
+    await chooseRating(2);
+    const cancel = buttonNamed("Cancel");
+    const send = buttonNamed("Submit");
+    assert.equal(cancel.classList.contains("camellia-button"), true);
+    assert.equal(cancel.classList.contains("camellia-button-secondary"), true);
+    assert.equal(cancel.classList.contains("camellia-button-md"), true);
+    assert.equal(send.classList.contains("camellia-button-primary"), true);
+    assert.equal(send.classList.contains("camellia-button-md"), true);
+    const chip = buttonNamed("Hard to follow");
+    assert.equal(chip.classList.contains("camellia-toggle-chip"), true);
+    assert.equal(chip.getAttribute("aria-pressed"), "false");
+    const add = buttonNamed("Add a comment");
+    assert.equal(add.classList.contains("guide-feedback-link"), true);
+    assert.equal(add.classList.contains("camellia-button"), false);
+
+    await act(async () => {
+      add.click();
+    });
+    const input = field();
+    assert.equal(input.classList.contains("camellia-text-field-input"), true);
+    assert.equal(input.closest(".camellia-text-field").classList.contains("camellia-text-field-md"), true);
+    assert.equal(live(".camellia-text-field-label-text").textContent, "Comment");
+
+    await act(async () => {
+      chip.click();
+      send.click();
+    });
+    await settleMotion();
+    const edit = buttonNamed("Edit");
+    assert.equal(edit.classList.contains("guide-feedback-link"), true);
+    assert.equal(edit.classList.contains("guide-feedback-edit"), true);
+    assert.equal(edit.classList.contains("camellia-button"), false);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("Cancel and Submit are pill-shaped only on the card, and the chip locals are gone", async () => {
+  const card = await readFile(join(ROOT, "src/components/guide-feedback/GuideFeedback.css"), "utf8");
+  const button = await readFile(join(ROOT, "src/components/button/Button.css"), "utf8");
+  assert.match(card, /\.guide-feedback \.camellia-button \{\s*border-radius: var\(--radius-full\);\s*\}/);
+  assert.match(button, /\.camellia-button \{\s*[^}]*border-radius: var\(--radius-md\);/);
+  assert.equal(button.includes("radius-full"), false);
+  assert.equal(card.includes("--feedback-card-chip-height"), false);
+  assert.equal(card.includes("--feedback-card-chip-size"), false);
+  assert.equal(card.includes("--feedback-card-chip-pad-start"), false);
+  assert.equal(card.includes("--feedback-card-chip-pad-end"), false);
+  assert.equal(card.includes("--feedback-card-chip-gap"), false);
+  assert.match(
+    card,
+    /\.guide-feedback-segment:active \{\s*transform: scale\(var\(--feedback-card-press-scale\)\);/,
+  );
+  assert.equal(/\.camellia-(?:button|toggle-chip|text-field)[^{]*press-scale/.test(card), false);
 });

@@ -1,5 +1,8 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { Button } from '../button/Button.jsx'
 import { cssDurationMs } from '../hex-color-picker/model.js'
+import { TextField } from '../text-field/TextField.jsx'
+import { ToggleChip } from '../toggle-chip/ToggleChip.jsx'
 import {
   COMMENT_LIMIT,
   ENDS,
@@ -76,24 +79,6 @@ function CheckIcon() {
   )
 }
 
-function ChipMark() {
-  return (
-    <span className="guide-feedback-chip-mark" aria-hidden="true">
-      <i />
-      <svg viewBox="0 0 12 12" aria-hidden="true">
-        <path
-          d="M2.5 6.5l2.2 2.2L9.5 3.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
-  )
-}
-
 function MeasureCard({ rating }) {
   return (
     <div className="guide-feedback">
@@ -114,22 +99,24 @@ function MeasureCard({ rating }) {
           <p className="guide-feedback-ask">{askText(rating)}</p>
           <div className="guide-feedback-chips">
             {CHIPS[bandOf(rating)].map((label) => (
-              <span key={label} className="guide-feedback-chip">
-                <ChipMark />
+              <ToggleChip key={label} pressed={false} tabIndex={-1}>
                 {label}
-              </span>
+              </ToggleChip>
             ))}
           </div>
           <div className="guide-feedback-slot">
             <div className="guide-feedback-comment">
-              <label>Comment</label>
-              <input className="guide-feedback-field" readOnly tabIndex={-1} defaultValue="" />
-              <span className="guide-feedback-meta" />
+              <TextField label="Comment" size="md" readOnly tabIndex={-1} defaultValue="" />
+              <span className="guide-feedback-count is-over">281/280 · 1 over</span>
             </div>
           </div>
           <div className="guide-feedback-actions">
-            <span className="guide-feedback-cancel">Cancel</span>
-            <span className="guide-feedback-send">Submit</span>
+            <Button variant="secondary" size="md" tabIndex={-1}>
+              Cancel
+            </Button>
+            <Button variant="primary" size="md" tabIndex={-1}>
+              Submit
+            </Button>
           </div>
         </div>
       </div>
@@ -156,8 +143,6 @@ export function GuideFeedback({ value, onChange }) {
   const fieldId = useId()
   const commentId = useId()
   const countId = useId()
-  const errorId = useId()
-  const hintId = useId()
   const leftId = useId()
   const cardRef = useRef(null)
   const stageRef = useRef(null)
@@ -337,11 +322,29 @@ export function GuideFeedback({ value, onChange }) {
     clearScale(true)
   }
 
+  function sendForm() {
+    const form = submitRef.current?.closest('form')
+    if (!form || modelRef.current.phase !== 'details') return
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+  }
+
   function onFieldKeyDown(event) {
     if (event.key !== 'Enter' || event.repeat) return
     event.preventDefault()
     if (submitRef.current?.disabled) return
-    attemptSubmit()
+    sendForm()
+  }
+
+  function onSubmitKeyDown(event) {
+    if (event.repeat) return
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    sendForm()
+  }
+
+  function onDetailsClickCapture(event) {
+    const button = event.target?.closest?.('button')
+    if (button !== submitRef.current) return
+    sendForm()
   }
 
   function onAddComment() {
@@ -492,6 +495,7 @@ export function GuideFeedback({ value, onChange }) {
             <form
               className="guide-feedback-details"
               noValidate
+              onClickCapture={onDetailsClickCapture}
               onSubmit={(event) => {
                 event.preventDefault()
                 attemptSubmit()
@@ -502,16 +506,13 @@ export function GuideFeedback({ value, onChange }) {
               </p>
               <div className="guide-feedback-chips" role="group" aria-labelledby={askId}>
                 {chips.map((label) => (
-                  <button
+                  <ToggleChip
                     key={label}
-                    type="button"
-                    className="guide-feedback-chip"
-                    aria-pressed={model.chips.includes(label)}
-                    onClick={() => setModel((current) => toggleChip(current, label))}
+                    pressed={model.chips.includes(label)}
+                    onPressedChange={() => setModel((current) => toggleChip(current, label))}
                   >
-                    <ChipMark />
                     {label}
-                  </button>
+                  </ToggleChip>
                 ))}
               </div>
               <div className="guide-feedback-slot">
@@ -531,17 +532,16 @@ export function GuideFeedback({ value, onChange }) {
                   hidden={!model.commentOpen}
                   inert={model.commentOpen ? undefined : true}
                 >
-                  <label htmlFor={fieldId}>Comment</label>
-                  <input
+                  <TextField
                     id={fieldId}
                     ref={fieldRef}
-                    className="guide-feedback-field"
+                    label="Comment"
                     name="comment"
-                    type="text"
+                    size="md"
                     value={model.comment}
                     placeholder="Anything else? (optional)"
-                    aria-describedby={`${countId} ${errorId} ${hintId} ${leftId}`}
-                    aria-invalid={errorShown ? 'true' : undefined}
+                    hint="Press Enter to submit."
+                    error={commentTooLong(model.comment) ? 'Too long to send' : ''}
                     aria-keyshortcuts="Meta+Enter Control+Enter"
                     autoComplete="off"
                     spellCheck
@@ -556,16 +556,8 @@ export function GuideFeedback({ value, onChange }) {
                     }}
                     onKeyDown={onFieldKeyDown}
                   />
-                  <div className="guide-feedback-meta">
-                    <span className="guide-feedback-error" id={errorId} aria-live="assertive">
-                      {errorShown ? 'Too long to send' : ''}
-                    </span>
-                    <span className={errorShown ? 'guide-feedback-count is-over' : 'guide-feedback-count'} id={countId}>
-                      {counterText(model.comment)}
-                    </span>
-                  </div>
-                  <span className="guide-feedback-sr" id={hintId}>
-                    Press Enter to submit.
+                  <span className={errorShown ? 'guide-feedback-count is-over' : 'guide-feedback-count'} id={countId}>
+                    {counterText(model.comment)}
                   </span>
                   <span className="guide-feedback-sr" id={leftId} aria-live="polite">
                     {charactersLeft(model.comment)}
@@ -573,23 +565,25 @@ export function GuideFeedback({ value, onChange }) {
                 </div>
               </div>
               <div className="guide-feedback-actions">
-                <button
+                <Button
                   type="button"
-                  className="guide-feedback-cancel"
+                  variant="secondary"
+                  size="md"
                   onClick={(event) => clearScale(event.detail === 0)}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="guide-feedback-send"
+                  variant="primary"
+                  size="md"
                   ref={submitRef}
                   disabled={model.phase !== 'details'}
                   aria-disabled={tooLong ? 'true' : undefined}
-                  onClick={attemptSubmit}
+                  onKeyDown={onSubmitKeyDown}
                 >
                   Submit
-                </button>
+                </Button>
               </div>
             </form>
           ) : null}

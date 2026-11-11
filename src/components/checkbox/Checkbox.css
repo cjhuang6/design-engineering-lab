@@ -1,0 +1,145 @@
+.camellia-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  color: var(--color-text-primary);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  user-select: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camellia-checkbox-control {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--size-icon-md);
+  height: var(--size-icon-md);
+}
+
+.camellia-checkbox-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border-width: var(--border-width-1);
+  border-style: var(--border-style-solid);
+  border-color: var(--color-icon-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-primary);
+  color: var(--color-action-primary-text);
+  cursor: inherit;
+  appearance: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.camellia-checkbox[data-state='checked'] .camellia-checkbox-input,
+.camellia-checkbox[data-state='mixed'] .camellia-checkbox-input {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+}
+
+.camellia-checkbox-glyph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-action-primary-text);
+  pointer-events: none;
+}
+
+.camellia-checkbox-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.camellia-checkbox-disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.camellia-checkbox-input:focus {
+  outline: none;
+}
+
+.camellia-checkbox-input:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--border-width-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .camellia-checkbox-input:not(:disabled):hover {
+    border-color: var(--color-icon-primary);
+  }
+
+  .camellia-checkbox[data-state='checked'] .camellia-checkbox-input:not(:disabled):hover,
+  .camellia-checkbox[data-state='mixed'] .camellia-checkbox-input:not(:disabled):hover {
+    border-color: var(--color-action-primary-hover);
+    background: var(--color-action-primary-hover);
+  }
+}
+
+@media (pointer: coarse) {
+  .camellia-checkbox::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--size-touch-target));
+    height: max(100%, var(--size-touch-target));
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camellia-checkbox-input {
+    transition: none;
+  }
+}
+
+.camellia-checkbox-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--layout-content-gap-lg);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-checkbox-group {
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border-width: var(--border-width-0);
+  border-style: var(--border-style-solid);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-checkbox-group legend {
+  padding: var(--space-0);
+  margin-bottom: var(--space-3);
+  font: var(--heading-sm);
+  letter-spacing: var(--heading-sm-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.camellia-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: var(--space-0);
+  max-width: 100%;
+}

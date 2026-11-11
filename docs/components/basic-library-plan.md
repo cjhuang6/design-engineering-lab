@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** row 13. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 21 and 23. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -131,7 +131,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | 2 | IconButton | **In progress.** Square control. The caller passes the icon. The accessible name is the `label` prop. Usage: [IconButton](basics/icon-button.md) |
 | 3 | TextField | **In progress.** One line, with a visible label, optional hint, and an error. Late validation. Usage: [TextField](basics/text-field.md) |
 | 4 | Chip / ToggleChip | **In progress.** Toggle button. Height `size/control/sm`, type `label/sm`, existing tokens only. Usage: [ToggleChip](basics/toggle-chip.md) |
-| 5 | Guide-feedback adoption | **Proposal.** Switch that card's buttons, chips, and one-line field over to the basics. This is the reuse proof, and it is the trigger for [question 2](#adoption-and-question-2). It waits until steps 1, 3, and 4 are merged |
+| 5 | Guide-feedback adoption | **In progress.** **Approved (CJ, 2026-11-10):** rows 21 and 23, option A. Cancel and Submit become Button, the reason chips become ToggleChip, and the comment field becomes TextField. Add a comment and Edit stay on the card. The token file is not edited. Detail: [Adoption](#adoption-and-question-2) |
 | 6 | Checkbox | After the card has moved, so the selection controls are not tangled with that edit |
 | 7 | Radio group | The pattern Segmented control follows |
 | 8 | Switch | Same on/off family as Checkbox |
@@ -197,7 +197,7 @@ Working hashes, matching those labels: `#components`, `#lab`, `#prototypes`, `#t
 
 There is no `color/action/secondary`. **Approved (CJ, 2026-11-09):** row 8, option A. Secondary, taken from the card's Cancel button (**Observed** in `GuideFeedback.css`): fill `color/surface/primary`, label `color/text/secondary`, shadow `shadow/control`, hover shadow `shadow/control-hover`. Ghost: transparent fill, label `color/text/primary`, hover fill `color/surface/subtle`. No shadow.
 
-**Approved (CJ, 2026-11-09):** row 7, option A. Button radius is `radius/md`. The card's buttons use `radius/full`. The design spec says most UI sits between `radius/md` (8px) and `radius/lg` (12px). The card keeps its pill until the adoption pull request.
+**Approved (CJ, 2026-11-09):** row 7, option A. Button radius is `radius/md`. The design spec says most UI sits between `radius/md` (8px) and `radius/lg` (12px). **Approved (CJ, 2026-11-10):** the guide-feedback card keeps Cancel and Submit pill-shaped by setting `border-radius` to `radius/full` on those two buttons only. That override is scoped to the card. Button's own radius stays `radius/md`. There is no Button prop for it. Detail: [Adoption](#adoption-and-question-2).
 
 **Approved (CJ, 2026-11-09):** row 6, option A. The height is the `size/control/*` token, horizontal padding is `control/padding-inline/*`, and vertical padding is `space/0`. `label/md` has a 20px line box. `size/control/md` is 40px, so the leftover vertical space is 10px a side. The space tokens jump from `space/1` (4px) to `space/2` (8px). 10px is not a token. `control/padding-block/md` is 12px a side, and 20 + 24 = 44, which is `size/touch-target`, not `size/control/md`. The fixed height and the padding tokens do not add up. Option A is how the card's buttons are built.
 
@@ -205,7 +205,7 @@ There is no `color/action/secondary`. **Approved (CJ, 2026-11-09):** row 8, opti
 
 The token table names a pressed color for primary only. The fills here replace the ghost hover from row 8. Light hover is `color/surface/secondary` and light pressed is `color/surface/subtle`, so the fill gets heavier from rest to hover to pressed. In dark, pressed stays `color/surface/secondary`, because `color/surface/subtle` is the same hex as `color/surface/primary` and is darker than that hover. Secondary keeps `shadow/control` while pressed and uses `shadow/control-hover` only for hover. The fills are in the [usage doc](basics/button.md).
 
-**Proposal.** Press scale. The card scales to 0.96 on press. That number is a local value, `--feedback-card-press-scale`, and there is no scale token. The basic button does not scale. The card may keep the scale as a local wrapper until question 2 is decided.
+**Approved (CJ, 2026-11-10):** no press scale on Button, ToggleChip, or TextField. The card's 0.96 scale is the local value `--feedback-card-press-scale`, and there is no scale token. The rating segments keep it. The adopted controls are not wrapped with it.
 
 ## IconButton
 
@@ -249,7 +249,7 @@ The focus ring, the coarse hit area, hover only on a fine pointer, disabled opac
 | Part | Token | Notes |
 |---|---|---|
 | Height | `size/control/sm` 32px, `size/control/md` 40px, `size/control/lg` 48px | Paired with the padding of the same name |
-| Inline padding | `control/padding-inline/sm` 12px, `md` 16px, `lg` 20px | **Approved (CJ, 2026-11-09):** row 12, option A. The card uses `space/3` (12px) on a 40px field, which is the sm padding. The card changes at adoption |
+| Inline padding | `control/padding-inline/sm` 12px, `md` 16px, `lg` 20px | **Approved (CJ, 2026-11-09):** row 12, option A. The card used `space/3` (12px) on a 40px field, which is the sm padding. Adoption uses TextField `md` |
 | Vertical padding | `space/0` | The same height rule as Button |
 | Border | `border/width/1`, `border/style/solid`, `color/border/default`, `radius/md` | |
 | Fill and text | `color/surface/primary`, `color/text/primary`, `body/md` | |
@@ -269,7 +269,7 @@ A success state stays out. `feedback/success` exists and has the same one-value 
 
 **In progress.** Step 4. ToggleChip is the one the feedback card needs. Several can be on at once. That is a group of toggle buttons, not a radio group. Usage: [ToggleChip](basics/toggle-chip.md). Code: `src/components/toggle-chip/`.
 
-**Approved (CJ, 2026-11-10):** row 13, option A. Height is `size/control/sm`. Type is `label/sm`. No new tokens. The card's 28px height and 13px type stay on the card until the adoption pull request.
+**Approved (CJ, 2026-11-09):** row 13, option A. Height is `size/control/sm`. Type is `label/sm`. No new tokens. **Approved (CJ, 2026-11-10):** the adoption pull request removes the card's 28px height and 13px type and uses ToggleChip.
 
 **States.** Rest, hover, pressed (`aria-pressed="true"`), keyboard focus, disabled.
 
@@ -290,7 +290,7 @@ A static chip that does nothing is **Unknown** for this pull request. **Proposal
 | Type weight | `font/weight/medium`, `font/family/sans`, `tracking/normal` |
 | Motion | `duration/fast`, `ease/standard` |
 
-**Tokens that do not exist. Observed** as local values on the card, not in the JSON:
+**Tokens that do not exist. Observed** before adoption as local values on the card, not in the JSON:
 
 | Local value | What it is | Nearest real token |
 |---|---|---|
@@ -299,7 +299,9 @@ A static chip that does nothing is **Unknown** for this pull request. **Proposal
 | 6px and 10px padding | chip pad start and end | `space/2` is 8px, `space/3` is 12px |
 | 6px gap between chips | `--feedback-card-chip-gap` | `space/2` is 8px. The card's row gap is already `space/2` |
 
-**Approved (CJ, 2026-11-10):** row 13, option A, is the size. The rest of the drawing uses tokens that already exist: padding `space/2` at the start and `space/3` at the end, gap `space/1` inside the chip and `space/2` between chips, radius `radius/full`. This pull request does not add tokens. The on label is `color/action/link`, not `color/action/primary`. `color/action/primary` on `color/surface/selected` is 4.22:1 in light, under 4.5:1 for 12px type. `color/action/link` on that fill clears it. The mapping is in the [usage doc](basics/toggle-chip.md).
+**Approved (CJ, 2026-11-10):** the adoption pull request drops those five local values. The card uses ToggleChip, so the height, type, padding, and gap are the tokens in the usage doc.
+
+**Approved (CJ, 2026-11-09):** row 13, option A, is the size. The rest of the drawing uses tokens that already exist: padding `space/2` at the start and `space/3` at the end, gap `space/1` inside the chip and `space/2` between chips, radius `radius/full`. This pull request does not add tokens. The on label is `color/action/link`, not `color/action/primary`. `color/action/primary` on `color/surface/selected` is 4.22:1 in light, under 4.5:1 for 12px type. `color/action/link` on that fill clears it. The mapping is in the [usage doc](basics/toggle-chip.md).
 
 ## Checkbox
 
@@ -407,26 +409,31 @@ A static chip that does nothing is **Unknown** for this pull request. **Proposal
 
 ## Adoption and question 2
 
-**Proposal.** Step 5, after Button, TextField, and ToggleChip are on `main`. One pull request switches the guide-feedback card's hand-rolled controls over to the basics:
+**Approved (CJ, 2026-11-10):** rows 21 and 23, option A. Step 5 switches the guide-feedback card's hand-rolled controls over to the basics:
 
-- Cancel and Submit become Button (secondary and primary).
+- Cancel becomes Button secondary `md`. Submit becomes Button primary `md`.
 - The reason chips become ToggleChip.
-- The comment field becomes TextField.
+- The comment field becomes TextField `md`, one line.
 
-**Observed** those three are hand-rolled in `src/components/guide-feedback/`. The rating scale and the receipt stay on the card. They are the invented interaction, which is track 1.
+The rating scale and the receipt stay on the card. They are the invented interaction, which is track 1.
 
-**Unknown.** "Add a comment" and "Edit" (`guide-feedback-link`). They are buttons colored with `color/action/link`. **Proposal:** leave them on the card in this pull request. Ghost, as proposed above, uses `color/text/primary`, not the link color.
+**Approved (CJ, 2026-11-10):** row 21, option A. Add a comment and Edit stay on the card. They use `color/action/link`. Ghost, from row 8A, uses `color/text/primary`. Edit stays on the receipt.
+
+**Approved (CJ, 2026-11-10):** Cancel and Submit stay pill-shaped. This is a card-level override: the card sets `border-radius` to `radius/full` on those two buttons only. Button's own radius stays `radius/md`, from row 7A. The override is not a Button prop.
+
+**Approved (CJ, 2026-11-10):** no press scale on Button, ToggleChip, or TextField, and the card does not wrap them with `--feedback-card-press-scale`. The rating segments keep that scale.
+
+The comment keeps the card's late validation. The limit stays 280 (`COMMENT_LIMIT`, and the counter starts at `COUNTER_FROM`, both in `model.js`). The message "Too long to send" is passed through TextField's `error` prop. Submit uses `aria-disabled` when the comment is over the limit. Enter still submits. The character counter stays card-local UI around the field. TextField does not grow a counter slot.
 
 This pull request is the trigger named in components-roadmap [question 2](../components-roadmap.md#open-questions). **Approved (CJ, 2026-11-02):** a value used by one component stays on that component, and `componentTokensIncluded` stays false, until a second component needs the same contract.
 
-The card and the library are that second consumer when they need a value that no current token holds. The values most likely to collide are the chip's local ones (28px, 13px, 6px, 10px) and the press scale (0.96). The receipt height (60px) and the card max width (320px) stay on the card. The library does not need them.
+**Approved (CJ, 2026-11-10):** row 23, option A, resolved by changing the card to tokens that already exist. This pull request does not edit `tokens/camellia.tokens.json`. The five chip locals come off the card: `--feedback-card-chip-height`, `--feedback-card-chip-size`, `--feedback-card-chip-pad-start`, `--feedback-card-chip-pad-end`, and `--feedback-card-chip-gap`. Chips use ToggleChip at `size/control/sm` (32px) and `label/sm` (12px). The field uses TextField `md`, so its padding is `control/padding-inline/md`.
 
-**Proposal, the decision point.** Before that pull request edits `tokens/camellia.tokens.json`, CJ is shown a table of every token the edit would add, change, or delete. Each row names the token, its layer, and its kind.
+The values that stay on the card are `--feedback-card-receipt-height` (60px), `--feedback-card-max-width` (320px), and `--feedback-card-press-scale` (0.96, rating segments only).
 
-- **Layer** is where it sits: primitive (a raw value), semantic (a purpose, with light and dark where the color or shadow changes), or component (a contract for one component).
-- **Kind** is the type: color, dimension, number, duration, and so on.
+**Approved (CJ, 2026-11-10):** deferred, and not added in this pull request. A semantic error color with its own dark value, and a dark pressed surface at `ice/800`. Both would be edits to the token file.
 
-No token-file edit lands in the pull request until CJ approves that table. **Proposal:** prefer changing the card to tokens that already exist (`size/control/sm`, `label/sm`, the space tokens) and keep the press scale as a local card value. A new token is only for a value CJ wants to keep that has no token today. Approving a row in the table is the approval to edit the file. The table does not, by itself, turn on a component-token layer.
+The token table for this pull request has no rows. Nothing is added, changed, or deleted in `tokens/camellia.tokens.json`. A later edit still waits for a table CJ approves, one row per token, with its layer and its kind. Approving a row is the approval to edit the file. This decision does not turn on a component-token layer.
 
 ## AI prototyping
 
@@ -452,7 +459,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 14 are **Approved (CJ, 2026-11-09)**. Row 13 is **Approved (CJ, 2026-11-10)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. No other row is approved.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 21 and 23 are **Approved (CJ, 2026-11-10)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. The guide-feedback adoption uses rows 21 and 23. No other row is approved.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -462,13 +469,13 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 4 | Existing `#blocks` hash | A. Redirect. `#blocks` changes the address to the lab hash, and the back button does not bounce. An empty hash opens Lab, which is what an empty hash does today when it opens Blocks. B. Alias. `#blocks` and the lab hash both show Lab, and the address can stay `#blocks`. C. `#blocks` stops working | **Approved (CJ, 2026-11-09):** A |
 | 5 | When the nav pull request lands | A. Its own pull request, before Button. B. The same pull request as Button | **Approved (CJ, 2026-11-09):** A. Button then has a section to land in, and the Button pull request stays one component |
 | 6 | Button height and padding | A. Fixed height `size/control/*`, horizontal padding `control/padding-inline/*`, vertical padding `space/0`. B. Height is the line box plus `control/padding-block/*` | **Approved (CJ, 2026-11-09):** A. For `label/md` (20px line box), B does not land on `size/control/*`. The space scale has no 6px, 10px, or 14px step |
-| 7 | Button radius | A. `radius/md`. B. `radius/lg`. C. `radius/full`, matching the feedback card's buttons | **Approved (CJ, 2026-11-09):** A. The card keeps its pill until the adoption pull request |
+| 7 | Button radius | A. `radius/md`. B. `radius/lg`. C. `radius/full`, matching the feedback card's buttons | **Approved (CJ, 2026-11-09):** A. **Approved (CJ, 2026-11-10):** the card keeps the pill as its own `radius/full` override on Cancel and Submit. Button stays `radius/md` |
 | 8 | Secondary and ghost, with no secondary action color in the tokens | A. Secondary: `color/surface/primary`, `color/text/secondary`, `shadow/control`, hover `shadow/control-hover`. Ghost: transparent fill, `color/text/primary`, hover `color/surface/subtle`. B. Ghost uses `color/action/link`, matching Add a comment and Edit | **Approved (CJ, 2026-11-09):** A |
 | 9 | Unavailable button | A. Native `disabled` only. The button leaves the tab order. B. `aria-disabled` only. It stays focusable. C. Both, and the usage doc says which to use | **Approved (CJ, 2026-11-09):** C. The card's Submit stays focusable when the comment is too long, so the error can be reached. The usual case is native `disabled` |
 | 10 | TextField error color | A. `feedback/error`, as the card does today. The same red in light and dark. B. Add a semantic error color with a dark value before TextField | **Approved (CJ, 2026-11-09):** A. B is a token-file change and goes through the adoption table first |
 | 11 | TextField validation timing | A. Late. Show the error on blur and on submit. Clear it as soon as the value is valid. B. Show the error on every change | **Approved (CJ, 2026-11-09):** A. This is the feedback card's timing |
-| 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | **Approved (CJ, 2026-11-09):** A. The size name and the padding name match. The card changes at adoption |
-| 13 | ToggleChip size | A. Existing tokens only. Height `size/control/sm`, type `label/sm`. B. New tokens for the card's 28px height and 13px type | **Approved (CJ, 2026-11-10):** A. B waits for the token table at adoption |
+| 12 | TextField padding at md | A. `control/padding-inline/md` (16px) with `size/control/md`. B. `space/3` (12px), matching the card's field | **Approved (CJ, 2026-11-09):** A. The size name and the padding name match. Adoption uses TextField `md` |
+| 13 | ToggleChip size | A. Existing tokens only. Height `size/control/sm`, type `label/sm`. B. New tokens for the card's 28px height and 13px type | **Approved (CJ, 2026-11-09):** A. The adoption pull request uses ToggleChip and does not add the 28px or 13px tokens |
 | 14 | Icon source | A. No icon package. The caller passes the icon, and IconButton requires an accessible name. B. Add an icon package | **Approved (CJ, 2026-11-09):** A. The name is the `label` prop, rendered as `aria-label`. The icon is `aria-hidden`. B is a dependency change |
 | 15 | Checkbox mixed state | A. Checked and unchecked only. B. Include the mixed state in the first Checkbox pull request | A |
 | 16 | Switch on color | A. `color/action/primary`. B. `color/functional/accent` | A. On is an action, not a success message |
@@ -476,8 +483,8 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 18 | Segmented control pattern | A. Radio group. One choice, no panel. B. Tabs. The choice switches a panel | A. Panel switching stays in the later Tabs candidate |
 | 19 | Card surface | A. `radius/lg`, `shadow/raised`, no extra border. B. `radius/2xl`, matching the feedback card. C. `border/subtle` and `shadow/none` | A. `shadow/raised` already includes a hairline |
 | 20 | Focus ring | A. The card's ring. `outline` is `border/focus`, offset is `border/width/2`, on `:focus-visible`. B. Change the border width on focus, which changes the control's size | A |
-| 21 | Guide-feedback adoption scope | A. Cancel, Submit, the toggle chips, and the comment field. B. Also Add a comment and Edit | A. Those two use `color/action/link`, and ghost under row 8A does not |
+| 21 | Guide-feedback adoption scope | A. Cancel, Submit, the toggle chips, and the comment field. B. Also Add a comment and Edit | **Approved (CJ, 2026-11-10):** A. Add a comment and Edit stay on the card. They use `color/action/link`, and ghost under row 8A does not |
 | 22 | When adoption lands | A. After ToggleChip (steps 1, 3, and 4). B. After Card, once the whole first list exists | A. The card needs those three, not the later controls |
-| 23 | Question 2 at adoption | A. Before any edit to `tokens/camellia.tokens.json`, show every new, changed, and deleted token with its layer and its kind, and wait for CJ. Prefer changing the card to tokens that already exist. B. Turn on a component-token layer as soon as the second consumer exists | A. The approved rule opens the decision. It does not create the layer. The receipt height and the card max width stay on the card |
+| 23 | Question 2 at adoption | A. Before any edit to `tokens/camellia.tokens.json`, show every new, changed, and deleted token with its layer and its kind, and wait for CJ. Prefer changing the card to tokens that already exist. B. Turn on a component-token layer as soon as the second consumer exists | **Approved (CJ, 2026-11-10):** A. This pull request changes the card to tokens that already exist and does not edit the token file. The receipt height, the card max width, and the segment press scale stay on the card |
 | 24 | AI prototyping enablement | A. Usage doc per component. B. Consistent prop names. C. A JSON manifest. D. One index written for AI tools. E. Figma Code Connect | No choice is made. If a starting order helps: A and B with the first component, C and D when a second component exists, E after question 3. The usage doc is already in the definition of done |
 | 25 | Figma parity | A. Demo only. Question 3 stays open. B. Also build Figma components. C. Also Code Connect | A. Figma writes need CJ's approval. This plan does not include them |

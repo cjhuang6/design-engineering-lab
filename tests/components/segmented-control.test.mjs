@@ -469,4 +469,15 @@ describe("segmented control", { concurrency: false }, () => {
     assert.equal(css.includes("color-border-default"), false);
     assert.equal(css.includes("color-surface-selected"), false);
   });
+
+  test("the segment input declares a full width and height", async () => {
+    const css = await readFile(join(ROOT, "src/components/segmented-control/SegmentedControl.css"), "utf8");
+    const rule = css.match(/\.camellia-segment-input \{[^}]*\}/);
+    assert.ok(rule);
+    assert.match(rule[0], /position:\s*absolute;/);
+    assert.match(rule[0], /inset:\s*0;/);
+    assert.match(rule[0], /display:\s*block;/);
+    assert.match(rule[0], /width:\s*100%;/);
+    assert.match(rule[0], /height:\s*100%;/);
+  });
 });

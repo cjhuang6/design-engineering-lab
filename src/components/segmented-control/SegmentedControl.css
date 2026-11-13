@@ -20,7 +20,10 @@
 .camellia-segment-input {
   position: absolute;
   inset: 0;
+  display: block;
   box-sizing: border-box;
+  width: 100%;
+  height: 100%;
   margin: var(--space-0);
   padding: var(--space-0);
   border-width: var(--border-width-1);

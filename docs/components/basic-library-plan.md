@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 15, 21, and 23. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Row 15 is the Checkbox mixed state: include it in the first Checkbox pull request. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 15, 21, and 23. **Approved (CJ, 2026-11-13):** a radio group may start with nothing selected, and the unchecked radio ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Row 15 is the Checkbox mixed state: include it in the first Checkbox pull request. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -133,7 +133,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | 4 | Chip / ToggleChip | **In progress.** Toggle button. Height `size/control/sm`, type `label/sm`, existing tokens only. Usage: [ToggleChip](basics/toggle-chip.md) |
 | 5 | Guide-feedback adoption | **In progress.** **Approved (CJ, 2026-11-10):** rows 21 and 23, option A. Cancel and Submit become Button, the reason chips become ToggleChip, and the comment field becomes TextField. Add a comment and Edit stay on the card. The token file is not edited. Detail: [Adoption](#adoption-and-question-2) |
 | 6 | Checkbox | **In progress.** Checked, unchecked, and mixed. Usage: [Checkbox](basics/checkbox.md) |
-| 7 | Radio group | The pattern Segmented control follows |
+| 7 | Radio group | **In progress.** One choice in a set. A group may start with nothing selected. Usage: [Radio group](basics/radio-group.md) |
 | 8 | Switch | Same on/off family as Checkbox |
 | 9 | Segmented control | After Radio group |
 | 10 | Card / Surface | A container. The controls above can be reviewed without it |
@@ -330,15 +330,31 @@ The earlier proposal used `color/border/default` for the resting edge and `color
 
 ## Radio group
 
-**Proposal.** Step 7. One choice in a set.
+**In progress.** Step 7. One choice in a set. Usage: [Radio group](basics/radio-group.md). Code: `src/components/radio-group/`.
+
+**Approved (CJ, 2026-11-13):** a group may start with nothing selected. The pattern allows it, and this component allows it. Nothing is selected unless a value is passed.
+
+**Approved (CJ, 2026-11-13):** the unchecked outer ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover, matching Checkbox. It does not use `color/border/default`. That color is 1.45:1 on the light surface.
 
 **States.** Per option: unchecked, checked, hover, keyboard focus, disabled. The group has a visible name.
 
-**Spec.** [Radio group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/). Tab moves into the group, onto the checked option, or onto the first option when none is checked. Tab moves out to the next control. Arrow keys move the check to the next or previous option and wrap at the ends. Space checks the focused option when it is not already checked. **Proposal:** native `<input type="radio">` elements that share a `name`, inside a `<fieldset>` and `<legend>`. The browser already moves the check with the arrow keys.
+**Spec.** [Radio group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/). Tab moves into the group, onto the checked option, or onto the first option when none is checked. Tab moves out to the next control. Arrow keys move the check to the next or previous option and wrap at the ends. Space checks the focused option when it is not already checked. Native `<input type="radio">` elements share a `name`, inside a `<fieldset>` and a visible `<legend>`. The browser moves the check with the arrow keys.
 
-**Tokens. Proposal.** The checkbox tokens, with `radius/full` on the circle and a checked dot in `color/action/primary`. The outer ring uses `color/border/default`.
+**Tokens.**
 
-**Unknown.** Whether a group may start with nothing checked. The pattern allows it. **Proposal:** allow it.
+| Part | Token |
+|---|---|
+| Drawn circle | `size/icon/md` (20px). The hit area follows the shared coarse-pointer rule, `size/touch-target` |
+| Circle | `radius/full`, `border/width/1`, fill `color/surface/primary` |
+| Unchecked ring | `color/icon/secondary`. Hover `color/icon/primary` |
+| Checked ring | `color/action/primary`. Hover `color/action/primary-hover` |
+| Checked dot | `color/action/primary`, size `space/2`. Hover `color/action/primary-hover` |
+| Focus | The shared ring |
+| Option label | `label/md`, `color/text/primary`, gap `space/2` |
+| Group name | `heading/sm`, gap `space/3` |
+| Disabled | `opacity/disabled` |
+
+The earlier proposal used `color/border/default` for the outer ring. That misses 3:1 in light: `color/border/default` is 1.45:1 on the light surface and 1.86:1 on the dark surface. The icon colors clear 3:1 in both themes. The ratios are in the [usage doc](basics/radio-group.md). The circle is the same size as Checkbox. The dot uses `space/2`, the same length ToggleChip uses for its dot, so the ring stays visible. `size/icon/sm` would fill almost the whole circle. This pull request does not edit the token file.
 
 ## Switch
 
@@ -455,7 +471,7 @@ The token table for this pull request has no rows. Nothing is added, changed, or
 | An index written for AI tools | One markdown page listing every basic component, the file it lives in, and a short example. A person can paste it into a prompt, or a tool can fetch it | One place to point a tool | It goes stale unless it is generated from the components or checked |
 | Figma Code Connect | Figma's link from a Figma component to a code snippet. Components-roadmap [question 3](../components-roadmap.md#open-questions) | Design-to-code stays tied to the real component | Question 3 is **Unknown**. Code Connect and any Figma write need CJ's approval. It does not help a prototype that never opens Figma |
 
-The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. ToggleChip uses `pressed` and `onPressedChange` when controlled, `defaultPressed` when not, and `disabled`. The visible label is `children`. An optional `icon` is hidden from assistive technology. Checkbox uses `checked` (`true`, `false`, or `'mixed'`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. Activating a mixed checkbox reports `true`. That records the props for these components. It does not choose the set for every later component.
+The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. ToggleChip uses `pressed` and `onPressedChange` when controlled, `defaultPressed` when not, and `disabled`. The visible label is `children`. An optional `icon` is hidden from assistive technology. Checkbox uses `checked` (`true`, `false`, or `'mixed'`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. Activating a mixed checkbox reports `true`. RadioGroup uses `legend` for the visible group name. `label` is that same text when `legend` is omitted. `name` is the shared radio name. `value` and `onValueChange` are the controlled selection, and `defaultValue` is the uncontrolled start. `null` selects nothing. The group takes `options` or `Radio` children. `disabled` disables the group. A Radio's visible label is `children`, and `disabled` on a Radio disables that option. Nothing is selected unless a value is passed. That records the props for these components. It does not choose the set for every later component.
 
 ## Figma
 
@@ -465,7 +481,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 15, 21, and 23 are **Approved (CJ, 2026-11-10)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. Checkbox uses row 15. The guide-feedback adoption uses rows 21 and 23. No other row is approved.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 15, 21, and 23 are **Approved (CJ, 2026-11-10)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. Checkbox uses row 15. The guide-feedback adoption uses rows 21 and 23. No other row is approved. The radio group section records two approvals from 2026-11-13: a group may start with nothing selected, and the unchecked ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. They are not rows in this table.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|

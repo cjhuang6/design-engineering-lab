@@ -1,0 +1,40 @@
+.camellia-card {
+  box-sizing: border-box;
+  min-width: var(--space-0);
+  max-width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-raised);
+  overflow-wrap: break-word;
+}
+
+.camellia-card-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--layout-content-gap-lg);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-card-demo .camellia-card {
+  width: min(100%, var(--size-content-sm));
+}
+
+.camellia-card-demo-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-card-demo-title {
+  font: var(--body-md);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--body-md-letter-spacing);
+  color: var(--color-text-primary);
+}

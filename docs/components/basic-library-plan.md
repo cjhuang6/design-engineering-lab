@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 15, 21, and 23. **Approved (CJ, 2026-11-13):** a radio group may start with nothing selected, and the unchecked radio ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. **Approved (CJ, 2026-11-13):** rows 16 and 17, option A. The switch on track is `color/action/primary` (hover `color/action/primary-hover`). The track is `size/control/sm` tall and `size/control/lg` wide. No new size token. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Row 15 is the Checkbox mixed state: include it in the first Checkbox pull request. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 15, 21, and 23. **Approved (CJ, 2026-11-13):** a radio group may start with nothing selected, and the unchecked radio ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. **Approved (CJ, 2026-11-13):** rows 16 and 17, option A. The switch on track is `color/action/primary` (hover `color/action/primary-hover`). The track is `size/control/sm` tall and `size/control/lg` wide. No new size token. **Approved (CJ, 2026-11-13):** row 18, option A. A segmented control is a radio group drawn as a row of segments. One choice. It does not switch a panel. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Row 15 is the Checkbox mixed state: include it in the first Checkbox pull request. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -135,7 +135,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | 6 | Checkbox | **In progress.** Checked, unchecked, and mixed. Usage: [Checkbox](basics/checkbox.md) |
 | 7 | Radio group | **In progress.** One choice in a set. A group may start with nothing selected. Usage: [Radio group](basics/radio-group.md) |
 | 8 | Switch | **In progress.** On or off. The on track is `color/action/primary`. The track is `size/control/sm` by `size/control/lg`. Usage: [Switch](basics/switch.md) |
-| 9 | Segmented control | After Radio group |
+| 9 | Segmented control | **In progress.** One choice, drawn as a row. It does not switch a panel. Usage: [Segmented control](basics/segmented-control.md) |
 | 10 | Card / Surface | A container. The controls above can be reviewed without it |
 
 **Later, not in this sequence.** Tooltip, Dialog, Select/Menu, Tabs. They need overlay behavior and, for Select, a pattern choice that is still open. See [Later](#later).
@@ -383,24 +383,30 @@ The earlier proposal used `color/border/strong` for the off track. That misses 3
 
 ## Segmented control
 
-**Proposal.** Step 9. One choice, drawn as a row of segments. It does not switch a panel of content. That second job is Tabs, which is later.
+**In progress.** Step 9. One choice, drawn as a row of segments. It does not switch a panel of content. That second job is Tabs, which is later. Usage: [Segmented control](basics/segmented-control.md). Code: `src/components/segmented-control/`.
+
+**Approved (CJ, 2026-11-13):** row 18, option A. A segmented control is a radio group. One choice, no panel. Panel switching stays in the later Tabs candidate.
 
 **States.** Selected, unselected, hover, keyboard focus, disabled. In the radio pattern, moving with the arrow keys moves the focus and the selection together. Focus sitting on one segment while another stays selected is a different interaction. That idea is the track 1 "Single-choice segments" candidate, and it is still only a proposal there.
 
-**Spec.** The [Radio group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/), same keys as Radio group. **Proposal:** the same native radios, styled as a segment row.
+**Spec.** The [Radio group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/), same keys as Radio group. Native `<input type="radio">` elements share a `name`, inside a `<fieldset>` and a visible `<legend>`. The browser moves the check with the arrow keys.
 
-**Tokens. Proposal.**
+**Tokens.**
 
 | Part | Token |
 |---|---|
-| Track | `color/surface/subtle`, padding `space/1`, radius `radius/lg` |
-| Segment height | `size/control/md` |
-| Selected segment | `color/surface/primary`, `color/text/primary`, `shadow/control` |
-| Unselected label | `color/text/secondary` |
+| Track | `color/surface/subtle`, padding `space/1`, radius `radius/lg`, edge `color/icon/secondary` at `border/width/1` |
+| Segment height | `size/control/md`, padding `control/padding-inline/md`, radius `radius/md` |
+| Selected segment | Fill `color/surface/primary`, label `color/text/primary` at `font-weight/semibold`, edge `color/action/primary`, shadow `shadow/control` |
+| Selected hover | Edge `color/action/primary-hover`, shadow `shadow/control-hover` |
+| Unselected label | `color/text/secondary`. Hover `color/text/primary` |
 | Type | `label/md` |
 | Focus | The shared ring, on the segment that has focus |
+| Disabled | `opacity/disabled` |
 
-**Unknown.** The track radius, if `radius/md` fits the rest of the library better than `radius/lg`.
+**Unknown.** The track radius, if `radius/md` fits the rest of the library better than `radius/lg`. This pull request uses the proposed `radius/lg`. The segment radius is `radius/md` so it sits inside the `space/1` padding.
+
+The proposal used `color/surface/primary` on `color/surface/subtle` as the selected indicator, with `shadow/control`. That fill is 1.09:1 on the track in light and 1:1 in dark, because dark `color/surface/primary` and `color/surface/subtle` are the same color. `shadow/control`'s hairline is about 1.18:1 in light and 1.24:1 in dark. The track itself is 1.09:1 on the light canvas and 1.11:1 on the dark canvas. `color/surface/selected` on the track is 1.02:1 in light and 1.19:1 in dark. `color/border/default` is 1.45:1 in light. None of those mark the selection or the row at 3:1. The row edge uses `color/icon/secondary`. The selected edge uses `color/action/primary`. The selected label is also semibold, so the selection is not color alone. The ratios are in the [usage doc](basics/segmented-control.md). This pull request does not edit the token file.
 
 ## Card / Surface
 
@@ -476,7 +482,7 @@ The token table for this pull request has no rows. Nothing is added, changed, or
 | An index written for AI tools | One markdown page listing every basic component, the file it lives in, and a short example. A person can paste it into a prompt, or a tool can fetch it | One place to point a tool | It goes stale unless it is generated from the components or checked |
 | Figma Code Connect | Figma's link from a Figma component to a code snippet. Components-roadmap [question 3](../components-roadmap.md#open-questions) | Design-to-code stays tied to the real component | Question 3 is **Unknown**. Code Connect and any Figma write need CJ's approval. It does not help a prototype that never opens Figma |
 
-The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. ToggleChip uses `pressed` and `onPressedChange` when controlled, `defaultPressed` when not, and `disabled`. The visible label is `children`. An optional `icon` is hidden from assistive technology. Checkbox uses `checked` (`true`, `false`, or `'mixed'`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. Activating a mixed checkbox reports `true`. RadioGroup uses `legend` for the visible group name. `label` is that same text when `legend` is omitted. `name` is the shared radio name. `value` and `onValueChange` are the controlled selection, and `defaultValue` is the uncontrolled start. `null` selects nothing. The group takes `options` or `Radio` children. `disabled` disables the group. A Radio's visible label is `children`, and `disabled` on a Radio disables that option. Nothing is selected unless a value is passed. Switch uses `checked` (`true` or `false`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. There is no mixed state. The input is a checkbox with `role="switch"`. That records the props for these components. It does not choose the set for every later component.
+The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. ToggleChip uses `pressed` and `onPressedChange` when controlled, `defaultPressed` when not, and `disabled`. The visible label is `children`. An optional `icon` is hidden from assistive technology. Checkbox uses `checked` (`true`, `false`, or `'mixed'`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. Activating a mixed checkbox reports `true`. RadioGroup uses `legend` for the visible group name. `label` is that same text when `legend` is omitted. `name` is the shared radio name. `value` and `onValueChange` are the controlled selection, and `defaultValue` is the uncontrolled start. `null` selects nothing. The group takes `options` or `Radio` children. `disabled` disables the group. A Radio's visible label is `children`, and `disabled` on a Radio disables that option. Nothing is selected unless a value is passed. Switch uses `checked` (`true` or `false`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. There is no mixed state. The input is a checkbox with `role="switch"`. SegmentedControl uses `legend` for the visible group name. `label` is that same text when `legend` is omitted. `name` is the shared radio name. `options` is the row. Each option has `value`, `label`, and an optional `disabled`. `value` and `onValueChange` are the controlled selection, and `defaultValue` is the uncontrolled start. `null` selects nothing. `disabled` disables the group. Nothing is selected unless a value is passed. There is no size prop. The segment height is `size/control/md`. That records the props for these components. It does not choose the set for every later component.
 
 ## Figma
 
@@ -486,7 +492,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 15, 21, and 23 are **Approved (CJ, 2026-11-10)**. Rows 16 and 17 are **Approved (CJ, 2026-11-13)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. Checkbox uses row 15. Switch uses rows 16 and 17. The guide-feedback adoption uses rows 21 and 23. No other row is approved. The radio group section records two approvals from 2026-11-13: a group may start with nothing selected, and the unchecked ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. They are not rows in this table.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 15, 21, and 23 are **Approved (CJ, 2026-11-10)**. Rows 16, 17, and 18 are **Approved (CJ, 2026-11-13)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. Checkbox uses row 15. Switch uses rows 16 and 17. Segmented control uses row 18. The guide-feedback adoption uses rows 21 and 23. No other row is approved. The radio group section records two approvals from 2026-11-13: a group may start with nothing selected, and the unchecked ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. They are not rows in this table.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -507,7 +513,7 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 15 | Checkbox mixed state | A. Checked and unchecked only. B. Include the mixed state in the first Checkbox pull request | **Approved (CJ, 2026-11-10):** B. Activating a mixed checkbox moves it to checked |
 | 16 | Switch on color | A. `color/action/primary`. B. `color/functional/accent` | **Approved (CJ, 2026-11-13):** A. On is an action, not a success message. Hover is `color/action/primary-hover` |
 | 17 | Switch track size | A. Height `size/control/sm` (32px), width `size/control/lg` (48px). B. Height `size/icon/lg` (24px), width `size/control/md` (40px). C. Decide at the Switch pull request, from tokens that exist | **Approved (CJ, 2026-11-13):** A. No new size token |
-| 18 | Segmented control pattern | A. Radio group. One choice, no panel. B. Tabs. The choice switches a panel | A. Panel switching stays in the later Tabs candidate |
+| 18 | Segmented control pattern | A. Radio group. One choice, no panel. B. Tabs. The choice switches a panel | **Approved (CJ, 2026-11-13):** A. Panel switching stays in the later Tabs candidate |
 | 19 | Card surface | A. `radius/lg`, `shadow/raised`, no extra border. B. `radius/2xl`, matching the feedback card. C. `border/subtle` and `shadow/none` | A. `shadow/raised` already includes a hairline |
 | 20 | Focus ring | A. The card's ring. `outline` is `border/focus`, offset is `border/width/2`, on `:focus-visible`. B. Change the border width on focus, which changes the control's size | A |
 | 21 | Guide-feedback adoption scope | A. Cancel, Submit, the toggle chips, and the comment field. B. Also Add a comment and Edit | **Approved (CJ, 2026-11-10):** A. Add a comment and Edit stay on the card. They use `color/action/link`, and ghost under row 8A does not |

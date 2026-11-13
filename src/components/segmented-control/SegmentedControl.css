@@ -1,0 +1,149 @@
+.camellia-segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--size-control-md);
+  max-width: 100%;
+  padding-inline: var(--control-padding-inline-md);
+  border-radius: var(--radius-md);
+  font: var(--label-md);
+  letter-spacing: var(--label-md-letter-spacing);
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.camellia-segment-input {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border-width: var(--border-width-1);
+  border-style: var(--border-style-solid);
+  border-color: transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  box-shadow: var(--shadow-none);
+  cursor: inherit;
+  appearance: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.camellia-segment-label {
+  position: relative;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  transition-property: color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+}
+
+.camellia-segment[data-state='checked'] .camellia-segment-label {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.camellia-segment[data-state='checked'] .camellia-segment-input {
+  border-color: var(--color-action-primary);
+  background: var(--color-surface-primary);
+  box-shadow: var(--shadow-control);
+}
+
+.camellia-segment-disabled,
+.camellia-segmented-disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.camellia-segmented-disabled .camellia-segment {
+  cursor: not-allowed;
+}
+
+.camellia-segment-input:focus {
+  outline: none;
+}
+
+.camellia-segment-input:focus-visible {
+  outline: var(--border-focus);
+  outline-offset: var(--border-width-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .camellia-segment-input:not(:disabled):hover + .camellia-segment-label {
+    color: var(--color-text-primary);
+  }
+
+  .camellia-segment[data-state='checked'] .camellia-segment-input:not(:disabled):hover {
+    border-color: var(--color-action-primary-hover);
+    box-shadow: var(--shadow-control-hover);
+  }
+}
+
+@media (pointer: coarse) {
+  .camellia-segment::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--size-touch-target));
+    height: max(100%, var(--size-touch-target));
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camellia-segment-input,
+  .camellia-segment-label {
+    transition: none;
+  }
+}
+
+.camellia-segmented-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--layout-content-gap-lg);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-segmented {
+  margin: var(--space-0);
+  padding: var(--space-0);
+  border-width: var(--border-width-0);
+  border-style: var(--border-style-solid);
+  min-width: var(--space-0);
+  max-width: 100%;
+}
+
+.camellia-segmented legend {
+  padding: var(--space-0);
+  margin-bottom: var(--space-3);
+  font: var(--heading-sm);
+  letter-spacing: var(--heading-sm-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.camellia-segmented-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  padding: var(--space-1);
+  border-width: var(--border-width-1);
+  border-style: var(--border-style-solid);
+  border-color: var(--color-icon-secondary);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-subtle);
+}

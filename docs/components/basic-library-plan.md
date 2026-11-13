@@ -9,7 +9,7 @@ Every entry is labelled:
 - **Proposal**: suggested, not yet approved.
 - **Unknown**: not yet determined.
 
-**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 15, 21, and 23. **Approved (CJ, 2026-11-13):** a radio group may start with nothing selected, and the unchecked radio ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Row 15 is the Checkbox mixed state: include it in the first Checkbox pull request. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
+**Approved (CJ, 2026-11-09):** the decisions in [What is already decided](#what-is-already-decided), and rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 in [Decisions for CJ](#decisions-for-cj). **Approved (CJ, 2026-11-10):** rows 15, 21, and 23. **Approved (CJ, 2026-11-13):** a radio group may start with nothing selected, and the unchecked radio ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. **Approved (CJ, 2026-11-13):** rows 16 and 17, option A. The switch on track is `color/action/primary` (hover `color/action/primary-hover`). The track is `size/control/sm` tall and `size/control/lg` wide. No new size token. Every other decision in this file is an **Observed** fact, a **Proposal**, or an **Unknown**. A track 2 pull request opens only for a part those approvals cover. Rows 6 and 9 are the Button height and the unavailable-button decisions. Rows 7 and 8 are the Button radius and the secondary and ghost colors. Rows 10, 11, and 12 are the TextField error color, the late validation, and the md padding. Row 13 is the ToggleChip size: existing tokens only. Row 14 is the IconButton icon source. Row 15 is the Checkbox mixed state: include it in the first Checkbox pull request. Rows 21 and 23 are the guide-feedback adoption scope and the question 2 token decision. The nav pull request did not build them. An **Unknown** that belongs to a later component does not block an earlier one.
 
 ## What is already decided
 
@@ -134,7 +134,7 @@ A **headless library** is a package that supplies keyboard, focus, and ARIA beha
 | 5 | Guide-feedback adoption | **In progress.** **Approved (CJ, 2026-11-10):** rows 21 and 23, option A. Cancel and Submit become Button, the reason chips become ToggleChip, and the comment field becomes TextField. Add a comment and Edit stay on the card. The token file is not edited. Detail: [Adoption](#adoption-and-question-2) |
 | 6 | Checkbox | **In progress.** Checked, unchecked, and mixed. Usage: [Checkbox](basics/checkbox.md) |
 | 7 | Radio group | **In progress.** One choice in a set. A group may start with nothing selected. Usage: [Radio group](basics/radio-group.md) |
-| 8 | Switch | Same on/off family as Checkbox |
+| 8 | Switch | **In progress.** On or off. The on track is `color/action/primary`. The track is `size/control/sm` by `size/control/lg`. Usage: [Switch](basics/switch.md) |
 | 9 | Segmented control | After Radio group |
 | 10 | Card / Surface | A container. The controls above can be reviewed without it |
 
@@ -358,23 +358,28 @@ The earlier proposal used `color/border/default` for the outer ring. That misses
 
 ## Switch
 
-**Proposal.** Step 8. On or off. The label does not change when the state changes. The APG calls that out: a screen reader says "on" or "off" against a stable name.
+**In progress.** Step 8. On or off. The label does not change when the state changes. The APG calls that out: a screen reader says "on" or "off" against a stable name. Usage: [Switch](basics/switch.md). Code: `src/components/switch/`.
+
+**Approved (CJ, 2026-11-13):** row 16, option A. The on track is `color/action/primary`. Hover is `color/action/primary-hover`. On is an action, not a success message, so it does not use `color/functional/accent`.
+
+**Approved (CJ, 2026-11-13):** row 17, option A. The track is `size/control/sm` (32px) tall and `size/control/lg` (48px) wide. No new size token.
 
 **States.** Off, on, hover, keyboard focus, disabled. No mixed state. The pattern says a switch is only the two values.
 
-**Spec.** [Switch pattern](https://www.w3.org/WAI/ARIA/apg/patterns/switch/). Space changes the state. Enter is optional in the pattern. **Proposal:** a native `<input type="checkbox" role="switch">`. On a real checkbox the checked state is the `checked` attribute, which is what the pattern says to use instead of `aria-checked` for that element. Choose a switch when the meaning is on/off. Choose a checkbox when the meaning is checked/unchecked. They should not be styled as each other.
+**Spec.** [Switch pattern](https://www.w3.org/WAI/ARIA/apg/patterns/switch/). Space changes the state. Enter does not. A native `<input type="checkbox" role="switch">` with a visible label. On a real checkbox the checked state is the `checked` attribute, which is what the pattern says to use instead of `aria-checked` for that element. Choose a switch when the meaning is on/off. Choose a checkbox when the meaning is checked/unchecked. They are not styled as each other.
 
-**Tokens. Proposal.**
+**Tokens.**
 
 | Part | Token |
 |---|---|
-| On fill | `color/action/primary`. **Unknown** alternative: `color/functional/accent`, the green. **Proposal:** the action blue, so "on" is not read as a success message |
-| Off track | `color/border/strong` |
-| Thumb | `color/surface/primary` |
+| Track | Height `size/control/sm` (32px), width `size/control/lg` (48px), `radius/full`. The hit area follows the shared coarse-pointer rule, `size/touch-target` |
+| On track | `color/action/primary`. Hover `color/action/primary-hover` |
+| Off track | `color/icon/secondary`. Hover `color/icon/primary` |
+| Thumb | `color/surface/primary`, `size/icon/lg`, `radius/full`, inset `space/1` |
 | Focus and disabled | The shared ring and `opacity/disabled` |
-| Label | `label/md`, gap `space/2` |
+| Label | `label/md`, `color/text/primary`, gap `space/2` |
 
-**Unknown.** The track's width and height. No switch size token exists. Candidates, all real tokens: height `size/icon/lg` (24px) or `size/control/sm` (32px), width `size/control/md` (40px) or `size/control/lg` (48px). The hit area is at least `size/touch-target`. **Proposal:** height `size/control/sm`, width `size/control/lg`, and CJ confirms at the Switch pull request.
+The earlier proposal used `color/border/strong` for the off track. That misses 3:1 in light: `color/border/strong` is 2.39:1 on the light surface and 3.05:1 on the dark surface. `color/border/default` is 1.45:1 in light and 1.86:1 in dark. The icon colors clear 3:1 in both themes. The ratios are in the [usage doc](basics/switch.md). The thumb is `size/icon/lg` so a `space/1` inset centers it in each rounded end of the 32px track. This pull request does not edit the token file.
 
 ## Segmented control
 
@@ -471,7 +476,7 @@ The token table for this pull request has no rows. Nothing is added, changed, or
 | An index written for AI tools | One markdown page listing every basic component, the file it lives in, and a short example. A person can paste it into a prompt, or a tool can fetch it | One place to point a tool | It goes stale unless it is generated from the components or checked |
 | Figma Code Connect | Figma's link from a Figma component to a code snippet. Components-roadmap [question 3](../components-roadmap.md#open-questions) | Design-to-code stays tied to the real component | Question 3 is **Unknown**. Code Connect and any Figma write need CJ's approval. It does not help a prototype that never opens Figma |
 
-The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. ToggleChip uses `pressed` and `onPressedChange` when controlled, `defaultPressed` when not, and `disabled`. The visible label is `children`. An optional `icon` is hidden from assistive technology. Checkbox uses `checked` (`true`, `false`, or `'mixed'`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. Activating a mixed checkbox reports `true`. RadioGroup uses `legend` for the visible group name. `label` is that same text when `legend` is omitted. `name` is the shared radio name. `value` and `onValueChange` are the controlled selection, and `defaultValue` is the uncontrolled start. `null` selects nothing. The group takes `options` or `Radio` children. `disabled` disables the group. A Radio's visible label is `children`, and `disabled` on a Radio disables that option. Nothing is selected unless a value is passed. That records the props for these components. It does not choose the set for every later component.
+The definition of done already includes the usage doc. That is a **Proposal** for the doc itself, and it is not a choice among the five options above. IconButton's `label` prop is **Approved** with row 14. TextField uses `label` for the visible label, and `size` and `disabled` with the same values as Button. ToggleChip uses `pressed` and `onPressedChange` when controlled, `defaultPressed` when not, and `disabled`. The visible label is `children`. An optional `icon` is hidden from assistive technology. Checkbox uses `checked` (`true`, `false`, or `'mixed'`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. Activating a mixed checkbox reports `true`. RadioGroup uses `legend` for the visible group name. `label` is that same text when `legend` is omitted. `name` is the shared radio name. `value` and `onValueChange` are the controlled selection, and `defaultValue` is the uncontrolled start. `null` selects nothing. The group takes `options` or `Radio` children. `disabled` disables the group. A Radio's visible label is `children`, and `disabled` on a Radio disables that option. Nothing is selected unless a value is passed. Switch uses `checked` (`true` or `false`) and `onCheckedChange` when controlled, `defaultChecked` when not, and `disabled`. The visible label is `children`. There is no mixed state. The input is a checkbox with `role="switch"`. That records the props for these components. It does not choose the set for every later component.
 
 ## Figma
 
@@ -481,7 +486,7 @@ The definition of done already includes the usage doc. That is a **Proposal** fo
 
 ## Decisions for CJ
 
-A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 15, 21, and 23 are **Approved (CJ, 2026-11-10)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. Checkbox uses row 15. The guide-feedback adoption uses rows 21 and 23. No other row is approved. The radio group section records two approvals from 2026-11-13: a group may start with nothing selected, and the unchecked ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. They are not rows in this table.
+A recommendation is not a decision. CJ can accept it, pick the other option, or leave the row **Unknown** until the pull request that needs it. An **Unknown** on a later component does not block an earlier pull request. Rows 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 are **Approved (CJ, 2026-11-09)**. Rows 15, 21, and 23 are **Approved (CJ, 2026-11-10)**. Rows 16 and 17 are **Approved (CJ, 2026-11-13)**. The nav pull request uses rows 2, 3, 4, and 5. Button uses rows 1, 6, 7, 8, and 9. TextField uses rows 10, 11, and 12. ToggleChip uses row 13. IconButton uses row 14. Checkbox uses row 15. Switch uses rows 16 and 17. The guide-feedback adoption uses rows 21 and 23. No other row is approved. The radio group section records two approvals from 2026-11-13: a group may start with nothing selected, and the unchecked ring uses `color/icon/secondary` at rest and `color/icon/primary` on hover. They are not rows in this table.
 
 | # | Decision | Options | Recommendation |
 |---|---|---|---|
@@ -500,8 +505,8 @@ A recommendation is not a decision. CJ can accept it, pick the other option, or 
 | 13 | ToggleChip size | A. Existing tokens only. Height `size/control/sm`, type `label/sm`. B. New tokens for the card's 28px height and 13px type | **Approved (CJ, 2026-11-09):** A. The adoption pull request uses ToggleChip and does not add the 28px or 13px tokens |
 | 14 | Icon source | A. No icon package. The caller passes the icon, and IconButton requires an accessible name. B. Add an icon package | **Approved (CJ, 2026-11-09):** A. The name is the `label` prop, rendered as `aria-label`. The icon is `aria-hidden`. B is a dependency change |
 | 15 | Checkbox mixed state | A. Checked and unchecked only. B. Include the mixed state in the first Checkbox pull request | **Approved (CJ, 2026-11-10):** B. Activating a mixed checkbox moves it to checked |
-| 16 | Switch on color | A. `color/action/primary`. B. `color/functional/accent` | A. On is an action, not a success message |
-| 17 | Switch track size | A. Height `size/control/sm` (32px), width `size/control/lg` (48px). B. Height `size/icon/lg` (24px), width `size/control/md` (40px). C. Decide at the Switch pull request, from tokens that exist | A, confirmed when that pull request opens. No new size token |
+| 16 | Switch on color | A. `color/action/primary`. B. `color/functional/accent` | **Approved (CJ, 2026-11-13):** A. On is an action, not a success message. Hover is `color/action/primary-hover` |
+| 17 | Switch track size | A. Height `size/control/sm` (32px), width `size/control/lg` (48px). B. Height `size/icon/lg` (24px), width `size/control/md` (40px). C. Decide at the Switch pull request, from tokens that exist | **Approved (CJ, 2026-11-13):** A. No new size token |
 | 18 | Segmented control pattern | A. Radio group. One choice, no panel. B. Tabs. The choice switches a panel | A. Panel switching stays in the later Tabs candidate |
 | 19 | Card surface | A. `radius/lg`, `shadow/raised`, no extra border. B. `radius/2xl`, matching the feedback card. C. `border/subtle` and `shadow/none` | A. `shadow/raised` already includes a hairline |
 | 20 | Focus ring | A. The card's ring. `outline` is `border/focus`, offset is `border/width/2`, on `:focus-visible`. B. Change the border width on focus, which changes the control's size | A |

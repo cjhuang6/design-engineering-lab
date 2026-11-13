@@ -5,6 +5,7 @@ import { TextFieldDemo } from './components/text-field/TextField.jsx'
 import { ToggleChipDemo } from './components/toggle-chip/ToggleChip.jsx'
 import { CheckboxDemo } from './components/checkbox/Checkbox.jsx'
 import { RadioGroupDemo } from './components/radio-group/RadioGroup.jsx'
+import { SwitchDemo } from './components/switch/Switch.jsx'
 import { Showcase } from './showcase/Showcase.jsx'
 import tokensCss from './styles/tokens.css?raw'
 import { catalogFromCss, frostProperties, previewKind } from './parseTokenCss.js'
@@ -292,6 +293,7 @@ function ComponentsPage() {
       <ToggleChipDemo />
       <CheckboxDemo />
       <RadioGroupDemo />
+      <SwitchDemo />
     </main>
   )
 }

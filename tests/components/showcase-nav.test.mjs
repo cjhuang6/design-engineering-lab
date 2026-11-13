@@ -197,7 +197,7 @@ test("each hash opens its section and marks that link current", async () => {
     {
       hash: "#components",
       current: "Components",
-      present: [COMPONENTS_COPY, "Primary md", "Primary disabled", "Primary unavailable", "No button activated.", "Icon button", "No icon button activated.", "Toggle chip", "Selected Clear.", "Checkbox", "Some devices is mixed.", "Radio group", "Nothing selected.", "Gift wrap", "Switch", "Wi-Fi is on. Bluetooth is off. Airplane mode is off.", "Segmented control", "Selected Week.", "Alignment"],
+      present: [COMPONENTS_COPY, "Primary md", "Primary disabled", "Primary unavailable", "No button activated.", "Icon button", "No icon button activated.", "Toggle chip", "Selected Clear.", "Checkbox", "Some devices is mixed.", "Radio group", "Nothing selected.", "Gift wrap", "Switch", "Wi-Fi is on. Bluetooth is off. Airplane mode is off.", "Segmented control", "Selected Week.", "Alignment", "Card", "Notifications", "Save"],
       absent: [PROTOTYPES_COPY, ...LAB_CARDS.map((name) => `Open ${name} details`)],
     },
     {
